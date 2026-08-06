@@ -10,20 +10,26 @@ interface HomeScreenProps {
   onStartFromA: () => void;
 }
 
-// Soft nature SVG decorations
-function Hills() {
+// ─── SVG nature elements ──────────────────────────────────────────────────────
+
+function CloudSvg({ x, y, w = 60 }: { x: number; y: number; w?: number }) {
+  const h = w * 0.45;
   return (
-    <svg
-      viewBox="0 0 420 140"
-      fill="none"
-      className="absolute bottom-0 left-0 w-full"
-      style={{ zIndex: 1 }}
-      aria-hidden="true"
-    >
-      <ellipse cx="70" cy="155" rx="130" ry="90" fill="#C8F0D8" opacity="0.55" />
-      <ellipse cx="260" cy="170" rx="180" ry="100" fill="#B8EAC8" opacity="0.55" />
-      <ellipse cx="400" cy="160" rx="120" ry="80" fill="#D4F0DC" opacity="0.5" />
-    </svg>
+    <g transform={`translate(${x}, ${y})`} opacity="0.72">
+      <ellipse cx={w * 0.5} cy={h} rx={w * 0.5} ry={h * 0.6} fill="white" />
+      <circle cx={w * 0.3} cy={h * 0.65} r={h * 0.65} fill="white" />
+      <circle cx={w * 0.6} cy={h * 0.55} r={h * 0.8} fill="white" />
+      <circle cx={w * 0.78} cy={h * 0.75} r={h * 0.55} fill="white" />
+    </g>
+  );
+}
+
+function BirdSvg({ x, y }: { x: number; y: number }) {
+  return (
+    <g transform={`translate(${x}, ${y})`} opacity="0.6">
+      <path d="M0 0 Q4 -5 8 0" stroke="#A882E8" strokeWidth="2" strokeLinecap="round" fill="none" />
+      <path d="M10 0 Q14 -5 18 0" stroke="#A882E8" strokeWidth="2" strokeLinecap="round" fill="none" />
+    </g>
   );
 }
 
@@ -38,10 +44,10 @@ function TreeSvg({ x, y, scale = 1 }: { x: number; y: number; scale?: number }) 
   );
 }
 
-function FlowerSvg({ x, y }: { x: number; y: number }) {
-  const colors = ["#FF9EBC", "#FFAA80", "#A882E8", "#66CC94", "#FFD700"];
+function FlowerSvg({ x, y, sway = false }: { x: number; y: number; sway?: boolean }) {
+  const colors = ["#FF9EBC", "#FFAA80", "#A882E8", "#66CC94", "#FFD700", "#74B9FF"];
   const c = colors[Math.floor((x * 13 + y * 7) % colors.length)];
-  return (
+  const inner = (
     <g transform={`translate(${x}, ${y})`}>
       <line x1="0" y1="0" x2="0" y2="18" stroke="#5DBE8A" strokeWidth="2.5" strokeLinecap="round" />
       {[0, 60, 120, 180, 240, 300].map((deg, i) => (
@@ -59,37 +65,51 @@ function FlowerSvg({ x, y }: { x: number; y: number }) {
       <circle cx="0" cy="0" r="4.5" fill="#FECA57" />
     </g>
   );
-}
-
-function CloudSvg({ x, y, w = 60 }: { x: number; y: number; w?: number }) {
-  const h = w * 0.45;
+  if (!sway) return inner;
   return (
-    <g transform={`translate(${x}, ${y})`} opacity="0.7">
-      <ellipse cx={w * 0.5} cy={h} rx={w * 0.5} ry={h * 0.6} fill="white" />
-      <circle cx={w * 0.3} cy={h * 0.65} r={h * 0.65} fill="white" />
-      <circle cx={w * 0.6} cy={h * 0.55} r={h * 0.8} fill="white" />
-      <circle cx={w * 0.78} cy={h * 0.75} r={h * 0.55} fill="white" />
-    </g>
+    <motion.g
+      animate={{ rotate: [-4, 4, -4] }}
+      transition={{ duration: 2.8 + (x % 5) * 0.3, repeat: Infinity, ease: "easeInOut" }}
+      style={{ originX: `${x}px`, originY: `${y + 18}px` }}
+    >
+      {inner}
+    </motion.g>
   );
 }
 
-function BirdSvg({ x, y }: { x: number; y: number }) {
+function ButterflyBody({ x, y, color, r = 0 }: { x: number; y: number; color: string; r?: number }) {
   return (
-    <g transform={`translate(${x}, ${y})`} opacity="0.65">
-      <path d="M0 0 Q4 -5 8 0" stroke="#A882E8" strokeWidth="2" strokeLinecap="round" fill="none" />
-      <path d="M10 0 Q14 -5 18 0" stroke="#A882E8" strokeWidth="2" strokeLinecap="round" fill="none" />
-    </g>
-  );
-}
-
-function ButterflyBody({ x, y, color }: { x: number; y: number; color: string }) {
-  return (
-    <g transform={`translate(${x}, ${y})`}>
-      <ellipse cx="-10" cy="-5" rx="11" ry="7" fill={color} opacity="0.75" transform="rotate(-25 -10 -5)" />
-      <ellipse cx="10" cy="-5" rx="11" ry="7" fill={color} opacity="0.75" transform="rotate(25 10 -5)" />
+    <g transform={`translate(${x}, ${y}) rotate(${r})`}>
+      <ellipse cx="-10" cy="-5" rx="11" ry="7" fill={color} opacity="0.78" transform="rotate(-25 -10 -5)" />
+      <ellipse cx="10" cy="-5" rx="11" ry="7" fill={color} opacity="0.78" transform="rotate(25 10 -5)" />
       <ellipse cx="-8" cy="5" rx="7" ry="5" fill={color} opacity="0.6" transform="rotate(15 -8 5)" />
       <ellipse cx="8" cy="5" rx="7" ry="5" fill={color} opacity="0.6" transform="rotate(-15 8 5)" />
       <ellipse cx="0" cy="0" rx="2.5" ry="6" fill="#555" opacity="0.5" />
+    </g>
+  );
+}
+
+function BeeSvg({ x, y }: { x: number; y: number }) {
+  return (
+    <g transform={`translate(${x}, ${y})`}>
+      {/* Wings */}
+      <ellipse cx="-5" cy="-6" rx="7" ry="4" fill="white" opacity="0.65" transform="rotate(-15 -5 -6)" />
+      <ellipse cx="5" cy="-6" rx="7" ry="4" fill="white" opacity="0.65" transform="rotate(15 5 -6)" />
+      {/* Body */}
+      <ellipse cx="0" cy="0" rx="5" ry="7" fill="#FFD93D" opacity="0.9" />
+      <rect x="-5" y="-3" width="10" height="2.5" rx="1.2" fill="#333" opacity="0.55" />
+      <rect x="-5" y="1" width="10" height="2.5" rx="1.2" fill="#333" opacity="0.55" />
+      {/* Eye */}
+      <circle cx="3" cy="-4" r="1.2" fill="#333" opacity="0.7" />
+    </g>
+  );
+}
+
+function LeafSvg({ x, y, color = "#5DBE8A" }: { x: number; y: number; color?: string }) {
+  return (
+    <g transform={`translate(${x}, ${y})`}>
+      <ellipse cx="0" cy="0" rx="7" ry="12" fill={color} opacity="0.7" />
+      <line x1="0" y1="-10" x2="0" y2="10" stroke="white" strokeWidth="1" opacity="0.4" strokeLinecap="round" />
     </g>
   );
 }
@@ -103,9 +123,9 @@ function HedgehogSvg({ x, y }: { x: number; y: number }) {
         <line
           key={i}
           x1={dx}
-          y1={-10 + (i % 3) * 1}
+          y1={-10 + (i % 3)}
           x2={dx + (dx < 0 ? -3 : 3)}
-          y2={-18 + (i % 3) * 1}
+          y2={-18 + (i % 3)}
           stroke="#8B6040"
           strokeWidth="2"
           strokeLinecap="round"
@@ -119,6 +139,8 @@ function HedgehogSvg({ x, y }: { x: number; y: number }) {
     </g>
   );
 }
+
+// ─── Component ────────────────────────────────────────────────────────────────
 
 export function HomeScreen({ onContinue, onStartFromA }: HomeScreenProps) {
   const { progress, module, lowercaseProgress } = useGameStore();
@@ -134,7 +156,7 @@ export function HomeScreen({ onContinue, onStartFromA }: HomeScreenProps) {
       className="relative flex h-full w-full flex-col items-center justify-between overflow-hidden"
       style={{ background: `linear-gradient(180deg, ${bg1} 0%, ${bg2} 60%, #C8F0D8 100%)` }}
     >
-      {/* Animated nature background */}
+      {/* ── Animated nature background ─────────────────────────────────── */}
       <svg
         className="pointer-events-none absolute inset-0 w-full h-full"
         viewBox="0 0 420 896"
@@ -142,82 +164,150 @@ export function HomeScreen({ onContinue, onStartFromA }: HomeScreenProps) {
         aria-hidden="true"
         style={{ zIndex: 0 }}
       >
-        {/* Clouds */}
+        {/* ── Clouds (4 groups, slow drift) ── */}
         <motion.g
-          animate={{ x: [0, 18, 0] }}
-          transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
+          animate={{ x: [0, 22, 0] }}
+          transition={{ duration: 14, repeat: Infinity, ease: "easeInOut" }}
         >
-          <CloudSvg x={20} y={55} w={80} />
-          <CloudSvg x={300} y={35} w={60} />
+          <CloudSvg x={10} y={50} w={90} />
+          <CloudSvg x={295} y={30} w={65} />
         </motion.g>
         <motion.g
-          animate={{ x: [0, -14, 0] }}
-          transition={{ duration: 15, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+          animate={{ x: [0, -16, 0] }}
+          transition={{ duration: 17, repeat: Infinity, ease: "easeInOut", delay: 2 }}
         >
-          <CloudSvg x={160} y={70} w={50} />
-          <CloudSvg x={360} y={80} w={45} />
+          <CloudSvg x={155} y={68} w={55} />
+          <CloudSvg x={355} y={78} w={48} />
+        </motion.g>
+        <motion.g
+          animate={{ x: [0, 10, 0] }}
+          transition={{ duration: 22, repeat: Infinity, ease: "easeInOut", delay: 5 }}
+        >
+          <CloudSvg x={60} y={130} w={38} />
+          <CloudSvg x={340} y={120} w={42} />
         </motion.g>
 
-        {/* Birds */}
+        {/* ── Birds (3 groups) ── */}
         <motion.g
-          animate={{ x: [0, 30, 0], y: [0, -5, 0] }}
+          animate={{ x: [0, 38, 0], y: [0, -7, 0] }}
           transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
         >
-          <BirdSvg x={70} y={110} />
-          <BirdSvg x={90} y={100} />
+          <BirdSvg x={65} y={108} />
+          <BirdSvg x={85} y={98} />
         </motion.g>
         <motion.g
-          animate={{ x: [0, -20, 0], y: [0, -8, 0] }}
-          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 3 }}
+          animate={{ x: [0, -28, 0], y: [0, -9, 0] }}
+          transition={{ duration: 11, repeat: Infinity, ease: "easeInOut", delay: 3 }}
         >
-          <BirdSvg x={330} y={130} />
+          <BirdSvg x={325} y={125} />
+          <BirdSvg x={345} y={115} />
+        </motion.g>
+        <motion.g
+          animate={{ x: [0, 20, 0], y: [0, -5, 0] }}
+          transition={{ duration: 13, repeat: Infinity, ease: "easeInOut", delay: 6 }}
+        >
+          <BirdSvg x={190} y={155} />
         </motion.g>
 
-        {/* Trees — left side */}
-        <TreeSvg x={30} y={790} scale={1.2} />
-        <TreeSvg x={80} y={810} scale={0.9} />
-
-        {/* Trees — right side */}
-        <TreeSvg x={370} y={785} scale={1.1} />
-        <TreeSvg x={395} y={815} scale={0.8} />
-
-        {/* Flowers — bottom corners */}
-        <FlowerSvg x={18} y={840} />
-        <FlowerSvg x={40} y={855} />
-        <FlowerSvg x={55} y={845} />
-        <FlowerSvg x={370} y={842} />
-        <FlowerSvg x={390} y={858} />
-        <FlowerSvg x={405} y={848} />
-
-        {/* Hedgehog */}
+        {/* ── Butterflies (5 total, varied colours) ── */}
         <motion.g
-          animate={{ x: [0, 8, 0] }}
-          transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+          animate={{ x: [0, 18, 0], y: [0, -12, 0] }}
+          transition={{ duration: 4.2, repeat: Infinity, ease: "easeInOut" }}
         >
-          <HedgehogSvg x={345} y={858} />
+          <ButterflyBody x={52} y={670} color="#FF9EBC" />
         </motion.g>
-
-        {/* Butterflies */}
         <motion.g
-          animate={{ x: [0, 15, 0], y: [0, -10, 0] }}
-          transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+          animate={{ x: [0, -14, 0], y: [0, -9, 0] }}
+          transition={{ duration: 5.1, repeat: Infinity, ease: "easeInOut", delay: 1.5 }}
         >
-          <ButterflyBody x={55} y={680} color="#FF9EBC" />
+          <ButterflyBody x={368} y={645} color="#A882E8" />
+        </motion.g>
+        <motion.g
+          animate={{ x: [0, 10, -10, 0], y: [0, -14, -6, 0] }}
+          transition={{ duration: 6.5, repeat: Infinity, ease: "easeInOut", delay: 0.8 }}
+        >
+          <ButterflyBody x={200} y={580} color="#66CC94" />
         </motion.g>
         <motion.g
           animate={{ x: [0, -12, 0], y: [0, -8, 0] }}
-          transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 1.5 }}
+          transition={{ duration: 4.8, repeat: Infinity, ease: "easeInOut", delay: 2.2 }}
         >
-          <ButterflyBody x={370} y={650} color="#A882E8" />
+          <ButterflyBody x={110} y={720} color="#FFD93D" />
+        </motion.g>
+        <motion.g
+          animate={{ x: [0, 16, 0], y: [0, -10, 0] }}
+          transition={{ duration: 5.5, repeat: Infinity, ease: "easeInOut", delay: 3.4 }}
+        >
+          <ButterflyBody x={310} y={740} color="#74B9FF" />
         </motion.g>
 
-        {/* Hills */}
+        {/* ── Bees (2, figure-eight paths) ── */}
+        <motion.g
+          animate={{ x: [0, 20, 0, -15, 0], y: [0, -10, -18, -8, 0] }}
+          transition={{ duration: 6, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+        >
+          <BeeSvg x={150} y={790} />
+        </motion.g>
+        <motion.g
+          animate={{ x: [0, -18, 0, 14, 0], y: [0, -8, -16, -5, 0] }}
+          transition={{ duration: 7.5, repeat: Infinity, ease: "easeInOut", delay: 2.5 }}
+        >
+          <BeeSvg x={280} y={775} />
+        </motion.g>
+
+        {/* ── Floating leaves ── */}
+        <motion.g
+          animate={{ x: [0, 12, 6, -6, 0], y: [0, 30, 60, 90, 120], rotate: [0, 30, 60, 90, 120], opacity: [0.7, 0.6, 0.5, 0.3, 0] }}
+          transition={{ duration: 9, repeat: Infinity, ease: "easeInOut", delay: 0 }}
+        >
+          <LeafSvg x={80} y={400} color="#5DBE8A" />
+        </motion.g>
+        <motion.g
+          animate={{ x: [0, -10, -4, 8, 0], y: [0, 25, 55, 85, 110], rotate: [0, -20, -40, -60, -80], opacity: [0.7, 0.6, 0.4, 0.2, 0] }}
+          transition={{ duration: 11, repeat: Infinity, ease: "easeInOut", delay: 3 }}
+        >
+          <LeafSvg x={340} y={350} color="#A8DFB8" />
+        </motion.g>
+        <motion.g
+          animate={{ x: [0, 8, -4, -12, 0], y: [0, 20, 50, 78, 100], rotate: [0, 15, 30, 50, 65], opacity: [0.6, 0.5, 0.35, 0.2, 0] }}
+          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 5.5 }}
+        >
+          <LeafSvg x={200} y={440} color="#6ECF9A" />
+        </motion.g>
+
+        {/* ── Trees ── */}
+        <TreeSvg x={28} y={790} scale={1.2} />
+        <TreeSvg x={78} y={812} scale={0.9} />
+        <TreeSvg x={370} y={786} scale={1.1} />
+        <TreeSvg x={396} y={818} scale={0.8} />
+
+        {/* ── Swaying flowers (bottom) ── */}
+        <FlowerSvg x={16} y={840} sway />
+        <FlowerSvg x={36} y={856} sway />
+        <FlowerSvg x={56} y={845} sway />
+        <FlowerSvg x={130} y={860} sway />
+        <FlowerSvg x={155} y={850} sway />
+        <FlowerSvg x={265} y={858} sway />
+        <FlowerSvg x={290} y={848} sway />
+        <FlowerSvg x={366} y={843} sway />
+        <FlowerSvg x={388} y={858} sway />
+        <FlowerSvg x={408} y={848} sway />
+
+        {/* ── Hedgehog ── */}
+        <motion.g
+          animate={{ x: [0, 9, 0] }}
+          transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+        >
+          <HedgehogSvg x={340} y={858} />
+        </motion.g>
+
+        {/* ── Hills ── */}
         <ellipse cx="80" cy="910" rx="140" ry="95" fill="#A8DFB8" opacity="0.45" />
         <ellipse cx="280" cy="920" rx="200" ry="105" fill="#9ED8B0" opacity="0.45" />
         <ellipse cx="420" cy="915" rx="130" ry="85" fill="#B4E2C0" opacity="0.4" />
       </svg>
 
-      {/* Content */}
+      {/* ── Content ──────────────────────────────────────────────────────── */}
       <div className="relative z-10 flex w-full flex-col items-center px-6 pt-10">
         {/* Logo */}
         <motion.div

@@ -1,158 +1,157 @@
 "use client";
 
 import React, { useRef, useEffect, useCallback, useState } from "react";
-import { AnimatePresence } from "framer-motion";
-import type { LetterDefinition, StrokeState } from "@/types";
+import type { LetterDefinition } from "@/types";
 import { closestPointOnPath, scalePoint, distance } from "@/utils/pathUtils";
 import { Sparkles } from "@/components/animations/Sparkles";
 
 interface TracingCanvasProps {
   letter: LetterDefinition;
-  strokeStates: StrokeState[];
-  currentStrokeIndex: number;
-  onStrokeProgress: (strokeIndex: number, progress: number) => void;
-  onStrokeComplete: (strokeIndex: number) => void;
-  /** Called when the child moves too far off the path — parent handles wiggle + reset */
+  /** Called when the child successfully traces the whole letter */
+  onComplete: () => void;
+  /** Coverage 0–1, called during tracing so parent can show a progress bar */
+  onProgress?: (coverage: number) => void;
+  /** Parent plays a wiggle animation when this fires */
   onOffPath?: () => void;
 }
 
 const CANVAS_SIZE = 320;
-const TOLERANCE = 55;           // px — wider for natural feel
-const ADVANCE_TOLERANCE = 40;   // must be within this to advance along path
-const COMPLETION_THRESHOLD = 0.88;
-// How many frames of continuous off-path movement before we trigger a reset
-const OFF_PATH_FRAMES_LIMIT = 18;
+const PADDING = 20;
+/** Tolerance in canvas pixels — how far from the path the child's finger can be */
+const TOLERANCE_PX = 58;
+/** Fraction of expected-path points that must be covered to accept the letter */
+const COMPLETION_THRESHOLD = 0.72;
+/** Scale factor: letter-space (0-200) → canvas-space */
+const LETTER_SCALE = (CANVAS_SIZE - PADDING * 2) / 200;
 
-function drawGuide(
+// ─── Flatten all strokes into one list of expected points (letter-space) ─────
+function buildExpectedPoints(letter: LetterDefinition): [number, number][] {
+  const pts: [number, number][] = [];
+  for (const stroke of letter.strokes) {
+    for (const p of stroke.points) {
+      pts.push(p);
+    }
+  }
+  return pts;
+}
+
+// ─── Canvas draw helpers ──────────────────────────────────────────────────────
+
+function drawGuides(
   ctx: CanvasRenderingContext2D,
-  pathData: string,
-  canvasSize: number,
-  padding: number,
-  isActive: boolean,
-  isCompleted: boolean
+  letter: LetterDefinition,
+  coverage: number
 ) {
-  const scale = (canvasSize - padding * 2) / 200;
+  const scale = LETTER_SCALE;
   ctx.save();
-  ctx.translate(padding, padding);
+  ctx.translate(PADDING, PADDING);
   ctx.scale(scale, scale);
 
-  const path = new Path2D(pathData);
-
-  if (isCompleted) {
-    ctx.strokeStyle = "#7C5CBF";
-    ctx.lineWidth = 14 / scale;
+  for (const stroke of letter.strokes) {
+    const path = new Path2D(stroke.pathData);
+    // Filled guide fades from dashed-lavender toward solid-plum as coverage grows
+    ctx.setLineDash([10 / scale, 7 / scale]);
+    ctx.strokeStyle = coverage > 0.4 ? "#9B7DD4" : "#A882E8";
+    ctx.lineWidth = 16 / scale;
     ctx.lineCap = "round";
     ctx.lineJoin = "round";
-    ctx.globalAlpha = 0.35;
-    ctx.stroke(path);
-  } else if (isActive) {
-    ctx.setLineDash([10 / scale, 8 / scale]);
-    ctx.strokeStyle = "#A882E8";
-    ctx.lineWidth = 14 / scale;
-    ctx.lineCap = "round";
-    ctx.lineJoin = "round";
-    ctx.globalAlpha = 0.5;
+    ctx.globalAlpha = 0.38 + coverage * 0.15;
     ctx.stroke(path);
     ctx.setLineDash([]);
-  } else {
-    ctx.strokeStyle = "#C4B5F5";
-    ctx.lineWidth = 12 / scale;
-    ctx.lineCap = "round";
-    ctx.lineJoin = "round";
-    ctx.globalAlpha = 0.2;
-    ctx.stroke(path);
   }
-
   ctx.restore();
 }
 
-function drawUserTrace(
+function drawUserInk(
   ctx: CanvasRenderingContext2D,
-  tracePoints: [number, number][]
+  strokes: [number, number][][]
 ) {
-  if (tracePoints.length < 2) return;
   ctx.save();
   ctx.strokeStyle = "#7C5CBF";
-  ctx.lineWidth = 14;
+  ctx.lineWidth = 15;
   ctx.lineCap = "round";
   ctx.lineJoin = "round";
-  ctx.globalAlpha = 0.9;
-  ctx.beginPath();
-  ctx.moveTo(tracePoints[0][0], tracePoints[0][1]);
-  for (let i = 1; i < tracePoints.length; i++) {
-    ctx.lineTo(tracePoints[i][0], tracePoints[i][1]);
+  ctx.globalAlpha = 0.88;
+  for (const stroke of strokes) {
+    if (stroke.length < 2) continue;
+    ctx.beginPath();
+    ctx.moveTo(stroke[0][0], stroke[0][1]);
+    for (let i = 1; i < stroke.length; i++) {
+      ctx.lineTo(stroke[i][0], stroke[i][1]);
+    }
+    ctx.stroke();
   }
-  ctx.stroke();
   ctx.restore();
 }
 
 function drawStartDot(
   ctx: CanvasRenderingContext2D,
-  point: [number, number],
-  canvasSize: number,
-  padding: number,
+  letter: LetterDefinition,
   pulse: number
 ) {
-  const scaled = scalePoint(point, canvasSize, padding);
+  if (letter.strokes.length === 0) return;
+  const firstPoint = letter.strokes[0].points[0];
+  if (!firstPoint) return;
+  const [cx, cy] = scalePoint(firstPoint, CANVAS_SIZE, PADDING);
   ctx.save();
+  // Outer pulse ring
   ctx.beginPath();
-  ctx.arc(scaled[0], scaled[1], 18 + pulse * 6, 0, Math.PI * 2);
+  ctx.arc(cx, cy, 20 + pulse * 6, 0, Math.PI * 2);
   ctx.fillStyle = "#A882E8";
-  ctx.globalAlpha = 0.2 + pulse * 0.1;
+  ctx.globalAlpha = 0.15 + pulse * 0.08;
   ctx.fill();
+  // Inner dot
   ctx.beginPath();
-  ctx.arc(scaled[0], scaled[1], 13, 0, Math.PI * 2);
+  ctx.arc(cx, cy, 13, 0, Math.PI * 2);
   ctx.fillStyle = "#7C5CBF";
   ctx.globalAlpha = 0.9;
   ctx.fill();
+  // White centre
   ctx.beginPath();
-  ctx.arc(scaled[0], scaled[1], 7, 0, Math.PI * 2);
+  ctx.arc(cx, cy, 6, 0, Math.PI * 2);
   ctx.fillStyle = "white";
   ctx.globalAlpha = 1;
   ctx.fill();
   ctx.restore();
 }
 
-function drawNumberBadge(
-  ctx: CanvasRenderingContext2D,
-  point: [number, number],
-  num: number,
-  canvasSize: number,
-  padding: number
-) {
-  const scaled = scalePoint(point, canvasSize, padding);
-  ctx.save();
-  ctx.beginPath();
-  ctx.arc(scaled[0] - 18, scaled[1] - 18, 12, 0, Math.PI * 2);
-  ctx.fillStyle = "#FF9EBC";
-  ctx.globalAlpha = 0.95;
-  ctx.fill();
-  ctx.font = "bold 13px Arial Rounded MT Bold, sans-serif";
-  ctx.fillStyle = "white";
-  ctx.globalAlpha = 1;
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-  ctx.fillText(String(num), scaled[0] - 18, scaled[1] - 18);
-  ctx.restore();
-}
+// ─── Component ────────────────────────────────────────────────────────────────
 
 export function TracingCanvas({
   letter,
-  strokeStates,
-  currentStrokeIndex,
-  onStrokeProgress,
-  onStrokeComplete,
+  onComplete,
+  onProgress,
   onOffPath,
 }: TracingCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  // All expected path points (letter-space)
+  const expectedRef = useRef<[number, number][]>([]);
+  // Which expected-point indices have been "covered" by the user's ink
+  const coveredRef = useRef<Set<number>>(new Set());
+  // User's drawn ink — array of strokes, each stroke is an array of canvas-space points
+  const inkStrokesRef = useRef<[number, number][][]>([]);
+  // Current active stroke
+  const currentStrokeRef = useRef<[number, number][]>([]);
+
   const isDrawingRef = useRef(false);
-  const tracePointsRef = useRef<[number, number][]>([]);
-  const furthestPointRef = useRef(0);
-  const offPathFramesRef = useRef(0);
   const pulseRef = useRef(0);
   const rafRef = useRef<number | null>(null);
+  const completedRef = useRef(false); // prevent double-fire
+
   const [sparklePos, setSparklePos] = useState<{ x: number; y: number } | null>(null);
-  const padding = 20;
+  const [coverage, setCoverage] = useState(0);
+
+  // Rebuild expected points when letter changes, reset everything
+  useEffect(() => {
+    expectedRef.current = buildExpectedPoints(letter);
+    coveredRef.current = new Set();
+    inkStrokesRef.current = [];
+    currentStrokeRef.current = [];
+    completedRef.current = false;
+    setCoverage(0);
+    onProgress?.(0);
+  }, [letter, onProgress]);
 
   // Render loop
   useEffect(() => {
@@ -168,39 +167,24 @@ export function TracingCanvas({
       if (!running || !ctx || !canvas) return;
       const dt = Math.min((time - lastTime) / 16, 3);
       lastTime = time;
-
       pulseRef.current = (pulseRef.current + 0.03 * dt) % (Math.PI * 2);
       const pulse = (Math.sin(pulseRef.current) + 1) / 2;
 
       ctx.clearRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
 
-      // Draw all stroke guides
-      for (let i = 0; i < letter.strokes.length; i++) {
-        const stroke = letter.strokes[i];
-        const state = strokeStates[i];
-        const isActive = i === currentStrokeIndex;
-        const isCompleted = state?.completed ?? false;
-        drawGuide(ctx, stroke.pathData, CANVAS_SIZE, padding, isActive, isCompleted);
+      const cov = coveredRef.current.size / Math.max(1, expectedRef.current.length);
+      drawGuides(ctx, letter, cov);
+
+      // Combine finished strokes + current active stroke for drawing
+      const allStrokes = [...inkStrokesRef.current];
+      if (currentStrokeRef.current.length > 1) {
+        allStrokes.push(currentStrokeRef.current);
       }
+      drawUserInk(ctx, allStrokes);
 
-      // Draw user trace for current stroke
-      drawUserTrace(ctx, tracePointsRef.current);
-
-      // Draw start dot for current stroke
-      if (currentStrokeIndex < letter.strokes.length) {
-        const currentStroke = letter.strokes[currentStrokeIndex];
-        const state = strokeStates[currentStrokeIndex];
-        if (!state?.completed && currentStroke.points.length > 0) {
-          drawStartDot(ctx, currentStroke.points[0], CANVAS_SIZE, padding, pulse);
-        }
-      }
-
-      // Draw number badges for upcoming strokes
-      for (let i = currentStrokeIndex + 1; i < letter.strokes.length; i++) {
-        const stroke = letter.strokes[i];
-        if (stroke.points.length > 0) {
-          drawNumberBadge(ctx, stroke.points[0], i + 1, CANVAS_SIZE, padding);
-        }
+      // Only show start dot until the child has started drawing
+      if (inkStrokesRef.current.length === 0 && currentStrokeRef.current.length === 0) {
+        drawStartDot(ctx, letter, pulse);
       }
 
       rafRef.current = requestAnimationFrame(render);
@@ -211,15 +195,9 @@ export function TracingCanvas({
       running = false;
       if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
     };
-  }, [letter, strokeStates, currentStrokeIndex]);
+  }, [letter]);
 
-  // Reset trace points when stroke changes
-  useEffect(() => {
-    tracePointsRef.current = [];
-    furthestPointRef.current = 0;
-    offPathFramesRef.current = 0;
-  }, [currentStrokeIndex]);
-
+  // Convert pointer event to canvas-space coordinates
   const getCanvasPoint = useCallback(
     (e: React.PointerEvent<HTMLCanvasElement>): [number, number] => {
       const canvas = canvasRef.current;
@@ -232,84 +210,91 @@ export function TracingCanvas({
     []
   );
 
+  // Convert canvas-space point to letter-space (0-200)
+  const canvasToLetter = useCallback((pt: [number, number]): [number, number] => {
+    return [
+      (pt[0] - PADDING) / LETTER_SCALE,
+      (pt[1] - PADDING) / LETTER_SCALE,
+    ];
+  }, []);
+
+  // Mark expected points near a letter-space point as covered
+  const markCovered = useCallback((letterPt: [number, number]) => {
+    const tolerance = TOLERANCE_PX / LETTER_SCALE;
+    const expected = expectedRef.current;
+    let changed = false;
+    for (let i = 0; i < expected.length; i++) {
+      if (coveredRef.current.has(i)) continue;
+      const d = distance(expected[i], letterPt);
+      if (d <= tolerance) {
+        coveredRef.current.add(i);
+        changed = true;
+      }
+    }
+    if (changed) {
+      const cov = coveredRef.current.size / Math.max(1, expected.length);
+      setCoverage(cov);
+      onProgress?.(cov);
+    }
+  }, [onProgress]);
+
   const handlePointerDown = useCallback(
     (e: React.PointerEvent<HTMLCanvasElement>) => {
+      if (completedRef.current) return;
       e.currentTarget.setPointerCapture(e.pointerId);
-      const currentStroke = letter.strokes[currentStrokeIndex];
-      if (!currentStroke) return;
-
       const pt = getCanvasPoint(e);
-      const startPt = scalePoint(currentStroke.points[0], CANVAS_SIZE, padding);
-      if (distance(pt, startPt) > TOLERANCE * 1.8) return;
-
       isDrawingRef.current = true;
-      tracePointsRef.current = [pt];
-      furthestPointRef.current = 0;
-      offPathFramesRef.current = 0;
+      currentStrokeRef.current = [pt];
+      markCovered(canvasToLetter(pt));
       setSparklePos({ x: pt[0], y: pt[1] });
     },
-    [letter.strokes, currentStrokeIndex, getCanvasPoint]
+    [getCanvasPoint, canvasToLetter, markCovered]
   );
 
   const handlePointerMove = useCallback(
     (e: React.PointerEvent<HTMLCanvasElement>) => {
-      if (!isDrawingRef.current) return;
-      const currentStroke = letter.strokes[currentStrokeIndex];
-      if (!currentStroke) return;
-
+      if (!isDrawingRef.current || completedRef.current) return;
       const pt = getCanvasPoint(e);
-      tracePointsRef.current.push(pt);
-
-      const { index, dist } = closestPointOnPath(currentStroke.points, [
-        (pt[0] - padding) / ((CANVAS_SIZE - padding * 2) / 200),
-        (pt[1] - padding) / ((CANVAS_SIZE - padding * 2) / 200),
-      ]);
-
-      if (dist > TOLERANCE / ((CANVAS_SIZE - padding * 2) / 200)) {
-        // Off-path
-        offPathFramesRef.current++;
-        setSparklePos(null);
-
-        if (offPathFramesRef.current >= OFF_PATH_FRAMES_LIMIT) {
-          // Too far off for too long — trigger wiggle + reset
-          isDrawingRef.current = false;
-          tracePointsRef.current = [];
-          furthestPointRef.current = 0;
-          offPathFramesRef.current = 0;
-          onOffPath?.();
-        }
-        return;
-      }
-
-      offPathFramesRef.current = 0;
+      currentStrokeRef.current.push(pt);
+      markCovered(canvasToLetter(pt));
       setSparklePos({ x: pt[0], y: pt[1] });
-
-      // Only advance forward along the path
-      if (index > furthestPointRef.current + 2) {
-        const distInLetterSpace = dist;
-        if (distInLetterSpace <= ADVANCE_TOLERANCE / ((CANVAS_SIZE - padding * 2) / 200)) {
-          furthestPointRef.current = index;
-          const progress = index / (currentStroke.points.length - 1);
-          onStrokeProgress(currentStrokeIndex, progress);
-
-          if (progress >= COMPLETION_THRESHOLD) {
-            isDrawingRef.current = false;
-            tracePointsRef.current = [];
-            furthestPointRef.current = 0;
-            offPathFramesRef.current = 0;
-            setSparklePos(null);
-            onStrokeComplete(currentStrokeIndex);
-          }
-        }
-      }
     },
-    [letter.strokes, currentStrokeIndex, getCanvasPoint, onStrokeProgress, onStrokeComplete, onOffPath]
+    [getCanvasPoint, canvasToLetter, markCovered]
   );
 
   const handlePointerUp = useCallback(() => {
+    if (!isDrawingRef.current || completedRef.current) return;
     isDrawingRef.current = false;
     setSparklePos(null);
-  }, []);
+
+    // Commit the current stroke to finished ink
+    if (currentStrokeRef.current.length > 1) {
+      inkStrokesRef.current = [...inkStrokesRef.current, currentStrokeRef.current];
+    }
+    currentStrokeRef.current = [];
+
+    const cov = coveredRef.current.size / Math.max(1, expectedRef.current.length);
+
+    if (cov >= COMPLETION_THRESHOLD) {
+      // 🎉 Letter complete!
+      completedRef.current = true;
+      onComplete();
+    } else if (cov > 0.12 && inkStrokesRef.current.length >= 1) {
+      // Child has drawn something meaningful but hasn't covered enough yet.
+      // Give a gentle nudge — fire onOffPath so parent can wiggle. Clear ink and try again.
+      // Only trigger after at least one full stroke is committed.
+      onOffPath?.();
+      // Clear ink after a brief delay (let wiggle play first)
+      setTimeout(() => {
+        inkStrokesRef.current = [];
+        currentStrokeRef.current = [];
+        coveredRef.current = new Set();
+        setCoverage(0);
+        onProgress?.(0);
+      }, 420);
+    }
+    // If very little drawn (<12%), just silently let them continue — no penalty
+  }, [onComplete, onOffPath, onProgress]);
 
   return (
     <div className="relative inline-block" style={{ touchAction: "none" }}>
@@ -328,10 +313,10 @@ export function TracingCanvas({
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
         onPointerLeave={handlePointerUp}
-        aria-label={`Tracing canvas for letter ${letter.letter}`}
+        aria-label={`Trace the letter ${letter.letter}`}
       />
 
-      {/* Sparkle overlay — reduced particles during tracing (maxParticles=6) */}
+      {/* Sparkles — reduced during tracing */}
       <div
         className="pointer-events-none absolute inset-0"
         style={{ borderRadius: 24, overflow: "hidden" }}
