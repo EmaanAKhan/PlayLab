@@ -2,12 +2,15 @@
 
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/Button";
+import { HomeEnvironment } from "@/components/animations/HomeEnvironment";
 import { useGameStore } from "@/stores/gameStore";
 import { getThemeColors } from "@/constants/rewards";
 
 interface HomeScreenProps {
   onContinue: () => void;
   onStartFromA: () => void;
+  /** The child taps any letter on the shelf to start tracing from it */
+  onSelectLetter: (index: number) => void;
 }
 
 // ─── SVG nature elements ──────────────────────────────────────────────────────
@@ -142,25 +145,29 @@ function HedgehogSvg({ x, y }: { x: number; y: number }) {
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export function HomeScreen({ onContinue, onStartFromA }: HomeScreenProps) {
-  const { progress, module, lowercaseProgress } = useGameStore();
-  const currentProgress = module === "lowercase" ? lowercaseProgress : progress;
-  const completedCount = currentProgress.completedLetters.length;
-  const currentLetter = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"[currentProgress.currentLetterIndex] ?? "A";
-  const [bg1, bg2] = getThemeColors(currentProgress.currentTheme);
+const LETTER_SYMBOLS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+const NUMBER_SYMBOLS = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"];
 
-  const allLetters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+export function HomeScreen({ onContinue, onStartFromA, onSelectLetter }: HomeScreenProps) {
+  const { progress, module, lowercaseProgress, numbersProgress } = useGameStore();
+  const currentProgress =
+    module === "lowercase" ? lowercaseProgress : module === "numbers" ? numbersProgress : progress;
+  const completedCount = currentProgress.completedLetters.length;
+  const allLetters = module === "numbers" ? NUMBER_SYMBOLS : LETTER_SYMBOLS;
+  const total = allLetters.length;
+  const currentLetter = allLetters[currentProgress.currentLetterIndex] ?? allLetters[0];
+  const [bg1, bg2] = getThemeColors(currentProgress.currentTheme);
 
   return (
     <div
-      className="relative flex h-full w-full flex-col items-center justify-between overflow-hidden"
+      className="relative flex h-full w-full flex-col items-center justify-between gap-4 overflow-y-auto overflow-x-hidden"
       style={{ background: `linear-gradient(180deg, ${bg1} 0%, ${bg2} 60%, #C8F0D8 100%)` }}
     >
       {/* ── Animated nature background ─────────────────────────────────── */}
       <svg
         className="pointer-events-none absolute inset-0 w-full h-full"
         viewBox="0 0 420 896"
-        preserveAspectRatio="xMidYMid slice"
+        preserveAspectRatio="xMidYMax slice"
         aria-hidden="true"
         style={{ zIndex: 0 }}
       >
@@ -307,6 +314,9 @@ export function HomeScreen({ onContinue, onStartFromA }: HomeScreenProps) {
         <ellipse cx="420" cy="915" rx="130" ry="85" fill="#B4E2C0" opacity="0.4" />
       </svg>
 
+      {/* ── Garden environment: birds & butterflies in the outer bands ──── */}
+      <HomeEnvironment />
+
       {/* ── Content ──────────────────────────────────────────────────────── */}
       <div className="relative z-10 flex w-full flex-col items-center px-6 pt-10">
         {/* Logo */}
@@ -341,48 +351,64 @@ export function HomeScreen({ onContinue, onStartFromA }: HomeScreenProps) {
           </div>
           <h1 className="font-rounded text-2xl font-black text-plum">Letter Tracing</h1>
           <p className="font-rounded text-sm font-semibold text-plum/50">
-            {module === "lowercase" ? "Lowercase Letters" : "Uppercase Letters"}
+            {module === "lowercase"
+              ? "Lowercase Letters"
+              : module === "numbers"
+              ? "Numbers 1 to 10"
+              : "Uppercase Letters"}
           </p>
         </motion.div>
 
-        {/* Progress card */}
+        {/* Letter shelf — big, tappable letters; the child can start anywhere */}
         <motion.div
-          className="w-full max-w-sm rounded-3xl bg-white/75 p-4 shadow-lg backdrop-blur-sm"
+          className="w-full max-w-md rounded-3xl bg-white/75 p-4 shadow-lg backdrop-blur-sm md:max-w-2xl"
           initial={{ scale: 0.92, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ delay: 0.15, duration: 0.5 }}
         >
           <div className="mb-3 flex items-center justify-between">
-            <span className="font-rounded text-sm font-bold text-plum/70">Your progress</span>
+            <span className="font-rounded text-sm font-bold text-plum/70">
+              {module === "numbers" ? "Pick a number" : "Pick a letter"}
+            </span>
             <span className="font-rounded text-sm font-bold text-plum">
-              {completedCount} / 26
+              {completedCount} / {total}
             </span>
           </div>
 
-          {/* Letter grid */}
-          <div className="grid gap-1" style={{ gridTemplateColumns: "repeat(13, 1fr)" }}>
-            {allLetters.map((letter) => {
+          {/* Alphabet shelf */}
+          <div
+            className="grid gap-1.5 sm:gap-2"
+            style={{ gridTemplateColumns: "repeat(auto-fill, minmax(50px, 1fr))" }}
+          >
+            {allLetters.map((letter, index) => {
               const isDone = currentProgress.completedLetters.includes(letter);
               const isCurrent = letter === currentLetter && !isDone;
+              const display = module === "lowercase" ? letter.toLowerCase() : letter;
+              const isNumber = module === "numbers";
               return (
-                <div
+                <motion.button
                   key={letter}
-                  className="flex aspect-square items-center justify-center rounded-lg"
+                  onClick={() => onSelectLetter(index)}
+                  className="flex aspect-square min-h-[48px] min-w-[48px] items-center justify-center rounded-xl shadow-sm"
                   style={{
-                    background: isDone ? "#7C5CBF" : isCurrent ? "#DDD5F5" : "transparent",
-                    border: isCurrent ? "2px solid #A882E8" : "none",
+                    background: isDone ? "#7C5CBF" : isCurrent ? "#DDD5F5" : "white",
+                    border: isCurrent ? "2.5px solid #A882E8" : "2px solid #EDE7FA",
                   }}
+                  whileTap={{ scale: 0.9 }}
+                  whileHover={{ scale: 1.06 }}
+                  aria-label={`Trace the letter ${display}`}
                 >
                   <span
                     className="font-rounded font-black"
                     style={{
-                      color: isDone ? "white" : isCurrent ? "#7C5CBF" : "#C4B5F5",
-                      fontSize: "clamp(9px, 2vw, 11px)",
+                      color: isDone ? "white" : "#7C5CBF",
+                      fontSize: isNumber && display.length > 1 ? "clamp(15px, 2.2vw, 21px)" : "clamp(19px, 2.8vw, 26px)",
+                      lineHeight: 1,
                     }}
                   >
-                    {letter}
+                    {display}
                   </span>
-                </div>
+                </motion.button>
               );
             })}
           </div>
@@ -392,7 +418,7 @@ export function HomeScreen({ onContinue, onStartFromA }: HomeScreenProps) {
             <motion.div
               className="h-full rounded-full bg-plum"
               initial={{ width: 0 }}
-              animate={{ width: `${(completedCount / 26) * 100}%` }}
+              animate={{ width: `${(completedCount / total) * 100}%` }}
               transition={{ duration: 0.8, ease: "easeOut" }}
             />
           </div>
@@ -419,8 +445,14 @@ export function HomeScreen({ onContinue, onStartFromA }: HomeScreenProps) {
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.45 }}
           >
-            <Button size="md" variant="secondary" onClick={onStartFromA} className="w-full" aria-label="Start over from letter A">
-              Start from A
+            <Button
+              size="md"
+              variant="secondary"
+              onClick={onStartFromA}
+              className="w-full"
+              aria-label={module === "numbers" ? "Start over from number 1" : "Start over from letter A"}
+            >
+              {module === "numbers" ? "Start from 1" : "Start from A"}
             </Button>
           </motion.div>
         )}

@@ -31,18 +31,9 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
       </head>
       <body className="h-full overflow-hidden bg-[#F0E8FF] font-rounded antialiased">
-        <main className="flex h-full items-center justify-center bg-[#E8DCFF]">
-          {/* Game container — phone-sized frame on desktop, full screen on mobile */}
-          <div
-            className="relative overflow-hidden bg-white shadow-2xl"
-            style={{
-              width: "min(100vw, 420px)",
-              height: "min(100vh, 896px)",
-              borderRadius: "clamp(0px, calc((100vw - 420px) * 99), 32px)",
-            }}
-          >
-            {children}
-          </div>
+        {/* Game container — fills the entire viewport on every device */}
+        <main className="relative h-full w-full overflow-hidden bg-white">
+          {children}
         </main>
       </body>
     </html>

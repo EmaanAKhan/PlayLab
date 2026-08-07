@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef } from "react";
 import { Howl, Howler } from "howler";
+import { getLetterSound } from "@/constants/phonics";
 
 // ---------------------------------------------------------------------------
 // WAV generator — creates PCM audio in-memory so Howler has a src to load.
@@ -90,29 +91,135 @@ function getHowl(
 }
 
 // ---------------------------------------------------------------------------
-// Web Speech API helper for letter pronunciation.
-// Howler doesn't do TTS, so the Web Speech API is the correct tool here.
+// Web Speech API — warm, child-friendly voice selection.
+//
+// Preference order (never hardcoding one exact voice name, since devices
+// expose different voice sets):
+//   1. Natural-sounding British English female voice
+//   2. British English voice
+//   3. Natural-sounding English female voice
+//   4. Any other English voice
+//   5. Browser default
+// The chosen voice is cached and only recomputed when the browser's voice
+// list changes, so speech synthesis is never repeatedly re-initialised.
 // ---------------------------------------------------------------------------
-function speak(text: string, rate = 0.85, pitch = 1.1): void {
+
+const FEMALE_HINTS = [
+  "female", "woman", "girl",
+  // Common British / natural female voice names across platforms
+  "sonia", "libby", "maisie", "hazel", "kate", "serena", "stephanie",
+  "martha", "hollie", "olivia", "amy", "emily", "joanna", "salli",
+  "samantha", "karen", "moira", "tessa", "google uk english female",
+];
+const QUALITY_HINTS = ["natural", "neural", "premium", "enhanced", "online", "google"];
+
+let cachedVoice: SpeechSynthesisVoice | null = null;
+let cachedVoiceListLength = -1;
+
+function scoreVoice(v: SpeechSynthesisVoice): number {
+  const lang = v.lang.toLowerCase();
+  const name = v.name.toLowerCase();
+  if (!lang.startsWith("en")) return -1;
+  let score = 100; // any English voice beats the non-English default
+  if (lang.startsWith("en-gb")) score += 400;
+  else if (lang.startsWith("en")) score += 100;
+  if (FEMALE_HINTS.some((h) => name.includes(h))) score += 120;
+  if (name.includes("male") && !name.includes("female")) score -= 80;
+  for (const q of QUALITY_HINTS) if (name.includes(q)) score += 40;
+  return score;
+}
+
+function pickVoice(): SpeechSynthesisVoice | null {
+  if (typeof window === "undefined") return null;
+  const synth = window.speechSynthesis;
+  if (!synth) return null;
+  const voices = synth.getVoices();
+  if (voices.length === 0) return null;
+  if (cachedVoice && voices.length === cachedVoiceListLength) return cachedVoice;
+  let best: SpeechSynthesisVoice | null = null;
+  let bestScore = 0;
+  for (const v of voices) {
+    const s = scoreVoice(v);
+    if (s > bestScore) {
+      bestScore = s;
+      best = v;
+    }
+  }
+  cachedVoice = best;
+  cachedVoiceListLength = voices.length;
+  return best;
+}
+
+/** Warm, friendly, slightly expressive delivery: a touch higher pitch, a
+ *  touch slower — but never crawling, never robotic-flat.
+ *  interrupt=false queues after current speech WITHOUT cancelling — used for
+ *  the later parts of a pronunciation sequence so the phonetic sound is never
+ *  cut off by its own chain. */
+function speak(text: string, rate = 0.95, pitch = 1.15, onEnd?: () => void, interrupt = true): void {
   if (typeof window === "undefined") return;
   const synth = window.speechSynthesis;
-  if (!synth) return;
-  synth.cancel();
+  if (!synth) {
+    onEnd?.();
+    return;
+  }
+  // Chrome can silently wedge if cancel() and speak() happen back-to-back.
+  // Only cancel when something is actually playing, resume in case the engine
+  // is stuck paused, and give it a breath before speaking again.
+  const wasBusy = interrupt && (synth.speaking || synth.pending);
+  if (wasBusy) synth.cancel();
+  synth.resume();
+
   const utterance = new SpeechSynthesisUtterance(text);
   utterance.rate = rate;
   utterance.pitch = pitch;
   utterance.volume = 1;
-  // Prefer a child-friendly English voice when available
-  const preferred = synth.getVoices().find(
-    (v) =>
-      v.lang.startsWith("en") &&
-      (v.name.includes("Samantha") ||
-        v.name.includes("Karen") ||
-        v.name.includes("Google") ||
-        v.name.includes("Female"))
-  );
-  if (preferred) utterance.voice = preferred;
-  synth.speak(utterance);
+  const voice = pickVoice();
+  if (voice) utterance.voice = voice;
+
+  if (onEnd) {
+    // onend is unreliable on some browsers — race it with a duration estimate
+    let fired = false;
+    const done = () => {
+      if (fired) return;
+      fired = true;
+      onEnd();
+    };
+    utterance.onend = done;
+    utterance.onerror = done;
+    setTimeout(done, Math.max(800, text.length * 90) + 150);
+  }
+  if (wasBusy) {
+    setTimeout(() => synth.speak(utterance), 60);
+  } else {
+    synth.speak(utterance);
+  }
+}
+
+/** Speak several short parts in order with natural pauses between them */
+function speakParts(
+  parts: { text: string; rate?: number; pitch?: number }[],
+  gapMs: number,
+  onDone?: () => void
+): void {
+  const next = (i: number) => {
+    if (i >= parts.length) {
+      onDone?.();
+      return;
+    }
+    const p = parts[i];
+    // Only the FIRST part may interrupt other speech — later parts never
+    // cancel, so "A... aaah" always plays out in full.
+    speak(
+      p.text,
+      p.rate ?? 0.9,
+      p.pitch ?? 1.15,
+      () => {
+        setTimeout(() => next(i + 1), gapMs);
+      },
+      i === 0
+    );
+  };
+  next(0);
 }
 
 // ---------------------------------------------------------------------------
@@ -129,6 +236,7 @@ export function useAudio() {
     if (!synth) return;
     const load = () => {
       synth.getVoices();
+      cachedVoice = null; // voice list changed — re-pick on next speak
       voicesReadyRef.current = true;
     };
     load();
@@ -136,14 +244,35 @@ export function useAudio() {
     return () => synth.removeEventListener("voiceschanged", load);
   }, []);
 
-  /** Speak the letter name aloud (Web Speech API — Howler doesn't do TTS) */
+  /** Speak the letter name aloud */
   const pronounceLetter = useCallback((letter: string) => {
-    speak(letter, 0.8, 1.15);
+    speak(letter, 0.85, 1.18);
   }, []);
 
   /** Speak the full phonetic description */
   const pronouncePhonetic = useCallback((text: string) => {
-    speak(text, 0.8, 1.1);
+    speak(text, 0.9, 1.12);
+  }, []);
+
+  /**
+   * Natural letter introduction: the letter NAME, a short pause, then the
+   * letter SOUND ("A" ... "ah"). onDone fires only after the voice has
+   * finished, so tracing guidance never overlaps the pronunciation.
+   */
+  const speakLetterIntro = useCallback((letter: string, onDone?: () => void) => {
+    // Numbers: just the number word once ("Three") — no phonetic sound
+    if (/^\d+$/.test(letter)) {
+      speakParts([{ text: letter, rate: 0.85, pitch: 1.16 }], 0, onDone);
+      return;
+    }
+    speakParts(
+      [
+        { text: letter, rate: 0.82, pitch: 1.18 },
+        { text: getLetterSound(letter), rate: 0.78, pitch: 1.16 },
+      ],
+      200,
+      onDone
+    );
   }, []);
 
   /** Satisfying three-note ascending chord on full letter completion */
@@ -175,12 +304,33 @@ export function useAudio() {
     getHowl("tap-440", [440], 0.09, 0.55)?.play();
   }, []);
 
+  /** Gentle, non-alarming "oops, try again" tone — never harsh or buzzer-like */
+  const playOops = useCallback(() => {
+    getHowl("oops-1", [349], 0.16, 0.4)?.play();
+    setTimeout(() => getHowl("oops-2", [311], 0.2, 0.4)?.play(), 100);
+  }, []);
+
+  /** Bright little "pop" when a practice star turns gold */
+  const playStarPop = useCallback(() => {
+    getHowl("star-1", [784], 0.1, 0.55)?.play();
+    setTimeout(() => getHowl("star-2", [1047], 0.18, 0.55)?.play(), 70);
+  }, []);
+
+  /** Bigger fanfare for the fifth and final star */
+  const playFiveStars = useCallback(() => {
+    const melody = [659, 784, 988, 1319];
+    melody.forEach((freq, i) => {
+      setTimeout(() => getHowl(`five-${freq}`, [freq], 0.24, 0.6)?.play(), i * 80);
+    });
+  }, []);
+
   const sayNowYourTurn = useCallback(() => {
-    speak("Now it is your turn!", 0.85, 1.1);
+    speak("Now it is your turn!", 0.95, 1.16);
   }, []);
 
   const sayWatchMe = useCallback(() => {
-    speak("Watch me trace this letter!", 0.85, 1.1);
+    // Queued, never interrupting — plays right after the pronunciation
+    speak("Watch carefully!", 0.95, 1.16, undefined, false);
   }, []);
 
   const sayGreat = useCallback(() => {
@@ -191,16 +341,20 @@ export function useAudio() {
       "Great job!",
       "Fantastic!",
     ];
-    speak(phrases[(Math.random() * phrases.length) | 0], 0.9, 1.2);
+    speak(phrases[(Math.random() * phrases.length) | 0], 0.98, 1.2);
   }, []);
 
   return {
     pronounceLetter,
     pronouncePhonetic,
+    speakLetterIntro,
     playSuccess,
     playStrokeComplete,
     playCelebration,
     playTap,
+    playOops,
+    playStarPop,
+    playFiveStars,
     sayNowYourTurn,
     sayWatchMe,
     sayGreat,

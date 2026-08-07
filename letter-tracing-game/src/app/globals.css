@@ -51,3 +51,44 @@ button, a {
   background: #A882E8;
   border-radius: 99px;
 }
+
+/* ─── Responsive tracing-board size ─────────────────────────────────────────
+   The canvas keeps a perfect 1:1 aspect ratio (letters are defined in a square
+   200×200 space) and scales to whatever the current viewport allows:
+   - portrait / tall screens: limited by width, minus room for header + hint
+   - landscape phones: limited by height, using nearly the full viewport
+   - tablets / desktop: grows generously but caps so lines stay proportionate */
+.trace-board {
+  --trace-size: min(80vw, calc(100dvh - 240px), 560px);
+}
+
+/* Phone (and any short) landscape viewport — canvas dominates the screen */
+@media (orientation: landscape) and (max-height: 560px) {
+  .trace-board {
+    --trace-size: min(calc(100dvh - 92px), 48vw);
+  }
+}
+
+/* ─── "Turn your device sideways" prompt ────────────────────────────────────
+   Pure CSS visibility: shown ONLY on portrait phone-sized viewports, hidden
+   the instant the device rotates to landscape. Tablets and desktops (wider or
+   taller viewports) never match this query, so they never see the prompt. */
+.rotate-prompt {
+  display: none;
+}
+@media (orientation: portrait) and (max-width: 767px) {
+  .rotate-prompt {
+    display: flex;
+  }
+}
+
+/* Compact gameplay chrome on short landscape viewports */
+@media (orientation: landscape) and (max-height: 560px) {
+  .hide-on-short {
+    display: none !important;
+  }
+  .compact-on-short {
+    padding-top: 0.5rem !important;
+    padding-bottom: 0.5rem !important;
+  }
+}

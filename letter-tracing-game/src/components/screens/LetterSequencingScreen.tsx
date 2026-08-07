@@ -4,6 +4,8 @@ import { useState, useCallback, useRef, useEffect, useLayoutEffect } from "react
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/Button";
 import { CelebrationSparkles } from "@/components/animations/Sparkles";
+import { SceneDecor } from "@/components/animations/SceneDecor";
+import { RotateDevicePrompt } from "@/components/ui/RotateDevicePrompt";
 
 interface LetterSequencingScreenProps {
   onHome: () => void;
@@ -123,7 +125,20 @@ export function LetterSequencingScreen({ onHome }: LetterSequencingScreenProps) 
 
   const containerRef = useRef<HTMLDivElement>(null);
   const slotRefs = useRef<(HTMLDivElement | null)[]>([]);
-  const [dimensions] = useState({ w: 380, h: 700 });
+  // Live VIEWPORT size — the celebration must span the entire game screen
+  // (left → center → right) on phone landscape, tablet and desktop alike.
+  const [dimensions, setDimensions] = useState({ w: 380, h: 700 });
+  useLayoutEffect(() => {
+    const measure = () =>
+      setDimensions({ w: window.innerWidth, h: window.innerHeight });
+    measure();
+    window.addEventListener("resize", measure);
+    window.addEventListener("orientationchange", measure);
+    return () => {
+      window.removeEventListener("resize", measure);
+      window.removeEventListener("orientationchange", measure);
+    };
+  }, []);
 
   const currentPuzzle = PUZZLES[difficulty][puzzleIndex];
 
@@ -273,7 +288,7 @@ export function LetterSequencingScreen({ onHome }: LetterSequencingScreenProps) 
         className="relative flex h-full w-full flex-col items-center justify-between overflow-hidden px-6 py-8"
         style={{ background: "linear-gradient(160deg, #E8F4FF 0%, #F0E8FF 100%)" }}
       >
-        <div className="flex w-full max-w-sm items-center">
+        <div className="flex w-full max-w-md md:max-w-xl items-center">
           <motion.button
             onClick={onHome}
             className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white/70 shadow-soft"
@@ -297,7 +312,7 @@ export function LetterSequencingScreen({ onHome }: LetterSequencingScreenProps) 
           </p>
         </motion.div>
 
-        <div className="flex w-full max-w-sm flex-col gap-4">
+        <div className="flex w-full max-w-md md:max-w-xl flex-col gap-4">
           {(["easy", "medium", "hard"] as Difficulty[]).map((diff, i) => {
             const labels = {
               easy:   { title: "Easy",   sub: "3 letters",  color: "#C8F0D8", border: "#66CC94", text: "#3DAA72", example: "A B C" },
@@ -343,7 +358,9 @@ export function LetterSequencingScreen({ onHome }: LetterSequencingScreenProps) 
         className="relative flex h-full w-full flex-col items-center justify-center gap-8 overflow-hidden px-6"
         style={{ background: "linear-gradient(160deg, #F0E8FF 0%, #E8FFE8 100%)" }}
       >
-        <CelebrationSparkles active width={dimensions.w} height={dimensions.h} />
+        <div className="pointer-events-none fixed inset-0 z-40" aria-hidden="true">
+          <CelebrationSparkles active width={dimensions.w} height={dimensions.h} />
+        </div>
         <motion.div
           className="relative z-10 flex flex-col items-center gap-4 text-center"
           initial={{ scale: 0.5, opacity: 0 }}
@@ -357,7 +374,7 @@ export function LetterSequencingScreen({ onHome }: LetterSequencingScreenProps) 
           </p>
         </motion.div>
         <motion.div
-          className="relative z-10 flex w-full max-w-sm flex-col gap-3"
+          className="relative z-10 flex w-full max-w-md md:max-w-2xl flex-col gap-3"
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.4 }}
@@ -380,10 +397,19 @@ export function LetterSequencingScreen({ onHome }: LetterSequencingScreenProps) 
       onPointerUp={endDrag}
       onPointerCancel={endDrag}
     >
-      {celebrating && <CelebrationSparkles active width={dimensions.w} height={dimensions.h} />}
+      <SceneDecor variant="minimal" />
+
+      {/* Portrait-phone orientation prompt (CSS-only visibility) */}
+      <RotateDevicePrompt />
+
+      {celebrating && (
+        <div className="pointer-events-none fixed inset-0 z-40" aria-hidden="true">
+          <CelebrationSparkles active width={dimensions.w} height={dimensions.h} />
+        </div>
+      )}
 
       {/* Top bar */}
-      <div className="flex w-full max-w-sm items-center gap-3">
+      <div className="relative z-10 flex w-full max-w-md md:max-w-2xl items-center gap-3">
         <motion.button
           onClick={onHome}
           className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-white/70 shadow-soft"
@@ -483,7 +509,7 @@ export function LetterSequencingScreen({ onHome }: LetterSequencingScreenProps) 
       </motion.div>
 
       {/* Available letters */}
-      <div className="flex w-full max-w-sm flex-col items-center gap-3">
+      <div className="flex w-full max-w-md md:max-w-2xl flex-col items-center gap-3">
         <p className="font-rounded text-sm font-semibold text-plum/50">
           Drag a letter to the right slot
         </p>

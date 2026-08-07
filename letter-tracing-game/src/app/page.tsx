@@ -6,15 +6,14 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useGameStore } from "@/stores/gameStore";
 import { LETTER_DATA } from "@/constants/letterData";
 import { LOWERCASE_LETTER_DATA } from "@/constants/lowercaseLetterData";
+import { NUMBER_DATA } from "@/constants/numberData";
 
 import { SplashScreen } from "@/components/screens/SplashScreen";
 import { MainMenuScreen } from "@/components/screens/MainMenuScreen";
 import { HomeScreen } from "@/components/screens/HomeScreen";
-import { LetterIntroScreen } from "@/components/screens/LetterIntroScreen";
-import { DemoScreen } from "@/components/screens/DemoScreen";
+import { ModeSelectScreen } from "@/components/screens/ModeSelectScreen";
 import { TracingScreen } from "@/components/screens/TracingScreen";
 import { CelebrationScreen } from "@/components/screens/CelebrationScreen";
-import { RewardScreen } from "@/components/screens/RewardScreen";
 import { CompletionScreen } from "@/components/screens/CompletionScreen";
 import { LetterSequencingScreen } from "@/components/screens/LetterSequencingScreen";
 
@@ -29,18 +28,24 @@ export default function GamePage() {
   const {
     screen,
     module,
+    practiceMode,
     setScreen,
     setModule,
+    setPracticeMode,
     progress,
     lowercaseProgress,
     completeCurrentLetter,
     goToLetter,
     resetProgress,
     resetLowercaseProgress,
+    resetNumbersProgress,
   } = useGameStore();
 
-  const currentProgress = module === "lowercase" ? lowercaseProgress : progress;
-  const letterData = module === "lowercase" ? LOWERCASE_LETTER_DATA : LETTER_DATA;
+  const { numbersProgress } = useGameStore();
+  const currentProgress =
+    module === "lowercase" ? lowercaseProgress : module === "numbers" ? numbersProgress : progress;
+  const letterData =
+    module === "lowercase" ? LOWERCASE_LETTER_DATA : module === "numbers" ? NUMBER_DATA : LETTER_DATA;
   const currentLetter = letterData[currentProgress.currentLetterIndex];
   const isLastLetter = currentProgress.currentLetterIndex >= letterData.length - 1;
 
@@ -62,66 +67,76 @@ export default function GamePage() {
     [setModule, setScreen]
   );
 
-  // Home → letter intro
+  // A practice mode must be chosen once per session before the first letter
+  const enterTracing = useCallback(() => {
+    setScreen(practiceMode ? "tracing" : "mode-select");
+  }, [setScreen, practiceMode]);
+
+  // Home → tracing (via mode-select the first time in a session)
   const handleContinue = useCallback(() => {
-    if (currentProgress.completedLetters.length === 26) {
+    if (currentProgress.completedLetters.length >= letterData.length) {
       setScreen("completion");
       return;
     }
-    setScreen("letter-intro");
-  }, [setScreen, currentProgress.completedLetters.length]);
+    enterTracing();
+  }, [setScreen, currentProgress.completedLetters.length, letterData.length, enterTracing]);
 
   // Home → start from beginning
   const handleStartFromA = useCallback(() => {
     if (module === "lowercase") {
       resetLowercaseProgress();
+    } else if (module === "numbers") {
+      resetNumbersProgress();
     } else {
       resetProgress();
     }
     goToLetter(0);
-    setScreen("letter-intro");
-  }, [module, resetProgress, resetLowercaseProgress, goToLetter, setScreen]);
+    enterTracing();
+  }, [module, resetProgress, resetLowercaseProgress, resetNumbersProgress, goToLetter, enterTracing]);
 
-  // Letter intro → demo
-  const handleStartTracing = useCallback(() => {
-    setScreen("demo");
-  }, [setScreen]);
+  // Home → the child taps ANY letter on the alphabet shelf
+  const handleSelectLetter = useCallback(
+    (index: number) => {
+      goToLetter(index);
+      enterTracing();
+    },
+    [goToLetter, enterTracing]
+  );
 
-  // Demo → tracing
-  const handleDemoComplete = useCallback(() => {
-    setScreen("tracing");
-  }, [setScreen]);
+  // Mode select → tracing (mode remembered for the rest of the session)
+  const handleModeSelected = useCallback(
+    (mode: NonNullable<typeof practiceMode>) => {
+      setPracticeMode(mode);
+      setScreen("tracing");
+    },
+    [setPracticeMode, setScreen]
+  );
 
-  // Tracing → celebration
+  // Tracing complete (once in Free Mode, five stars in 5 Star Mode) → celebration
   const handleTracingComplete = useCallback(() => {
     completeCurrentLetter();
     setScreen("celebration");
   }, [setScreen, completeCurrentLetter]);
-
-  // Return to demo from tracing
-  const handleReplayDemo = useCallback(() => {
-    setScreen("demo");
-  }, [setScreen]);
 
   // Home button during gameplay → main menu
   const handleGoHome = useCallback(() => {
     setScreen("main-menu");
   }, [setScreen]);
 
-  // Celebration → reward
-  const handleCelebrationContinue = useCallback(() => {
-    setScreen("reward");
+  // Celebration → AGAIN: replay the current letter (stars reset via remount)
+  const handleAgain = useCallback(() => {
+    setScreen("tracing");
   }, [setScreen]);
 
-  // Reward → next letter or completion
-  const handleRewardContinue = useCallback(() => {
-    if (isLastLetter || currentProgress.completedLetters.length >= 26) {
+  // Celebration → NEXT: advance to the next letter (or completion)
+  const handleNext = useCallback(() => {
+    if (isLastLetter || currentProgress.completedLetters.length >= letterData.length) {
       setScreen("completion");
     } else {
       goToLetter(currentProgress.currentLetterIndex + 1);
-      setScreen("letter-intro");
+      setScreen("tracing");
     }
-  }, [setScreen, isLastLetter, currentProgress, goToLetter]);
+  }, [setScreen, isLastLetter, currentProgress, letterData.length, goToLetter]);
 
   // Completion → main menu
   const handlePlayAgain = useCallback(() => {
@@ -133,6 +148,7 @@ export default function GamePage() {
     screen !== "splash" &&
     screen !== "main-menu" &&
     screen !== "home" &&
+    screen !== "mode-select" &&
     screen !== "completion" &&
     screen !== "sequencing";
 
@@ -166,27 +182,14 @@ export default function GamePage() {
             <HomeScreen
               onContinue={handleContinue}
               onStartFromA={handleStartFromA}
+              onSelectLetter={handleSelectLetter}
             />
           </motion.div>
         )}
 
-        {screen === "letter-intro" && currentLetter && (
-          <motion.div key={`intro-${currentLetter.letter}`} className="absolute inset-0" {...PAGE_TRANSITIONS}>
-            <LetterIntroScreen
-              letter={currentLetter}
-              onStart={handleStartTracing}
-              onHome={handleGoHome}
-            />
-          </motion.div>
-        )}
-
-        {screen === "demo" && currentLetter && (
-          <motion.div key={`demo-${currentLetter.letter}`} className="absolute inset-0" {...PAGE_TRANSITIONS}>
-            <DemoScreen
-              letter={currentLetter}
-              onDone={handleDemoComplete}
-              onHome={handleGoHome}
-            />
+        {screen === "mode-select" && (
+          <motion.div key="mode-select" className="absolute inset-0" {...PAGE_TRANSITIONS}>
+            <ModeSelectScreen onSelect={handleModeSelected} />
           </motion.div>
         )}
 
@@ -194,8 +197,8 @@ export default function GamePage() {
           <motion.div key={`tracing-${currentLetter.letter}`} className="absolute inset-0" {...PAGE_TRANSITIONS}>
             <TracingScreen
               letter={currentLetter}
+              mode={practiceMode ?? "five-star"}
               onComplete={handleTracingComplete}
-              onReplayDemo={handleReplayDemo}
               onHome={handleGoHome}
             />
           </motion.div>
@@ -205,17 +208,8 @@ export default function GamePage() {
           <motion.div key={`celebration-${currentLetter.letter}`} className="absolute inset-0" {...PAGE_TRANSITIONS}>
             <CelebrationScreen
               letter={currentLetter.letter}
-              onContinue={handleCelebrationContinue}
-            />
-          </motion.div>
-        )}
-
-        {screen === "reward" && currentLetter && (
-          <motion.div key={`reward-${currentLetter.letter}`} className="absolute inset-0" {...PAGE_TRANSITIONS}>
-            <RewardScreen
-              letterIndex={currentProgress.currentLetterIndex}
-              onContinue={handleRewardContinue}
-              isLastLetter={isLastLetter}
+              onAgain={handleAgain}
+              onNext={handleNext}
             />
           </motion.div>
         )}

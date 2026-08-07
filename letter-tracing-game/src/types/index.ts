@@ -1,13 +1,15 @@
 export type Point = [number, number];
 
-export type Module = "uppercase" | "lowercase" | "sequencing";
+export type Module = "uppercase" | "lowercase" | "numbers" | "sequencing";
+
+/** How the child practices each letter: once, or five-star mastery */
+export type PracticeMode = "free" | "five-star";
 
 export type GameScreen =
   | "splash"
   | "main-menu"
   | "home"
-  | "letter-intro"
-  | "demo"
+  | "mode-select"
   | "tracing"
   | "celebration"
   | "reward"

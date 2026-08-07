@@ -2,22 +2,34 @@
 
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import type { GameScreen, GameProgress, StickerTheme, Module } from "@/types";
+import type { GameScreen, GameProgress, StickerTheme, Module, PracticeMode } from "@/types";
 import { getThemeForProgress } from "@/constants/rewards";
+
+const LETTER_SYMBOLS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+const NUMBER_SYMBOLS = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"];
+
+function symbolsFor(module: Module): string[] {
+  return module === "numbers" ? NUMBER_SYMBOLS : LETTER_SYMBOLS;
+}
 
 interface GameState {
   screen: GameScreen;
   module: Module;
+  /** Chosen once per session; null until the child picks Free or 5 Star */
+  practiceMode: PracticeMode | null;
   progress: GameProgress;
   lowercaseProgress: GameProgress;
+  numbersProgress: GameProgress;
 
   // Actions
   setScreen: (screen: GameScreen) => void;
   setModule: (module: Module) => void;
+  setPracticeMode: (mode: PracticeMode) => void;
   goToLetter: (index: number) => void;
   completeCurrentLetter: () => void;
   resetProgress: () => void;
   resetLowercaseProgress: () => void;
+  resetNumbersProgress: () => void;
 }
 
 const defaultProgress: GameProgress = {
@@ -32,18 +44,26 @@ export const useGameStore = create<GameState>()(
     (set, get) => ({
       screen: "splash",
       module: "uppercase",
+      practiceMode: null,
       progress: { ...defaultProgress },
       lowercaseProgress: { ...defaultProgress },
+      numbersProgress: { ...defaultProgress },
 
       setScreen: (screen) => set({ screen }),
 
       setModule: (module) => set({ module }),
+
+      setPracticeMode: (practiceMode) => set({ practiceMode }),
 
       goToLetter: (index) => {
         const { module } = get();
         if (module === "lowercase") {
           set((state) => ({
             lowercaseProgress: { ...state.lowercaseProgress, currentLetterIndex: index },
+          }));
+        } else if (module === "numbers") {
+          set((state) => ({
+            numbersProgress: { ...state.numbersProgress, currentLetterIndex: index },
           }));
         } else {
           set((state) => ({
@@ -53,10 +73,10 @@ export const useGameStore = create<GameState>()(
       },
 
       completeCurrentLetter: () => {
-        const { progress, lowercaseProgress, module } = get();
-        const currentProgress = module === "lowercase" ? lowercaseProgress : progress;
-        const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-        const letter = letters[currentProgress.currentLetterIndex];
+        const { progress, lowercaseProgress, numbersProgress, module } = get();
+        const currentProgress =
+          module === "lowercase" ? lowercaseProgress : module === "numbers" ? numbersProgress : progress;
+        const letter = symbolsFor(module)[currentProgress.currentLetterIndex];
 
         if (!letter) return;
 
@@ -80,6 +100,8 @@ export const useGameStore = create<GameState>()(
 
         if (module === "lowercase") {
           set({ lowercaseProgress: updated });
+        } else if (module === "numbers") {
+          set({ numbersProgress: updated });
         } else {
           set({ progress: updated });
         }
@@ -96,12 +118,19 @@ export const useGameStore = create<GameState>()(
           lowercaseProgress: { ...defaultProgress },
           screen: "home",
         }),
+
+      resetNumbersProgress: () =>
+        set({
+          numbersProgress: { ...defaultProgress },
+          screen: "home",
+        }),
     }),
     {
       name: "letter-tracing-progress",
       partialize: (state) => ({
         progress: state.progress,
         lowercaseProgress: state.lowercaseProgress,
+        numbersProgress: state.numbersProgress,
       }),
     }
   )

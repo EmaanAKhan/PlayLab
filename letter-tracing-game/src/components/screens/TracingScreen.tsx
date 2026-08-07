@@ -1,46 +1,171 @@
 "use client";
 
 import { useState, useCallback, useEffect, useRef } from "react";
-import { motion, useAnimate } from "framer-motion";
-import { TracingCanvas } from "@/components/tracing/TracingCanvas";
+import { motion, useAnimate, AnimatePresence } from "framer-motion";
+import { TracingCanvas, type TracingPhase } from "@/components/tracing/TracingCanvas";
+import { CelebrationSparkles } from "@/components/animations/Sparkles";
+import { SceneDecor } from "@/components/animations/SceneDecor";
+import { RotateDevicePrompt } from "@/components/ui/RotateDevicePrompt";
 import { useAudio } from "@/hooks/useAudio";
-import type { LetterDefinition } from "@/types";
+import type { LetterDefinition, PracticeMode } from "@/types";
 
 interface TracingScreenProps {
   letter: LetterDefinition;
+  /** Free = one trace per letter; five-star = five traces per letter */
+  mode: PracticeMode;
   onComplete: () => void;
-  onReplayDemo: () => void;
   onHome: () => void;
 }
 
-export function TracingScreen({ letter, onComplete, onReplayDemo, onHome }: TracingScreenProps) {
-  const [coverage, setCoverage] = useState(0);
-  const [canvasScope, canvasAnimate] = useAnimate();
-  const { playSuccess, pronounceLetter, pronouncePhonetic } = useAudio();
-  const hasAutoPlayed = useRef(false);
+const STAR_COUNT = 5;
 
-  // Reset coverage when letter changes
+// ─── Five-star mastery row ────────────────────────────────────────────────────
+function StarRow({ stars }: { stars: number }) {
+  return (
+    <div className="flex items-center gap-1.5" aria-label={`${stars} of ${STAR_COUNT} stars earned`}>
+      {Array.from({ length: STAR_COUNT }).map((_, i) => {
+        const filled = i < stars;
+        const justFilled = i === stars - 1;
+        return (
+          <motion.div
+            key={i}
+            className="relative"
+            initial={false}
+            animate={justFilled ? { scale: [1, 1.5, 1.05, 1.2, 1] } : { scale: 1 }}
+            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+          >
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
+              <path
+                d="M12 1.5l2.9 6.8 7.4.6-5.6 4.9 1.7 7.2L12 17.1l-6.4 3.9 1.7-7.2-5.6-4.9 7.4-.6L12 1.5z"
+                fill={filled ? "#FFD93D" : "#E7DFFA"}
+                stroke={filled ? "#F4A73E" : "#D8CDF2"}
+                strokeWidth="1"
+              />
+            </svg>
+            {justFilled && (
+              <motion.div
+                className="absolute inset-0"
+                initial={{ opacity: 0.9, scale: 1 }}
+                animate={{ opacity: 0, scale: 2.4 }}
+                transition={{ duration: 0.55, ease: "easeOut" }}
+                style={{
+                  borderRadius: "50%",
+                  background: "radial-gradient(circle, rgba(255,217,61,0.55), transparent 70%)",
+                }}
+              />
+            )}
+          </motion.div>
+        );
+      })}
+    </div>
+  );
+}
+
+export function TracingScreen({ letter, mode, onComplete, onHome }: TracingScreenProps) {
+  const starTarget = mode === "five-star" ? STAR_COUNT : 1;
+  const [progress, setProgress] = useState(0);
+  const [stars, setStars] = useState(0);
+  const [attempt, setAttempt] = useState(0); // bumps to remount the canvas per repeat
+  const [phase, setPhase] = useState<TracingPhase>("demo-draw");
+  const [replayToken, setReplayToken] = useState(0);
+  const [burstActive, setBurstActive] = useState(false);
+  const [dims, setDims] = useState({ w: 800, h: 600 });
+
+  const [canvasScope, canvasAnimate] = useAnimate();
+  const containerRef = useRef<HTMLDivElement>(null);
+  const {
+    playSuccess,
+    playStrokeComplete,
+    playStarPop,
+    playFiveStars,
+    playOops,
+    speakLetterIntro,
+    sayWatchMe,
+    sayNowYourTurn,
+  } = useAudio();
+  const hasAutoPlayed = useRef(false);
+  const starsRef = useRef(0);
+  const [introDone, setIntroDone] = useState(false);
+
+  const isDemoing = phase.startsWith("demo");
+
+  // Reset the whole practice loop whenever a new letter is shown
   useEffect(() => {
-    setCoverage(0);
+    setProgress(0);
+    setStars(0);
+    starsRef.current = 0;
+    setAttempt(0);
+    setPhase("demo-draw");
+    setIntroDone(false);
     hasAutoPlayed.current = false;
   }, [letter.letter]);
 
-  // Auto-play pronunciation when the tracing screen opens
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const measure = () => setDims({ w: el.offsetWidth, h: el.offsetHeight });
+    measure();
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
+  }, []);
+
+  // Letter introduction: name → short pause → phonetic sound → "Watch me!"
+  // → only THEN does the tracing guidance begin (the demo is held until the
+  // voice has finished, so pronunciation never overlaps the animation).
   useEffect(() => {
     if (hasAutoPlayed.current) return;
     hasAutoPlayed.current = true;
-    const t1 = setTimeout(() => pronounceLetter(letter.letter), 400);
-    const t2 = setTimeout(() => pronouncePhonetic(letter.phonetic), 1200);
-    return () => { clearTimeout(t1); clearTimeout(t2); };
-  }, [letter, pronounceLetter, pronouncePhonetic]);
+    const t = setTimeout(() => {
+      speakLetterIntro(letter.letter, () => {
+        sayWatchMe();
+        setTimeout(() => setIntroDone(true), 300);
+      });
+    }, 100);
+    return () => clearTimeout(t);
+  }, [letter, speakLetterIntro, sayWatchMe]);
 
-  const handleComplete = useCallback(() => {
+  const handleFirstTurn = useCallback(() => {
+    sayNowYourTurn();
+  }, [sayNowYourTurn]);
+
+  // Subtle chime for every completed stroke except the letter's final one
+  // (the final stroke triggers the bigger letter-success sound instead)
+  const handleStrokeComplete = useCallback(
+    (strokeIndex: number, total: number) => {
+      if (strokeIndex < total - 1) playStrokeComplete();
+    },
+    [playStrokeComplete]
+  );
+
+  // Fires when the child has traced EVERY stroke = one complete letter.
+  // Five-star mode: one gold star per complete letter, five to finish.
+  // Free mode: a single complete letter finishes immediately.
+  const handleLetterSuccess = useCallback(() => {
     playSuccess();
-    setTimeout(onComplete, 600);
-  }, [onComplete, playSuccess]);
+    const nextStars = Math.min(starTarget, starsRef.current + 1);
+    starsRef.current = nextStars;
+    setStars(nextStars);
+    if (mode === "five-star") playStarPop();
+    setBurstActive(true);
+    setTimeout(() => setBurstActive(false), 600);
 
-  // Called by TracingCanvas when child drifts too far off-path — wiggle the canvas
+    if (nextStars >= starTarget) {
+      // Letter finished — celebration screen offers Again / Next
+      if (mode === "five-star") setTimeout(() => playFiveStars(), 150);
+      setTimeout(onComplete, 1100);
+    } else {
+      // Reset the SAME letter for another round — no dialogs, no buttons.
+      // Repeat rounds skip the pencil demo (withDemo only on attempt 0).
+      setTimeout(() => {
+        setProgress(0);
+        setAttempt((a) => a + 1);
+      }, 800);
+    }
+  }, [playSuccess, playStarPop, playFiveStars, onComplete, mode, starTarget]);
+
+  // Off-path scribble → gentle wiggle + soft "oops", never an error message
   const handleOffPath = useCallback(() => {
+    playOops();
     if (canvasScope.current) {
       canvasAnimate(
         canvasScope.current,
@@ -48,25 +173,49 @@ export function TracingScreen({ letter, onComplete, onReplayDemo, onHome }: Trac
         { duration: 0.4, ease: "easeInOut" }
       );
     }
-  }, [canvasAnimate, canvasScope]);
+  }, [canvasAnimate, canvasScope, playOops]);
+
+  const handleReplayDemo = useCallback(() => {
+    setProgress(0);
+    setReplayToken((t) => t + 1);
+  }, []);
+
+  const caption = !introDone && attempt === 0
+    ? "Listen..."
+    : isDemoing
+    ? "Watch carefully..."
+    : phase === "await-lift"
+    ? "Lift your finger!"
+    : progress === 0
+    ? "Now you try — start at the purple dot"
+    : progress < 0.99
+    ? "Keep going — one stroke at a time!"
+    : "Wonderful! ✨";
 
   return (
     <div
-      className="relative flex h-full w-full flex-col items-center justify-between overflow-hidden px-5 py-6"
+      ref={containerRef}
+      className="compact-on-short relative flex h-full w-full flex-col items-center overflow-hidden px-4 py-4 sm:px-6 sm:py-6"
       style={{ background: "linear-gradient(160deg, #F0E8FF 0%, #E8F4FF 100%)" }}
     >
-      {/* Top bar */}
+      <SceneDecor />
+
+      {/* Portrait-phone orientation prompt (CSS-only visibility) */}
+      <RotateDevicePrompt />
+
+      {burstActive && <CelebrationSparkles active width={dims.w} height={dims.h} />}
+
+      {/* Top bar — [Home]  Trace X 🔊 ↻  ····  ☆☆☆☆☆ */}
       <motion.div
-        className="w-full max-w-sm"
+        className="relative z-10 w-full max-w-md md:max-w-2xl"
         initial={{ y: -16, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.4 }}
       >
         <div className="flex items-center gap-3">
-          {/* Home button */}
           <motion.button
             onClick={onHome}
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-white/70 shadow-soft"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-white/70 shadow-soft md:h-11 md:w-11"
             whileTap={{ scale: 0.93 }}
             whileHover={{ scale: 1.06 }}
             aria-label="Go back to main menu"
@@ -82,19 +231,14 @@ export function TracingScreen({ letter, onComplete, onReplayDemo, onHome }: Trac
             </svg>
           </motion.button>
 
-          {/* Title */}
           <div className="flex flex-1 items-center justify-between">
             <div className="flex items-center gap-2">
               <span className="font-rounded text-sm font-bold text-plum/60">Trace</span>
-              <span className="font-rounded text-3xl font-black text-plum leading-none">
+              <span className="font-rounded text-3xl font-black leading-none text-plum md:text-4xl">
                 {letter.letter}
               </span>
-              {/* Speaker icon */}
               <motion.button
-                onClick={() => {
-                  pronounceLetter(letter.letter);
-                  setTimeout(() => pronouncePhonetic(letter.phonetic), 700);
-                }}
+                onClick={() => speakLetterIntro(letter.letter)}
                 className="ml-1 flex h-8 w-8 items-center justify-center rounded-full bg-white/70 shadow-soft"
                 whileTap={{ scale: 0.9 }}
                 aria-label="Hear pronunciation"
@@ -105,69 +249,95 @@ export function TracingScreen({ letter, onComplete, onReplayDemo, onHome }: Trac
                   <path d="M15.54 8.46a5 5 0 0 1 0 7.07" stroke="#A882E8" strokeWidth="2" strokeLinecap="round" />
                 </svg>
               </motion.button>
+              {!isDemoing && (
+                <motion.button
+                  onClick={handleReplayDemo}
+                  className="flex h-8 w-8 items-center justify-center rounded-full bg-white/70 shadow-soft"
+                  whileTap={{ scale: 0.9 }}
+                  aria-label="Watch the pencil write this letter again, stroke by stroke"
+                  initial={{ opacity: 0, scale: 0.7 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                    <path
+                      d="M4 4v6h6M20 20v-6h-6M4.5 15a8 8 0 1 0 2-9.5L4 8"
+                      stroke="#A882E8"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </motion.button>
+              )}
             </div>
 
-            {/* Coverage percentage badge */}
-            <motion.div
-              className="rounded-full bg-white/70 px-3 py-1 shadow-soft"
-              animate={{ scale: coverage > 0.5 ? [1, 1.08, 1] : 1 }}
-              transition={{ duration: 0.3 }}
-            >
-              <span className="font-rounded text-sm font-black text-plum">
-                {Math.round(coverage * 100)}%
-              </span>
-            </motion.div>
+            {/* Five-star mastery row — one star per COMPLETE letter trace */}
+            {mode === "five-star" && (
+              <div className="rounded-full bg-white/70 px-3.5 py-2 shadow-soft">
+                <StarRow stars={stars} />
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Single coverage progress bar */}
-        <div className="mt-3 h-2.5 w-full overflow-hidden rounded-full bg-lavender/60">
+        {/* Letter progress bar — hidden on short landscape phones to give the board room */}
+        <div className="hide-on-short mt-3 h-2.5 w-full overflow-hidden rounded-full bg-lavender/60">
           <motion.div
             className="h-full rounded-full"
             style={{
-              background:
-                coverage >= 0.72
-                  ? "#66CC94"
-                  : coverage >= 0.4
-                  ? "#A882E8"
-                  : "#DDD5F5",
+              background: progress >= 0.99 ? "#66CC94" : progress >= 0.4 ? "#A882E8" : "#DDD5F5",
             }}
-            animate={{ width: `${coverage * 100}%` }}
+            animate={{ width: `${progress * 100}%` }}
             transition={{ duration: 0.2 }}
           />
         </div>
       </motion.div>
 
-      {/* Tracing canvas — wrapped for wiggle animation */}
-      <motion.div
-        ref={canvasScope}
-        initial={{ scale: 0.9, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ delay: 0.1, duration: 0.4 }}
-        style={{ boxShadow: "0 8px 32px rgba(124,92,191,0.14)", borderRadius: 24 }}
-      >
-        <TracingCanvas
-          letter={letter}
-          onComplete={handleComplete}
-          onProgress={setCoverage}
-          onOffPath={handleOffPath}
-        />
-      </motion.div>
+      {/* Tracing board — sized by the .trace-board CSS variable so it fills
+          landscape phones, scales up on tablets/desktop, never distorts */}
+      <div className="relative z-10 flex w-full flex-1 items-center justify-center">
+        <motion.div
+          ref={canvasScope}
+          className="trace-board"
+          initial={{ scale: 0.92, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ delay: 0.1, duration: 0.4 }}
+          style={{ boxShadow: "0 10px 36px rgba(124,92,191,0.16)", borderRadius: 28 }}
+        >
+          <TracingCanvas
+            key={`${letter.letter}-${attempt}`}
+            letter={letter}
+            onComplete={handleLetterSuccess}
+            onProgress={setProgress}
+            onStrokeComplete={handleStrokeComplete}
+            onOffPath={handleOffPath}
+            withDemo={attempt === 0}
+            holdDemo={attempt === 0 && !introDone}
+            onFirstTurn={handleFirstTurn}
+            onPhaseChange={setPhase}
+            replayToken={replayToken}
+          />
+        </motion.div>
+      </div>
 
-      {/* Bottom guidance */}
+      {/* Bottom caption — hidden on short landscape phones */}
       <motion.div
-        className="flex w-full max-w-sm flex-col items-center gap-3"
+        className="hide-on-short relative z-10 flex w-full max-w-md flex-col items-center gap-3 pb-1 md:max-w-2xl"
         initial={{ y: 16, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.2 }}
       >
-        <p className="text-center font-rounded text-sm font-semibold text-plum/60">
-          {coverage === 0
-            ? "Start at the purple dot and trace the letter"
-            : coverage < 0.72
-            ? "Keep going — trace more of the letter!"
-            : "Almost there! ✨"}
-        </p>
+        <AnimatePresence mode="wait">
+          <motion.p
+            key={caption}
+            initial={{ opacity: 0, y: 4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -4 }}
+            className="text-center font-rounded text-sm font-semibold text-plum/60 md:text-base"
+          >
+            {caption}
+          </motion.p>
+        </AnimatePresence>
       </motion.div>
     </div>
   );

@@ -3,11 +3,15 @@
 import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { CelebrationSparkles } from "@/components/animations/Sparkles";
+import { Button } from "@/components/ui/Button";
 import { useAudio } from "@/hooks/useAudio";
 
 interface CelebrationScreenProps {
   letter: string;
-  onContinue: () => void;
+  /** Replay the current letter (resets stars in 5 Star Mode) */
+  onAgain: () => void;
+  /** Move on to the next letter */
+  onNext: () => void;
 }
 
 const PRAISE_MESSAGES = [
@@ -21,7 +25,7 @@ const PRAISE_MESSAGES = [
   "Keep it up!",
 ];
 
-export function CelebrationScreen({ letter, onContinue }: CelebrationScreenProps) {
+export function CelebrationScreen({ letter, onAgain, onNext }: CelebrationScreenProps) {
   const { sayGreat, playCelebration } = useAudio();
   const containerRef = useRef<HTMLDivElement>(null);
   const [dimensions, setDimensions] = useState({ w: 360, h: 640 });
@@ -39,12 +43,6 @@ export function CelebrationScreen({ letter, onContinue }: CelebrationScreenProps
     const t2 = setTimeout(sayGreat, 600);
     return () => { clearTimeout(t1); clearTimeout(t2); };
   }, [playCelebration, sayGreat]);
-
-  // Auto-advance after a pause
-  useEffect(() => {
-    const t = setTimeout(onContinue, 3200);
-    return () => clearTimeout(t);
-  }, [onContinue]);
 
   const LETTER_COLORS = [
     "#7C5CBF", "#E07040", "#3DAA72", "#2980B9", "#C0960C",
@@ -96,6 +94,32 @@ export function CelebrationScreen({ letter, onContinue }: CelebrationScreenProps
           <p className="mt-2 font-rounded text-lg font-semibold text-plum/60">
             You traced letter {letter} perfectly!
           </p>
+        </motion.div>
+
+        {/* Again / Next — the child chooses, the game never rushes ahead */}
+        <motion.div
+          className="flex w-full max-w-sm items-center justify-center gap-4"
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.7 }}
+        >
+          <Button
+            size="lg"
+            variant="secondary"
+            onClick={onAgain}
+            className="flex-1"
+            aria-label="Trace this letter again"
+          >
+            Again
+          </Button>
+          <Button
+            size="lg"
+            onClick={onNext}
+            className="flex-1"
+            aria-label="Go to the next letter"
+          >
+            Next
+          </Button>
         </motion.div>
       </div>
     </div>

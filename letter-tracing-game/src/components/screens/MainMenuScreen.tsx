@@ -1,45 +1,46 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { HomeEnvironment } from "@/components/animations/HomeEnvironment";
 import type { Module } from "@/types";
 
 interface MainMenuScreenProps {
   onSelectModule: (module: Module) => void;
 }
 
+/** The cards communicate their purpose visually — big glyphs, minimal text */
 const MODULES = [
   {
     id: "uppercase" as Module,
-    label: "ABC",
-    title: "Uppercase Letters",
-    subtitle: "Trace A → Z",
+    glyph: "ABC",
+    aria: "Uppercase letter tracing",
     bg: "#DDD5F5",
     border: "#A882E8",
     text: "#7C5CBF",
-    accent: "#7C5CBF",
-    emoji: "🔤",
   },
   {
     id: "lowercase" as Module,
-    label: "abc",
-    title: "Lowercase Letters",
-    subtitle: "Trace a → z",
+    glyph: "abc",
+    aria: "Lowercase letter tracing",
     bg: "#C8F0D8",
     border: "#66CC94",
     text: "#3DAA72",
-    accent: "#3DAA72",
-    emoji: "✏️",
+  },
+  {
+    id: "numbers" as Module,
+    glyph: "123",
+    aria: "Number tracing, one to ten",
+    bg: "#D4EEFF",
+    border: "#74B9FF",
+    text: "#2980B9",
   },
   {
     id: "sequencing" as Module,
-    label: "A B C",
-    title: "Letter Order",
-    subtitle: "Sort A to Z",
+    glyph: "A → B → C",
+    aria: "Letter order game — drag letters into place",
     bg: "#FFD6BC",
     border: "#FFAA80",
     text: "#C06030",
-    accent: "#E07040",
-    emoji: "🔀",
   },
 ];
 
@@ -49,6 +50,9 @@ export function MainMenuScreen({ onSelectModule }: MainMenuScreenProps) {
       className="relative flex h-full w-full flex-col items-center justify-between overflow-hidden px-5 py-8"
       style={{ background: "linear-gradient(160deg, #E8F4FF 0%, #F0E8FF 50%, #E8FFE8 100%)" }}
     >
+      {/* Garden environment: birds & butterflies in the outer bands */}
+      <HomeEnvironment />
+
       {/* Floating background dots */}
       <div className="pointer-events-none absolute inset-0" aria-hidden="true">
         {[
@@ -122,56 +126,35 @@ export function MainMenuScreen({ onSelectModule }: MainMenuScreenProps) {
         </div>
       </motion.div>
 
-      {/* Module cards */}
-      <div className="relative z-10 flex w-full max-w-sm flex-col gap-4">
+      {/* Module cards — four big visual tiles, no text-heavy labels */}
+      <div className="relative z-10 grid w-full max-w-md grid-cols-2 gap-4 md:max-w-lg md:gap-5">
         {MODULES.map((mod, i) => (
           <motion.button
             key={mod.id}
             onClick={() => onSelectModule(mod.id)}
-            className="w-full rounded-3xl p-4 text-left shadow-lg active:scale-95"
+            className="flex items-center justify-center rounded-4xl shadow-lg"
             style={{
               background: mod.bg,
-              border: `2.5px solid ${mod.border}`,
+              border: `3px solid ${mod.border}`,
+              minHeight: "clamp(96px, 16vh, 150px)",
             }}
-            initial={{ x: -30, opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            transition={{ delay: 0.2 + i * 0.1, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-            whileTap={{ scale: 0.97 }}
-            whileHover={{ scale: 1.02 }}
+            initial={{ scale: 0.85, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ delay: 0.15 + i * 0.08, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+            whileTap={{ scale: 0.95 }}
+            whileHover={{ scale: 1.04 }}
+            aria-label={mod.aria}
           >
-            <div className="flex items-center gap-4">
-              <div
-                className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl shadow-inner"
-                style={{ background: "white", opacity: 0.85 }}
-              >
-                <span className="font-rounded text-xl font-black" style={{ color: mod.text }}>
-                  {mod.label}
-                </span>
-              </div>
-              <div className="flex-1">
-                <p className="font-rounded text-base font-black" style={{ color: mod.text }}>
-                  {mod.title}
-                </p>
-                <p className="font-rounded text-sm font-semibold" style={{ color: mod.text, opacity: 0.65 }}>
-                  {mod.subtitle}
-                </p>
-              </div>
-              <svg
-                width="22"
-                height="22"
-                viewBox="0 0 24 24"
-                fill="none"
-                style={{ color: mod.accent, opacity: 0.7 }}
-              >
-                <path
-                  d="M9 18l6-6-6-6"
-                  stroke="currentColor"
-                  strokeWidth="2.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </div>
+            <span
+              className="font-rounded font-black leading-none"
+              style={{
+                color: mod.text,
+                fontSize: mod.glyph.length > 4 ? "clamp(20px, 4.2vw, 30px)" : "clamp(30px, 6vw, 44px)",
+                whiteSpace: "nowrap",
+              }}
+            >
+              {mod.glyph}
+            </span>
           </motion.button>
         ))}
       </div>
