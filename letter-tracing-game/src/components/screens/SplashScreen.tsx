@@ -15,7 +15,7 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
   }, [onComplete]);
 
   return (
-    <div className="relative flex h-full w-full flex-col items-center justify-center overflow-hidden"
+    <div className="relative flex h-full w-full flex-col items-center justify-center overflow-y-auto overflow-x-hidden px-4 py-3"
       style={{ background: "linear-gradient(160deg, #E8F4FF 0%, #F0E8FF 50%, #E8FFE8 100%)" }}
     >
       <FloatingClouds />

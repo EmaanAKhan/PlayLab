@@ -56,24 +56,29 @@ export function CelebrationScreen({ letter, onAgain, onNext }: CelebrationScreen
   return (
     <div
       ref={containerRef}
-      className="relative flex h-full w-full flex-col items-center justify-center overflow-hidden"
+      className="relative flex h-full w-full flex-col items-center justify-center overflow-y-auto overflow-x-hidden px-4 py-3"
       style={{ background: "linear-gradient(160deg, #F0E8FF 0%, #E8FFE8 100%)" }}
     >
       {/* Full-screen sparkles */}
       <CelebrationSparkles active width={dimensions.w} height={dimensions.h} />
 
-      <div className="relative z-10 flex flex-col items-center gap-8">
-        {/* Big letter badge */}
+      <div className="relative z-10 flex flex-col items-center gap-[clamp(12px,3vmin,32px)]">
+        {/* Big letter badge — scales with the SHORT edge so it always fits landscape */}
         <motion.div
-          className="flex h-52 w-52 items-center justify-center rounded-4xl shadow-card"
-          style={{ background: "white", border: `5px solid ${color}33` }}
+          className="flex items-center justify-center rounded-4xl shadow-card"
+          style={{
+            background: "white",
+            border: `5px solid ${color}33`,
+            width: "clamp(96px, 26vmin, 208px)",
+            height: "clamp(96px, 26vmin, 208px)",
+          }}
           initial={{ scale: 0.3, rotate: -15, opacity: 0 }}
           animate={{ scale: 1, rotate: 0, opacity: 1 }}
           transition={{ type: "spring", stiffness: 200, damping: 14 }}
         >
           <motion.span
             className="font-rounded font-black"
-            style={{ fontSize: 128, lineHeight: 1, color }}
+            style={{ fontSize: "clamp(56px, 16vmin, 128px)", lineHeight: 1, color }}
             animate={{ scale: [1, 1.08, 1] }}
             transition={{ duration: 0.6, repeat: 2, ease: "easeInOut" }}
           >
@@ -88,10 +93,13 @@ export function CelebrationScreen({ letter, onAgain, onNext }: CelebrationScreen
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.35 }}
         >
-          <h2 className="font-rounded text-5xl font-black text-plum drop-shadow-sm">
+          <h2
+            className="font-rounded font-black text-plum drop-shadow-sm"
+            style={{ fontSize: "clamp(24px, 7vmin, 48px)" }}
+          >
             {praise}
           </h2>
-          <p className="mt-2 font-rounded text-lg font-semibold text-plum/60">
+          <p className="mt-1 font-rounded font-semibold text-plum/60" style={{ fontSize: "clamp(13px, 3.4vmin, 18px)" }}>
             You traced letter {letter} perfectly!
           </p>
         </motion.div>
