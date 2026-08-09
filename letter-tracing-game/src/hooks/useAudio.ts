@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef } from "react";
 import { Howl, Howler } from "howler";
 import { getLetterSound } from "@/constants/phonics";
+import { playLetterSound } from "@/utils/phonemeSynth";
 
 // ---------------------------------------------------------------------------
 // WAV generator — creates PCM audio in-memory so Howler has a src to load.
@@ -161,7 +162,7 @@ function pickVoice(): SpeechSynthesisVoice | null {
  *  interrupt=false queues after current speech WITHOUT cancelling — used for
  *  the later parts of a pronunciation sequence so the phonetic sound is never
  *  cut off by its own chain. */
-function speak(text: string, rate = 1.0, pitch = 1.55, onEnd?: () => void, interrupt = true, attempt = 0): void {
+function speak(text: string, rate = 0.88, pitch = 1.55, onEnd?: () => void, interrupt = true, attempt = 0): void {
   if (typeof window === "undefined") return;
   const synth = window.speechSynthesis;
   if (!synth) {
@@ -261,12 +262,12 @@ export function useAudio() {
   /** Speak the letter name aloud — always plain and simple ("a", never
    *  "capital A": some engines announce case for uppercase letters) */
   const pronounceLetter = useCallback((letter: string) => {
-    speak(letter.toLowerCase(), 0.9, 1.55);
+    speak(letter.toLowerCase(), 0.82, 1.55);
   }, []);
 
   /** Speak the full phonetic description */
   const pronouncePhonetic = useCallback((text: string) => {
-    speak(text.toLowerCase(), 0.95, 1.5);
+    speak(text.toLowerCase(), 0.85, 1.5);
   }, []);
 
   /**
@@ -277,18 +278,29 @@ export function useAudio() {
   const speakLetterIntro = useCallback((letter: string, onDone?: () => void) => {
     // Numbers: just the number word once ("Three") — no phonetic sound
     if (/^\d+$/.test(letter)) {
-      speakParts([{ text: letter, rate: 0.92, pitch: 1.52 }], 0, onDone);
+      speakParts([{ text: letter, rate: 0.85, pitch: 1.52 }], 0, onDone);
       return;
     }
-    // Plain simple name ("a", "b", "c" — never "capital A"), then the sound
-    speakParts(
-      [
-        { text: letter.toLowerCase(), rate: 0.88, pitch: 1.5 },
-        { text: getLetterSound(letter).toLowerCase(), rate: 0.85, pitch: 1.58 },
-      ],
-      200,
-      onDone
-    );
+    // Plain simple name ("a", "b", "c" — never "capital A"), then the sound.
+    // The SOUND is synthesized with Web Audio (see phonemeSynth) because
+    // browser TTS cannot be trusted to pronounce phonics — most engines read
+    // "buh"/"mmm" as words or spell them out. Synthesis is identical and
+    // correct on every device; TTS remains only the fallback when Web Audio
+    // is unavailable.
+    speakParts([{ text: letter.toLowerCase(), rate: 0.8, pitch: 1.55 }], 0, () => {
+      setTimeout(() => {
+        const dur = playLetterSound(letter);
+        if (dur > 0) {
+          setTimeout(() => onDone?.(), dur * 1000 + 120);
+        } else {
+          speakParts(
+            [{ text: getLetterSound(letter).toLowerCase(), rate: 0.78, pitch: 1.52 }],
+            0,
+            onDone
+          );
+        }
+      }, 200);
+    });
   }, []);
 
   /** Satisfying three-note ascending chord on full letter completion */
@@ -341,12 +353,12 @@ export function useAudio() {
   }, []);
 
   const sayNowYourTurn = useCallback(() => {
-    speak("Now it's your turn!", 1.0, 1.52);
+    speak("Now it's your turn!", 0.9, 1.55);
   }, []);
 
   const sayWatchMe = useCallback(() => {
     // Queued, never interrupting — plays right after the pronunciation
-    speak("Watch carefully!", 1.0, 1.52, undefined, false);
+    speak("Watch carefully!", 0.9, 1.55, undefined, false);
   }, []);
 
   const sayGreat = useCallback(() => {
@@ -357,7 +369,7 @@ export function useAudio() {
       "Great job!",
       "Fantastic!",
     ];
-    speak(phrases[(Math.random() * phrases.length) | 0], 1.02, 1.4);
+    speak(phrases[(Math.random() * phrases.length) | 0], 0.95, 1.58);
   }, []);
 
   return {
