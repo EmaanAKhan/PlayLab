@@ -63,7 +63,7 @@ export function CelebrationScreen({ letter, onAgain, onNext }: CelebrationScreen
       <CelebrationSparkles active width={dimensions.w} height={dimensions.h} />
 
       <div className="relative z-10 flex flex-col items-center gap-[clamp(12px,3vmin,32px)]">
-        {/* Big letter badge — scales with the SHORT edge so it always fits landscape */}
+        {/* Big letter badge — sized by the SHORT edge so landscape always fits */}
         <motion.div
           className="flex items-center justify-center rounded-4xl shadow-card"
           style={{
@@ -93,10 +93,7 @@ export function CelebrationScreen({ letter, onAgain, onNext }: CelebrationScreen
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.35 }}
         >
-          <h2
-            className="font-rounded font-black text-plum drop-shadow-sm"
-            style={{ fontSize: "clamp(24px, 7vmin, 48px)" }}
-          >
+          <h2 className="font-rounded font-black text-plum drop-shadow-sm" style={{ fontSize: "clamp(24px, 7vmin, 48px)" }}>
             {praise}
           </h2>
           <p className="mt-1 font-rounded font-semibold text-plum/60" style={{ fontSize: "clamp(13px, 3.4vmin, 18px)" }}>

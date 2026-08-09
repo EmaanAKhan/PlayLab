@@ -285,7 +285,7 @@ export function LetterSequencingScreen({ onHome }: LetterSequencingScreenProps) 
   if (phase === "select-difficulty") {
     return (
       <div
-        className="relative flex h-full w-full flex-col items-center justify-between overflow-hidden px-6 py-8"
+        className="relative flex h-full w-full flex-col items-center justify-between gap-4 overflow-y-auto overflow-x-hidden px-6 py-6"
         style={{ background: "linear-gradient(160deg, #E8F4FF 0%, #F0E8FF 100%)" }}
       >
         <div className="flex w-full max-w-md md:max-w-xl items-center">
@@ -355,7 +355,7 @@ export function LetterSequencingScreen({ onHome }: LetterSequencingScreenProps) 
   if (phase === "success") {
     return (
       <div
-        className="relative flex h-full w-full flex-col items-center justify-center gap-8 overflow-hidden px-6"
+        className="relative flex h-full w-full flex-col items-center justify-center gap-6 overflow-y-auto overflow-x-hidden px-6 py-6"
         style={{ background: "linear-gradient(160deg, #F0E8FF 0%, #E8FFE8 100%)" }}
       >
         <div className="pointer-events-none fixed inset-0 z-40" aria-hidden="true">
@@ -391,7 +391,7 @@ export function LetterSequencingScreen({ onHome }: LetterSequencingScreenProps) 
   return (
     <div
       ref={containerRef}
-      className="relative flex h-full w-full flex-col items-center justify-between overflow-hidden px-5 py-6"
+      className="relative flex h-full w-full flex-col items-center justify-between gap-3 overflow-y-auto overflow-x-hidden px-5 py-4"
       style={{ background: "linear-gradient(160deg, #F0E8FF 0%, #E8F4FF 100%)", touchAction: "none" }}
       onPointerMove={moveDrag}
       onPointerUp={endDrag}

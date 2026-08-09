@@ -24,7 +24,7 @@ function StarIcon({ filled, size = 22 }: { filled: boolean; size?: number }) {
 export function ModeSelectScreen({ onSelect }: ModeSelectScreenProps) {
   return (
     <div
-      className="relative flex h-full w-full flex-col items-center justify-center gap-8 overflow-hidden px-6"
+      className="relative flex h-full w-full flex-col items-center justify-center gap-6 overflow-y-auto overflow-x-hidden px-6 py-6"
       style={{ background: "linear-gradient(160deg, #F0E8FF 0%, #E8F4FF 100%)" }}
     >
       <SceneDecor variant="minimal" />

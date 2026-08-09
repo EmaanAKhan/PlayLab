@@ -149,7 +149,8 @@ const LETTER_SYMBOLS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 const NUMBER_SYMBOLS = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"];
 
 export function HomeScreen({ onContinue, onStartFromA, onSelectLetter }: HomeScreenProps) {
-  const { progress, module, lowercaseProgress, numbersProgress } = useGameStore();
+  const { progress, module, lowercaseProgress, numbersProgress, practiceMode, setPracticeMode } =
+    useGameStore();
   const currentProgress =
     module === "lowercase" ? lowercaseProgress : module === "numbers" ? numbersProgress : progress;
   const completedCount = currentProgress.completedLetters.length;
@@ -366,6 +367,40 @@ export function HomeScreen({ onContinue, onStartFromA, onSelectLetter }: HomeScr
           animate={{ scale: 1, opacity: 1 }}
           transition={{ delay: 0.15, duration: 0.5 }}
         >
+          {/* Practice mode — changeable any time, for every module */}
+          <div className="mb-3 flex items-center justify-center">
+            <div className="flex rounded-full bg-lavender/50 p-1" role="group" aria-label="Practice mode">
+              {([
+                { id: "free", label: "Free", icon: "✏️" },
+                { id: "five-star", label: "5 Star", icon: "⭐" },
+              ] as const).map((m) => {
+                const selected = practiceMode === m.id;
+                return (
+                  <motion.button
+                    key={m.id}
+                    onClick={() => setPracticeMode(m.id)}
+                    className="flex min-h-[38px] items-center gap-1.5 rounded-full px-4 py-1.5"
+                    style={{
+                      background: selected ? "white" : "transparent",
+                      boxShadow: selected ? "0 2px 8px rgba(124,92,191,0.18)" : "none",
+                    }}
+                    whileTap={{ scale: 0.94 }}
+                    aria-pressed={selected}
+                    aria-label={m.id === "free" ? "Free mode — trace each letter once" : "Five star mode — practice five times"}
+                  >
+                    <span className="text-sm">{m.icon}</span>
+                    <span
+                      className="font-rounded text-sm font-black"
+                      style={{ color: selected ? "#7C5CBF" : "#A594C8" }}
+                    >
+                      {m.label}
+                    </span>
+                  </motion.button>
+                );
+              })}
+            </div>
+          </div>
+
           <div className="mb-3 flex items-center justify-between">
             <span className="font-rounded text-sm font-bold text-plum/70">
               {module === "numbers" ? "Pick a number" : "Pick a letter"}

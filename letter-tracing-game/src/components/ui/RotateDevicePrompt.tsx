@@ -3,66 +3,44 @@
 import { motion } from "framer-motion";
 
 /**
- * A very simple, child-friendly "turn your device sideways" prompt.
+ * A small, friendly, NON-BLOCKING suggestion to try landscape.
  *
- * Visibility is handled ENTIRELY in CSS (globals.css → .rotate-prompt):
- * it only appears on portrait phone-sized viewports, and disappears
- * automatically the moment the device is physically rotated to landscape.
- * Tablets and desktops never see it. No JavaScript orientation forcing.
+ * Portrait play is fully allowed — this is just a gentle floating pill at the
+ * top of the screen. Visibility is pure CSS (globals.css → .rotate-prompt):
+ * it only appears on portrait phone-sized viewports and disappears the moment
+ * the device rotates. Tablets and desktops never see it. It never blocks
+ * touches (pointer-events: none) and never covers the play area meaningfully.
  */
 export function RotateDevicePrompt() {
   return (
     <div
-      className="rotate-prompt absolute inset-0 z-50 flex-col items-center justify-center gap-8 px-8"
-      style={{ background: "linear-gradient(160deg, #F0E8FF 0%, #E8F4FF 100%)" }}
+      className="rotate-prompt pointer-events-none absolute inset-x-0 top-2 z-40 justify-center"
       role="status"
-      aria-label="Please turn your device sideways to play"
+      aria-label="Tip: turning your phone sideways gives a bigger play area"
     >
-      {/* Rotating phone illustration */}
       <motion.div
-        animate={{ rotate: [0, 0, 90, 90, 0] }}
-        transition={{ duration: 3.2, times: [0, 0.15, 0.45, 0.8, 1], repeat: Infinity, ease: "easeInOut" }}
-        className="drop-shadow-lg"
+        className="flex items-center gap-2 rounded-full bg-white/85 px-3.5 py-1.5 shadow-soft backdrop-blur-sm"
+        initial={{ y: -14, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.4 }}
       >
-        <svg width="88" height="88" viewBox="0 0 88 88" fill="none">
-          {/* Phone body */}
-          <rect x="28" y="12" width="32" height="64" rx="8" fill="white" stroke="#A882E8" strokeWidth="3.5" />
-          {/* Screen */}
-          <rect x="33" y="20" width="22" height="44" rx="3" fill="#DDD5F5" />
-          {/* Happy face on screen */}
-          <circle cx="40" cy="36" r="2" fill="#7C5CBF" />
-          <circle cx="48" cy="36" r="2" fill="#7C5CBF" />
-          <path d="M39 44 Q44 49 49 44" stroke="#7C5CBF" strokeWidth="2.5" strokeLinecap="round" fill="none" />
-          {/* Home dot */}
-          <circle cx="44" cy="70" r="2.5" fill="#C4B5F5" />
-        </svg>
-      </motion.div>
-
-      {/* Curved arrow hint */}
-      <motion.svg
-        width="64"
-        height="40"
-        viewBox="0 0 64 40"
-        fill="none"
-        animate={{ opacity: [0.5, 1, 0.5] }}
-        transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
-      >
-        <path
-          d="M8 32 Q32 4 54 20"
-          stroke="#A882E8"
-          strokeWidth="4"
-          strokeLinecap="round"
+        {/* Small rotating-phone icon */}
+        <motion.svg
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
           fill="none"
-        />
-        <path d="M56 10 L56 22 L44 21" stroke="#A882E8" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-      </motion.svg>
-
-      <div className="text-center">
-        <p className="font-rounded text-2xl font-black text-plum">Turn your phone sideways!</p>
-        <p className="mt-2 font-rounded text-base font-semibold text-plum/60">
-          The game is more fun in landscape
-        </p>
-      </div>
+          animate={{ rotate: [0, 0, 90, 90, 0] }}
+          transition={{ duration: 3.4, times: [0, 0.2, 0.45, 0.8, 1], repeat: Infinity, ease: "easeInOut" }}
+        >
+          <rect x="8" y="3" width="8" height="18" rx="2.5" fill="white" stroke="#A882E8" strokeWidth="1.8" />
+          <rect x="9.5" y="5.5" width="5" height="11" rx="1" fill="#DDD5F5" />
+          <circle cx="12" cy="18.6" r="0.9" fill="#C4B5F5" />
+        </motion.svg>
+        <span className="font-rounded text-xs font-bold text-plum/80">
+          Tip: turn sideways for a bigger board!
+        </span>
+      </motion.div>
     </div>
   );
 }

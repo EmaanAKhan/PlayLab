@@ -112,9 +112,10 @@ const FEMALE_HINTS = [
   "samantha", "karen", "moira", "tessa", "google uk english female",
 ];
 const QUALITY_HINTS = ["natural", "neural", "premium", "enhanced", "online", "google"];
+/** Rare, but if a device ships an actual child voice, strongly prefer it */
+const CHILD_HINTS = ["child", "kid", "junior", "young"];
 
 let cachedVoice: SpeechSynthesisVoice | null = null;
-let cachedVoiceListLength = -1;
 
 function scoreVoice(v: SpeechSynthesisVoice): number {
   const lang = v.lang.toLowerCase();
@@ -124,18 +125,24 @@ function scoreVoice(v: SpeechSynthesisVoice): number {
   if (lang.startsWith("en-gb")) score += 400;
   else if (lang.startsWith("en")) score += 100;
   if (FEMALE_HINTS.some((h) => name.includes(h))) score += 120;
+  if (CHILD_HINTS.some((h) => name.includes(h))) score += 300;
   if (name.includes("male") && !name.includes("female")) score -= 80;
   for (const q of QUALITY_HINTS) if (name.includes(q)) score += 40;
   return score;
 }
 
+/** ONE voice for the whole session, every module. The choice is STICKY: once
+ *  picked it is never re-picked (unless it disappears from the device), so the
+ *  narrator can never switch from one voice to another mid-game. */
 function pickVoice(): SpeechSynthesisVoice | null {
   if (typeof window === "undefined") return null;
   const synth = window.speechSynthesis;
   if (!synth) return null;
   const voices = synth.getVoices();
   if (voices.length === 0) return null;
-  if (cachedVoice && voices.length === cachedVoiceListLength) return cachedVoice;
+  if (cachedVoice && voices.some((v) => v.voiceURI === cachedVoice!.voiceURI)) {
+    return cachedVoice;
+  }
   let best: SpeechSynthesisVoice | null = null;
   let bestScore = 0;
   for (const v of voices) {
@@ -146,7 +153,6 @@ function pickVoice(): SpeechSynthesisVoice | null {
     }
   }
   cachedVoice = best;
-  cachedVoiceListLength = voices.length;
   return best;
 }
 
@@ -155,11 +161,18 @@ function pickVoice(): SpeechSynthesisVoice | null {
  *  interrupt=false queues after current speech WITHOUT cancelling — used for
  *  the later parts of a pronunciation sequence so the phonetic sound is never
  *  cut off by its own chain. */
-function speak(text: string, rate = 0.95, pitch = 1.15, onEnd?: () => void, interrupt = true): void {
+function speak(text: string, rate = 1.0, pitch = 1.55, onEnd?: () => void, interrupt = true, attempt = 0): void {
   if (typeof window === "undefined") return;
   const synth = window.speechSynthesis;
   if (!synth) {
     onEnd?.();
+    return;
+  }
+  // If the voice list hasn't loaded yet, WAIT briefly rather than speaking
+  // with the browser default — otherwise the first words come out in a
+  // different (often male) voice than the rest of the game.
+  if (synth.getVoices().length === 0 && attempt < 6) {
+    setTimeout(() => speak(text, rate, pitch, onEnd, interrupt, attempt + 1), 180);
     return;
   }
   // Chrome can silently wedge if cancel() and speak() happen back-to-back.
@@ -186,7 +199,7 @@ function speak(text: string, rate = 0.95, pitch = 1.15, onEnd?: () => void, inte
     };
     utterance.onend = done;
     utterance.onerror = done;
-    setTimeout(done, Math.max(800, text.length * 90) + 150);
+    setTimeout(done, Math.max(900, text.length * 95) + 150);
   }
   if (wasBusy) {
     setTimeout(() => synth.speak(utterance), 60);
@@ -236,7 +249,8 @@ export function useAudio() {
     if (!synth) return;
     const load = () => {
       synth.getVoices();
-      cachedVoice = null; // voice list changed — re-pick on next speak
+      // NOTE: the sticky voice is kept — pickVoice only re-picks if the
+      // chosen voice actually disappeared from the device.
       voicesReadyRef.current = true;
     };
     load();
@@ -244,14 +258,15 @@ export function useAudio() {
     return () => synth.removeEventListener("voiceschanged", load);
   }, []);
 
-  /** Speak the letter name aloud */
+  /** Speak the letter name aloud — always plain and simple ("a", never
+   *  "capital A": some engines announce case for uppercase letters) */
   const pronounceLetter = useCallback((letter: string) => {
-    speak(letter, 0.85, 1.18);
+    speak(letter.toLowerCase(), 0.9, 1.55);
   }, []);
 
   /** Speak the full phonetic description */
   const pronouncePhonetic = useCallback((text: string) => {
-    speak(text, 0.9, 1.12);
+    speak(text.toLowerCase(), 0.95, 1.5);
   }, []);
 
   /**
@@ -262,13 +277,14 @@ export function useAudio() {
   const speakLetterIntro = useCallback((letter: string, onDone?: () => void) => {
     // Numbers: just the number word once ("Three") — no phonetic sound
     if (/^\d+$/.test(letter)) {
-      speakParts([{ text: letter, rate: 0.85, pitch: 1.16 }], 0, onDone);
+      speakParts([{ text: letter, rate: 0.92, pitch: 1.52 }], 0, onDone);
       return;
     }
+    // Plain simple name ("a", "b", "c" — never "capital A"), then the sound
     speakParts(
       [
-        { text: letter, rate: 0.82, pitch: 1.18 },
-        { text: getLetterSound(letter), rate: 0.78, pitch: 1.16 },
+        { text: letter.toLowerCase(), rate: 0.88, pitch: 1.5 },
+        { text: getLetterSound(letter).toLowerCase(), rate: 0.85, pitch: 1.58 },
       ],
       200,
       onDone
@@ -325,12 +341,12 @@ export function useAudio() {
   }, []);
 
   const sayNowYourTurn = useCallback(() => {
-    speak("Now it is your turn!", 0.95, 1.16);
+    speak("Now it's your turn!", 1.0, 1.52);
   }, []);
 
   const sayWatchMe = useCallback(() => {
     // Queued, never interrupting — plays right after the pronunciation
-    speak("Watch carefully!", 0.95, 1.16, undefined, false);
+    speak("Watch carefully!", 1.0, 1.52, undefined, false);
   }, []);
 
   const sayGreat = useCallback(() => {
@@ -341,7 +357,7 @@ export function useAudio() {
       "Great job!",
       "Fantastic!",
     ];
-    speak(phrases[(Math.random() * phrases.length) | 0], 0.98, 1.2);
+    speak(phrases[(Math.random() * phrases.length) | 0], 1.02, 1.4);
   }, []);
 
   return {
