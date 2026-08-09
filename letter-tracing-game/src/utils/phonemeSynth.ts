@@ -51,7 +51,7 @@ function env(c: AudioContext, t0: number, d: number, peak: number, a = 0.02, r =
 }
 
 /** voiced source: child-pitched glottal buzz with a gentle falling contour */
-function glottis(c: AudioContext, t0: number, d: number, f0 = 255): OscillatorNode {
+function glottis(c: AudioContext, t0: number, d: number, f0 = 185): OscillatorNode {
   const o = c.createOscillator();
   o.type = "sawtooth";
   o.frequency.setValueAtTime(f0, t0);
@@ -160,7 +160,7 @@ function burst(c: AudioContext, t0: number, center: number, voiced: boolean): vo
 
 /** short neutral "uh" tail used after plosives (buh, duh, kuh…) */
 function schwa(c: AudioContext, t0: number, d = 0.2, gain = 0.42): void {
-  vowel(c, t0, d, [600, 1200, 2400], gain);
+  vowel(c, t0, d, [550, 1100, 2200], gain);
 }
 
 // ── Per-letter recipes ──────────────────────────────────────────────────────
