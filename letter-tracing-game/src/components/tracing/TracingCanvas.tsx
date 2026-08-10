@@ -2,16 +2,33 @@
 
 import React, { useRef, useEffect, useCallback, useState } from "react";
 import type { LetterDefinition, Point } from "@/types";
-import { distance, scalePoint } from "@/utils/pathUtils";
+import { distance } from "@/utils/pathUtils";
+import {
+  CANVAS_SIZE,
+  PADDING,
+  LETTER_SCALE,
+  TOLERANCE_PX,
+  STROKE_THRESHOLD,
+  COLOR_COMPLETED,
+  COLOR_ACTIVE_GUIDE,
+  COLOR_ACTIVE_GLOW,
+  COLOR_FUTURE,
+  COLOR_CHILD_INK,
+  type TracingPhase,
+} from "./constants";
+import { buildGeometry, type StrokeGeom } from "./geometry";
+import {
+  drawBase,
+  strokePath2D,
+  drawPolyline,
+  drawArrows,
+  drawStartDot,
+  drawMiniStar,
+  drawPencil,
+  TRAIL_COLORS,
+} from "./draw";
 
-export type TracingPhase =
-  | "demo-draw"    // pencil is writing the current stroke
-  | "demo-travel"  // pencil visibly lifts and travels to the next stroke's start
-  | "demo-hold"    // whole letter written — pencil lifts away, letter stays visible
-  | "demo-fade"    // demo ink crossfades into the tracing guide
-  | "trace"
-  | "await-lift"
-  | "done";
+export type { TracingPhase } from "./constants";
 
 interface TracingCanvasProps {
   letter: LetterDefinition;
@@ -37,307 +54,6 @@ interface TracingCanvasProps {
   /** While true, the pencil demonstration waits (used so the letter's voice
    *  introduction always finishes before tracing guidance begins) */
   holdDemo?: boolean;
-}
-
-const CANVAS_SIZE = 460;
-const PADDING = 30;
-/** Tolerance in canvas px — how far the child's finger may drift from the
- *  path while STILL making progress. Forgiving, but progress is sequential
- *  (see FRONTIER_WINDOW) so proximity alone can never fill the letter. */
-const TOLERANCE_PX = 44;
-/** Progress advances only through a small window just ahead of the child's
- *  current position along the path (the "frontier"). Touching far-future
- *  sections does nothing — the child must physically travel the path. The
- *  window is DISTANCE-based (≈ this many canvas px of path ahead) so short,
- *  densely-sampled strokes are just as protected as long ones, while still
- *  allowing small skips so slight drifting is never punished. */
-const FRONTIER_WINDOW_PX = 40;
-/** The stroke completes only once the child has actually traced this much of
- *  the path, in order, all the way to its end region. */
-const STROKE_THRESHOLD = 0.95;
-const LETTER_SCALE = (CANVAS_SIZE - PADDING * 2) / 200;
-
-// ─── Colors ───────────────────────────────────────────────────────────────────
-const COLOR_COMPLETED = "#7C5CBF";      // finished strokes — solid plum
-const COLOR_ACTIVE_GUIDE = "#C3BAD8";   // active stroke — light, soft pastel-gray guide
-const COLOR_ACTIVE_GLOW = "#DCD4F0";    // gentle glow behind the active stroke
-const COLOR_FUTURE = "#DCD4F2";         // upcoming strokes — subdued lavender
-const COLOR_CHILD_INK = "#8B63D6";      // the child's own trace — richer purple
-const COLOR_ARROW = "#8F7DBB";          // soft, playful directional arrows
-
-// ─── Per-stroke precomputed geometry ─────────────────────────────────────────
-interface StrokeGeom {
-  /** Canvas-space sampled points */
-  pts: [number, number][];
-  /** Letter-space points (for tolerance tests in a resolution-independent space) */
-  letterPts: Point[];
-  path: Path2D;
-  length: number;
-  /** How many points ≈ FRONTIER_WINDOW_PX of path for THIS stroke */
-  windowPts: number;
-  /** Evenly spaced arrow anchors: position + unit tangent */
-  arrows: { x: number; y: number; tx: number; ty: number }[];
-}
-
-function buildGeometry(letter: LetterDefinition): StrokeGeom[] {
-  return letter.strokes.map((stroke) => {
-    const pts = stroke.points.map((p) => scalePoint(p, CANVAS_SIZE, PADDING));
-    let length = 0;
-    const cum: number[] = [0];
-    for (let i = 1; i < pts.length; i++) {
-      length += Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]);
-      cum.push(length);
-    }
-    // Arrow anchors — one every ~64px, skipping the very ends
-    const arrowCount = Math.max(2, Math.min(6, Math.floor(length / 64)));
-    const arrows: StrokeGeom["arrows"] = [];
-    for (let a = 0; a < arrowCount; a++) {
-      const target = ((a + 0.7) / (arrowCount + 0.4)) * length;
-      let idx = 1;
-      while (idx < cum.length - 1 && cum[idx] < target) idx++;
-      const prev = pts[Math.max(0, idx - 1)];
-      const next = pts[Math.min(pts.length - 1, idx + 1)];
-      const dx = next[0] - prev[0];
-      const dy = next[1] - prev[1];
-      const d = Math.hypot(dx, dy) || 1;
-      arrows.push({ x: pts[idx][0], y: pts[idx][1], tx: dx / d, ty: dy / d });
-    }
-    const avgSpacing = length / Math.max(1, pts.length - 1);
-    const windowPts = Math.max(2, Math.min(8, Math.round(FRONTIER_WINDOW_PX / Math.max(1, avgSpacing))));
-    return {
-      pts,
-      letterPts: stroke.points,
-      path: new Path2D(stroke.pathData),
-      length,
-      windowPts,
-      arrows,
-    };
-  });
-}
-
-// ─── Draw helpers ─────────────────────────────────────────────────────────────
-
-function drawBase(ctx: CanvasRenderingContext2D) {
-  ctx.fillStyle = "#FBF9FF";
-  ctx.beginPath();
-  if (typeof ctx.roundRect === "function") ctx.roundRect(0, 0, CANVAS_SIZE, CANVAS_SIZE, 28);
-  else ctx.rect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
-  ctx.fill();
-}
-
-function strokePath2D(
-  ctx: CanvasRenderingContext2D,
-  path: Path2D,
-  color: string,
-  width: number,
-  alpha: number,
-  dash?: [number, number],
-  shadow?: { color: string; blur: number }
-) {
-  ctx.save();
-  ctx.translate(PADDING, PADDING);
-  ctx.scale(LETTER_SCALE, LETTER_SCALE);
-  if (dash) ctx.setLineDash([dash[0] / LETTER_SCALE, dash[1] / LETTER_SCALE]);
-  if (shadow) {
-    ctx.shadowColor = shadow.color;
-    ctx.shadowBlur = shadow.blur;
-  }
-  ctx.strokeStyle = color;
-  ctx.lineWidth = width / LETTER_SCALE;
-  ctx.lineCap = "round";
-  ctx.lineJoin = "round";
-  ctx.globalAlpha = alpha;
-  ctx.stroke(path);
-  ctx.restore();
-}
-
-type XY = { x: number; y: number } | [number, number];
-const gx = (p: XY): number => (Array.isArray(p) ? p[0] : p.x);
-const gy = (p: XY): number => (Array.isArray(p) ? p[1] : p.y);
-
-function drawPolyline(
-  ctx: CanvasRenderingContext2D,
-  pts: XY[],
-  color: string,
-  width: number,
-  alpha: number
-) {
-  if (pts.length < 2) return;
-  ctx.save();
-  ctx.strokeStyle = color;
-  ctx.lineWidth = width;
-  ctx.lineCap = "round";
-  ctx.lineJoin = "round";
-  ctx.globalAlpha = alpha;
-  ctx.beginPath();
-  ctx.moveTo(gx(pts[0]), gy(pts[0]));
-  for (let i = 1; i < pts.length; i++) {
-    ctx.lineTo(gx(pts[i]), gy(pts[i]));
-  }
-  ctx.stroke();
-  ctx.restore();
-}
-
-/** Soft playful arrows along the active stroke — gentle pulse + tiny drift */
-function drawArrows(ctx: CanvasRenderingContext2D, geom: StrokeGeom, time: number) {
-  for (let i = 0; i < geom.arrows.length; i++) {
-    const a = geom.arrows[i];
-    const phase = time * 1.6 + i * 0.9;
-    const pulse = (Math.sin(phase) + 1) / 2; // 0..1
-    const drift = Math.sin(phase * 0.8) * 3; // ±3px along the tangent
-    const x = a.x + a.tx * drift;
-    const y = a.y + a.ty * drift;
-    const size = 9 + pulse * 1.6;
-    const angle = Math.atan2(a.ty, a.tx);
-
-    ctx.save();
-    ctx.translate(x, y);
-    ctx.rotate(angle);
-    ctx.globalAlpha = 0.5 + pulse * 0.35;
-    ctx.fillStyle = "white";
-    ctx.strokeStyle = COLOR_ARROW;
-    ctx.lineWidth = 2.4;
-    ctx.lineJoin = "round";
-    ctx.lineCap = "round";
-    ctx.beginPath();
-    ctx.moveTo(-size * 0.55, -size * 0.62);
-    ctx.lineTo(size * 0.62, 0);
-    ctx.lineTo(-size * 0.55, size * 0.62);
-    ctx.stroke();
-    ctx.restore();
-  }
-}
-
-function drawStartDot(ctx: CanvasRenderingContext2D, pt: [number, number], pulse: number) {
-  const [cx, cy] = pt;
-  ctx.save();
-  ctx.beginPath();
-  ctx.arc(cx, cy, 20 + pulse * 7, 0, Math.PI * 2);
-  ctx.fillStyle = "#A882E8";
-  ctx.globalAlpha = 0.15 + pulse * 0.08;
-  ctx.fill();
-  ctx.beginPath();
-  ctx.arc(cx, cy, 13, 0, Math.PI * 2);
-  ctx.fillStyle = "#7C5CBF";
-  ctx.globalAlpha = 0.9;
-  ctx.fill();
-  ctx.beginPath();
-  ctx.arc(cx, cy, 6, 0, Math.PI * 2);
-  ctx.fillStyle = "white";
-  ctx.globalAlpha = 1;
-  ctx.fill();
-  ctx.restore();
-}
-
-/** Small soft five-point star — the child's magical tracing ink */
-function drawMiniStar(
-  ctx: CanvasRenderingContext2D,
-  x: number,
-  y: number,
-  r: number,
-  rot: number,
-  color: string,
-  alpha: number
-) {
-  ctx.save();
-  ctx.translate(x, y);
-  ctx.rotate(rot);
-  ctx.globalAlpha = alpha;
-  ctx.fillStyle = color;
-  ctx.beginPath();
-  for (let i = 0; i < 10; i++) {
-    const a = (i * Math.PI) / 5 - Math.PI / 2;
-    const rad = i % 2 === 0 ? r : r * 0.46;
-    ctx.lineTo(Math.cos(a) * rad, Math.sin(a) * rad);
-  }
-  ctx.closePath();
-  ctx.fill();
-  ctx.restore();
-}
-
-const TRAIL_COLORS = ["#A882E8", "#C9A9F5", "#FF9EBC", "#FFD93D"];
-
-/** Large, friendly children's-game pencil. liftT 0 = on paper, 1 = fully lifted.
- *  fadeWithLift=false keeps the pencil fully visible while lifted — used when
- *  it travels between strokes so the child clearly SEES the lift. */
-function drawPencil(ctx: CanvasRenderingContext2D, x: number, y: number, liftT: number, fadeWithLift = true) {
-  const lift = liftT * 46;
-  const alpha = fadeWithLift ? 1 - liftT * 0.9 : 1;
-  const scale = 1.35 + liftT * 0.15;
-  ctx.save();
-  ctx.globalAlpha = Math.max(0, alpha);
-  ctx.translate(x, y - lift);
-
-  // Contact glow shrinks as the pencil lifts
-  const glowR = 24 * (1 - liftT);
-  if (glowR > 2) {
-    const grad = ctx.createRadialGradient(0, lift, 0, 0, lift, glowR);
-    grad.addColorStop(0, "rgba(168,130,232,0.35)");
-    grad.addColorStop(1, "rgba(168,130,232,0)");
-    ctx.beginPath();
-    ctx.arc(0, lift, glowR, 0, Math.PI * 2);
-    ctx.fillStyle = grad;
-    ctx.fill();
-  }
-
-  ctx.scale(scale, scale);
-  ctx.rotate(-Math.PI / 5);
-
-  // Soft drop shadow
-  ctx.shadowColor = "rgba(90,60,140,0.25)";
-  ctx.shadowBlur = 6;
-  ctx.shadowOffsetY = 3;
-
-  // Body
-  ctx.fillStyle = "#FFD93D";
-  ctx.beginPath();
-  ctx.roundRect ? ctx.roundRect(-8, -34, 16, 40, 3) : ctx.rect(-8, -34, 16, 40);
-  ctx.fill();
-  ctx.shadowColor = "transparent";
-  // Body stripe for depth
-  ctx.fillStyle = "#F2C94C";
-  ctx.fillRect(2, -34, 6, 40);
-  // Wood tip
-  ctx.fillStyle = "#F0B27A";
-  ctx.beginPath();
-  ctx.moveTo(-8, 6);
-  ctx.lineTo(8, 6);
-  ctx.lineTo(0, 22);
-  ctx.closePath();
-  ctx.fill();
-  // Graphite
-  ctx.fillStyle = "#4A4A4A";
-  ctx.beginPath();
-  ctx.moveTo(-2.4, 16);
-  ctx.lineTo(2.4, 16);
-  ctx.lineTo(0, 22);
-  ctx.closePath();
-  ctx.fill();
-  // Eraser + ferrule
-  ctx.fillStyle = "#C9CBD6";
-  ctx.fillRect(-8, -36, 16, 5);
-  ctx.fillStyle = "#FF9EBC";
-  ctx.beginPath();
-  ctx.roundRect ? ctx.roundRect(-8, -44, 16, 9, 4) : ctx.rect(-8, -44, 16, 9);
-  ctx.fill();
-  // Friendly face
-  ctx.fillStyle = "#5A4A2F";
-  ctx.beginPath();
-  ctx.arc(-3, -20, 1.6, 0, Math.PI * 2);
-  ctx.arc(3, -20, 1.6, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.strokeStyle = "#5A4A2F";
-  ctx.lineWidth = 1.4;
-  ctx.lineCap = "round";
-  ctx.beginPath();
-  ctx.arc(0, -16, 3.4, 0.15 * Math.PI, 0.85 * Math.PI);
-  ctx.stroke();
-  // Outline
-  ctx.strokeStyle = "rgba(0,0,0,0.14)";
-  ctx.lineWidth = 1.4;
-  ctx.strokeRect(-8, -34, 16, 40);
-
-  ctx.restore();
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -595,17 +311,17 @@ export function TracingCanvas({
             // Finished strokes — beautifully filled, with a soft settle-in ramp
             if (fillTRef.current[i] < 1) fillTRef.current[i] = Math.min(1, fillTRef.current[i] + 0.06 * dt);
             const ft = fillTRef.current[i];
-            strokePath2D(ctx, g.path, COLOR_COMPLETED, 17 + (1 - ft) * 5, (0.55 + ft * 0.4) * guideAlpha);
+            strokePath2D(ctx, g.path, COLOR_COMPLETED, 17 + (1 - ft) * 5, (0.55 + ft * 0.4) * guideAlpha, undefined, undefined, g.offsetX, g.offsetY);
           } else if (i === active && phase !== "done") {
             // Active stroke — soft glow + clear gray guide
             strokePath2D(ctx, g.path, COLOR_ACTIVE_GLOW, 26, 0.26 * guideAlpha, undefined, {
               color: "rgba(168,130,232,0.35)",
               blur: 10,
-            });
-            strokePath2D(ctx, g.path, COLOR_ACTIVE_GUIDE, 15, 0.68 * guideAlpha, [1, 14]);
+            }, g.offsetX, g.offsetY);
+            strokePath2D(ctx, g.path, COLOR_ACTIVE_GUIDE, 15, 0.68 * guideAlpha, [1, 14], undefined, g.offsetX, g.offsetY);
           } else {
             // Upcoming strokes — visible but subdued
-            strokePath2D(ctx, g.path, COLOR_FUTURE, 15, 0.5 * guideAlpha, [8, 9]);
+            strokePath2D(ctx, g.path, COLOR_FUTURE, 15, 0.5 * guideAlpha, [8, 9], undefined, g.offsetX, g.offsetY);
           }
         }
       }

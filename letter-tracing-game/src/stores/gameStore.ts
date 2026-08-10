@@ -3,14 +3,8 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { GameScreen, GameProgress, StickerTheme, Module, PracticeMode } from "@/types";
+import { symbolsFor } from "@/constants/symbols";
 import { getThemeForProgress } from "@/constants/rewards";
-
-const LETTER_SYMBOLS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
-const NUMBER_SYMBOLS = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"];
-
-function symbolsFor(module: Module): string[] {
-  return module === "numbers" ? NUMBER_SYMBOLS : LETTER_SYMBOLS;
-}
 
 interface GameState {
   screen: GameScreen;

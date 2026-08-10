@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { HomeEnvironment } from "@/components/animations/HomeEnvironment";
 import type { Module } from "@/types";
 
 interface MainMenuScreenProps {
@@ -49,6 +50,9 @@ export function MainMenuScreen({ onSelectModule }: MainMenuScreenProps) {
       className="relative flex h-full w-full flex-col items-center justify-between gap-4 overflow-y-auto overflow-x-hidden px-5 py-6"
       style={{ background: "linear-gradient(160deg, #E8F4FF 0%, #F0E8FF 50%, #E8FFE8 100%)" }}
     >
+      {/* Garden environment: birds & butterflies in the outer bands */}
+      <HomeEnvironment />
+
       {/* Floating background dots */}
       <div className="pointer-events-none absolute inset-0" aria-hidden="true">
         {[

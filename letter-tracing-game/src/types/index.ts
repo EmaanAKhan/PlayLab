@@ -12,7 +12,6 @@ export type GameScreen =
   | "mode-select"
   | "tracing"
   | "celebration"
-  | "reward"
   | "completion"
   | "sequencing";
 

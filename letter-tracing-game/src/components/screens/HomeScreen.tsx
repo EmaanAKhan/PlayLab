@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/Button";
 import { HomeEnvironment } from "@/components/animations/HomeEnvironment";
+import { LETTER_SYMBOLS, NUMBER_SYMBOLS } from "@/constants/symbols";
 import { useGameStore } from "@/stores/gameStore";
 import { getThemeColors } from "@/constants/rewards";
 
@@ -145,8 +146,6 @@ function HedgehogSvg({ x, y }: { x: number; y: number }) {
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-const LETTER_SYMBOLS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
-const NUMBER_SYMBOLS = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"];
 
 export function HomeScreen({ onContinue, onStartFromA, onSelectLetter }: HomeScreenProps) {
   const { progress, module, lowercaseProgress, numbersProgress, practiceMode, setPracticeMode } =

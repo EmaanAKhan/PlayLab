@@ -6,6 +6,7 @@ import { TracingCanvas, type TracingPhase } from "@/components/tracing/TracingCa
 import { CelebrationSparkles } from "@/components/animations/Sparkles";
 import { SceneDecor } from "@/components/animations/SceneDecor";
 import { RotateDevicePrompt } from "@/components/ui/RotateDevicePrompt";
+import { AnchorWordCard, type AnchorMode } from "@/components/ui/AnchorWordCard";
 import { useAudio } from "@/hooks/useAudio";
 import type { LetterDefinition, PracticeMode } from "@/types";
 
@@ -86,6 +87,7 @@ export function TracingScreen({ letter, mode, onComplete, onHome }: TracingScree
   const hasAutoPlayed = useRef(false);
   const starsRef = useRef(0);
   const [introDone, setIntroDone] = useState(false);
+  const [anchorMode, setAnchorMode] = useState<AnchorMode>("hidden");
 
   const isDemoing = phase.startsWith("demo");
 
@@ -97,6 +99,7 @@ export function TracingScreen({ letter, mode, onComplete, onHome }: TracingScree
     setAttempt(0);
     setPhase("demo-draw");
     setIntroDone(false);
+    setAnchorMode("hidden");
     hasAutoPlayed.current = false;
   }, [letter.letter]);
 
@@ -116,11 +119,18 @@ export function TracingScreen({ letter, mode, onComplete, onHome }: TracingScree
     if (hasAutoPlayed.current) return;
     hasAutoPlayed.current = true;
     const t = setTimeout(() => {
-      speakLetterIntro(letter.letter, () => {
-        sayWatchMe();
-        setTimeout(() => setIntroDone(true), 300);
-      });
-    }, 100);
+      speakLetterIntro(
+        letter.letter,
+        () => {
+          sayWatchMe();
+          setTimeout(() => setIntroDone(true), 600);
+          // After the word, the picture glides to the right edge and STAYS
+          // there as a small reminder for the rest of the letter
+          setTimeout(() => setAnchorMode("docked"), 900);
+        },
+        () => setAnchorMode("hero") // fires exactly as the anchor word is spoken
+      );
+    }, 200);
     return () => clearTimeout(t);
   }, [letter, speakLetterIntro, sayWatchMe]);
 
@@ -205,6 +215,9 @@ export function TracingScreen({ letter, mode, onComplete, onHome }: TracingScree
 
       {burstActive && <CelebrationSparkles active width={dims.w} height={dims.h} />}
 
+      {/* "b … buh … ball" — the picture appears exactly when the word is spoken */}
+      <AnchorWordCard letter={letter.letter} mode={anchorMode} />
+
       {/* Top bar — [Home]  Trace X 🔊 ↻  ····  ☆☆☆☆☆ */}
       <motion.div
         className="relative z-10 w-full max-w-md md:max-w-2xl"
@@ -238,7 +251,13 @@ export function TracingScreen({ letter, mode, onComplete, onHome }: TracingScree
                 {letter.letter}
               </span>
               <motion.button
-                onClick={() => speakLetterIntro(letter.letter)}
+                onClick={() =>
+                  speakLetterIntro(
+                    letter.letter,
+                    () => setTimeout(() => setAnchorMode("docked"), 1200),
+                    () => setAnchorMode("hero")
+                  )
+                }
                 className="ml-1 flex h-8 w-8 items-center justify-center rounded-full bg-white/70 shadow-soft"
                 whileTap={{ scale: 0.9 }}
                 aria-label="Hear pronunciation"

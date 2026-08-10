@@ -96,6 +96,56 @@ function getTileColor(letter: string) {
 
 // ─── Drag state ───────────────────────────────────────────────────────────────
 
+/** Ghost teaching hand — loops: press on the letter → glide to the slot →
+ *  release → fade, until the child touches anything. Purely visual. */
+function HintHand({ fx, fy, tx, ty }: { fx: number; fy: number; tx: number; ty: number }) {
+  return (
+    <motion.div
+      className="pointer-events-none absolute z-30"
+      style={{ left: 0, top: 0 }}
+      initial={{ x: fx, y: fy, opacity: 0, scale: 1 }}
+      animate={{
+        x: [fx, fx, tx, tx, tx],
+        y: [fy, fy, ty, ty, ty],
+        opacity: [0, 1, 1, 1, 0],
+        scale: [1, 0.85, 0.85, 1.05, 1],
+      }}
+      transition={{
+        duration: 2.8,
+        times: [0, 0.18, 0.72, 0.85, 1],
+        repeat: Infinity,
+        repeatDelay: 1.1,
+        ease: "easeInOut",
+      }}
+      aria-hidden="true"
+    >
+      {/* soft touch ripple under the fingertip */}
+      <div
+        className="absolute"
+        style={{
+          left: -16,
+          top: -16,
+          width: 32,
+          height: 32,
+          borderRadius: "50%",
+          background: "radial-gradient(circle, rgba(168,130,232,0.35), transparent 70%)",
+        }}
+      />
+      {/* the hand, fingertip anchored at (0,0) */}
+      <svg width="44" height="48" viewBox="0 0 44 48" style={{ transform: "translate(-13px, -4px)" }}>
+        <path
+          d="M13 4 Q13 0 16.5 0 Q20 0 20 4 L20 18 Q22 16 25 17 Q28 18 28 21 Q30 19.5 33 21 Q35.5 22.3 35 25 Q38 24.5 39 27 Q40.5 31 38 36 Q35 43 27 45 Q17 47 12 40 Q8 34 7 27 Q6.4 22 10 21.5 Q12 21.3 13 23 Z"
+          fill="#FFDFC4"
+          stroke="#E8B48E"
+          strokeWidth="1.6"
+          strokeLinejoin="round"
+        />
+        <path d="M13 23 L13 4" stroke="#E8B48E" strokeWidth="1.2" opacity="0.5" />
+      </svg>
+    </motion.div>
+  );
+}
+
 interface DragState {
   letter: string;
   /** where in available[] it came from (-1 = from a slot) */
@@ -125,6 +175,11 @@ export function LetterSequencingScreen({ onHome }: LetterSequencingScreenProps) 
 
   const containerRef = useRef<HTMLDivElement>(null);
   const slotRefs = useRef<(HTMLDivElement | null)[]>([]);
+  /** Available-letter tiles, keyed by letter (unique within a puzzle) */
+  const cardRefs = useRef<Map<string, HTMLDivElement>>(new Map());
+  /** Once the child drags anything, the teaching hand never returns */
+  const hintDismissedRef = useRef(false);
+  const [hint, setHint] = useState<{ fx: number; fy: number; tx: number; ty: number } | null>(null);
   // Live VIEWPORT size — the celebration must span the entire game screen
   // (left → center → right) on phone landscape, tablet and desktop alike.
   const [dimensions, setDimensions] = useState({ w: 380, h: 700 });
@@ -142,6 +197,34 @@ export function LetterSequencingScreen({ onHome }: LetterSequencingScreenProps) 
 
   const currentPuzzle = PUZZLES[difficulty][puzzleIndex];
 
+  // Teaching nudge: on the first puzzle, after a moment of inactivity, a
+  // ghost hand demonstrates dragging the FIRST letter into its slot — so a
+  // child who has never played immediately sees how the game works.
+  useEffect(() => {
+    if (phase !== "playing") return;
+    if (puzzleIndex !== 0 || hintDismissedRef.current) return;
+    if (!slots.every((sl) => sl === null)) return;
+    const t = setTimeout(() => {
+      if (hintDismissedRef.current) return;
+      const targetLetter = currentPuzzle.letters[0];
+      const cardEl = cardRefs.current.get(targetLetter);
+      const slotEl = slotRefs.current[0];
+      const contEl = containerRef.current;
+      if (!cardEl || !slotEl || !contEl) return;
+      const cont = contEl.getBoundingClientRect();
+      const cr = cardEl.getBoundingClientRect();
+      const sr = slotEl.getBoundingClientRect();
+      setHint({
+        fx: cr.left + cr.width / 2 - cont.left,
+        fy: cr.top + cr.height / 2 - cont.top,
+        tx: sr.left + sr.width / 2 - cont.left,
+        ty: sr.top + sr.height / 2 - cont.top,
+      });
+    }, 1200);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phase, puzzleIndex, slots, currentPuzzle]);
+
   const startGame = useCallback((diff: Difficulty) => {
     setDifficulty(diff);
     const puzzle = PUZZLES[diff][0];
@@ -150,6 +233,8 @@ export function LetterSequencingScreen({ onHome }: LetterSequencingScreenProps) 
     setPuzzleIndex(0);
     setPhase("playing");
     setDrag(null);
+    hintDismissedRef.current = false;
+    setHint(null);
     setShakeLetter(null);
   }, []);
 
@@ -162,6 +247,8 @@ export function LetterSequencingScreen({ onHome }: LetterSequencingScreenProps) 
       sourceSlotIndex: number,
       e: React.PointerEvent<HTMLElement>
     ) => {
+      hintDismissedRef.current = true;
+      setHint(null);
       e.currentTarget.setPointerCapture(e.pointerId);
       const rect = e.currentTarget.getBoundingClientRect();
       setDrag({
@@ -508,6 +595,8 @@ export function LetterSequencingScreen({ onHome }: LetterSequencingScreenProps) 
         })}
       </motion.div>
 
+      {hint && !drag && <HintHand fx={hint.fx} fy={hint.fy} tx={hint.tx} ty={hint.ty} />}
+
       {/* Available letters */}
       <div className="flex w-full max-w-md md:max-w-2xl flex-col items-center gap-3">
         <p className="font-rounded text-sm font-semibold text-plum/50">
@@ -521,6 +610,10 @@ export function LetterSequencingScreen({ onHome }: LetterSequencingScreenProps) 
               return (
                 <motion.div
                   key={letter}
+                  ref={(el) => {
+                    if (el) cardRefs.current.set(letter, el);
+                    else cardRefs.current.delete(letter);
+                  }}
                   className="flex items-center justify-center rounded-2xl shadow-lg"
                   style={{
                     width: tileSize,
