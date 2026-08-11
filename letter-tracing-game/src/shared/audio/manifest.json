@@ -1,0 +1,981 @@
+{
+  "$comment": "SINGLE SOURCE OF TRUTH for all narration. scripts/generate-audio.mjs generates every file from this; src/shared/audio/voice.ts plays them; UI components take displayed text from here so screen text and speech can never mismatch.",
+  "voice": {
+    "languageCode": "en-US",
+    "name": "en-US-Neural2-H",
+    "speakingRate": 0.92,
+    "pitch": 0.0,
+    "$note": "Used by the GOOGLE generator (billing path) \u2014 supports exact IPA phonics."
+  },
+  "clips": {
+    "letter-a": {
+      "file": "/audio/letters/a.mp3",
+      "text": "A",
+      "speak": "A.",
+      "note": "letter NAME"
+    },
+    "phonics-a": {
+      "file": "/audio/phonics/a.mp3",
+      "text": "a",
+      "ssml": "<speak><phoneme alphabet=\"ipa\" ph=\"\u00e6\">a</phoneme></speak>",
+      "note": "phonetic SOUND via IPA - never the letter name",
+      "speak": "aa",
+      "speakFree": "ah",
+      "$freeNote": "speakFree is the free-path approximation; the Google path uses exact IPA. Edit + regenerate this one clip if it sounds off."
+    },
+    "word-a": {
+      "file": "/audio/words/apple.mp3",
+      "text": "apple",
+      "speak": "apple!"
+    },
+    "letter-b": {
+      "file": "/audio/letters/b.mp3",
+      "text": "B",
+      "speak": "B.",
+      "note": "letter NAME"
+    },
+    "phonics-b": {
+      "file": "/audio/phonics/b.mp3",
+      "text": "b",
+      "ssml": "<speak><phoneme alphabet=\"ipa\" ph=\"b\u0259\">b</phoneme></speak>",
+      "note": "phonetic SOUND via IPA - never the letter name",
+      "speak": "buh",
+      "speakFree": "buh",
+      "$freeNote": "speakFree is the free-path approximation; the Google path uses exact IPA. Edit + regenerate this one clip if it sounds off."
+    },
+    "word-b": {
+      "file": "/audio/words/ball.mp3",
+      "text": "ball",
+      "speak": "ball!"
+    },
+    "letter-c": {
+      "file": "/audio/letters/c.mp3",
+      "text": "C",
+      "speak": "C.",
+      "note": "letter NAME"
+    },
+    "phonics-c": {
+      "file": "/audio/phonics/c.mp3",
+      "text": "c",
+      "ssml": "<speak><phoneme alphabet=\"ipa\" ph=\"k\u0259\">c</phoneme></speak>",
+      "note": "phonetic SOUND via IPA - never the letter name",
+      "speak": "kuh",
+      "speakFree": "kuh",
+      "$freeNote": "speakFree is the free-path approximation; the Google path uses exact IPA. Edit + regenerate this one clip if it sounds off."
+    },
+    "word-c": {
+      "file": "/audio/words/cat.mp3",
+      "text": "cat",
+      "speak": "cat!"
+    },
+    "letter-d": {
+      "file": "/audio/letters/d.mp3",
+      "text": "D",
+      "speak": "D.",
+      "note": "letter NAME"
+    },
+    "phonics-d": {
+      "file": "/audio/phonics/d.mp3",
+      "text": "d",
+      "ssml": "<speak><phoneme alphabet=\"ipa\" ph=\"d\u0259\">d</phoneme></speak>",
+      "note": "phonetic SOUND via IPA - never the letter name",
+      "speak": "duh",
+      "speakFree": "duh",
+      "$freeNote": "speakFree is the free-path approximation; the Google path uses exact IPA. Edit + regenerate this one clip if it sounds off."
+    },
+    "word-d": {
+      "file": "/audio/words/dog.mp3",
+      "text": "dog",
+      "speak": "dog!"
+    },
+    "letter-e": {
+      "file": "/audio/letters/e.mp3",
+      "text": "E",
+      "speak": "E.",
+      "note": "letter NAME"
+    },
+    "phonics-e": {
+      "file": "/audio/phonics/e.mp3",
+      "text": "e",
+      "ssml": "<speak><phoneme alphabet=\"ipa\" ph=\"\u025b\">e</phoneme></speak>",
+      "note": "phonetic SOUND via IPA - never the letter name",
+      "speak": "eh",
+      "speakFree": "eh",
+      "$freeNote": "speakFree is the free-path approximation; the Google path uses exact IPA. Edit + regenerate this one clip if it sounds off."
+    },
+    "word-e": {
+      "file": "/audio/words/egg.mp3",
+      "text": "egg",
+      "speak": "egg!"
+    },
+    "letter-f": {
+      "file": "/audio/letters/f.mp3",
+      "text": "F",
+      "speak": "F.",
+      "note": "letter NAME"
+    },
+    "phonics-f": {
+      "file": "/audio/phonics/f.mp3",
+      "text": "f",
+      "ssml": "<speak><phoneme alphabet=\"ipa\" ph=\"f\u02d0\">f</phoneme></speak>",
+      "note": "phonetic SOUND via IPA - never the letter name",
+      "speak": "ff",
+      "speakFree": "fff",
+      "$freeNote": "speakFree is the free-path approximation; the Google path uses exact IPA. Edit + regenerate this one clip if it sounds off."
+    },
+    "word-f": {
+      "file": "/audio/words/fish.mp3",
+      "text": "fish",
+      "speak": "fish!"
+    },
+    "letter-g": {
+      "file": "/audio/letters/g.mp3",
+      "text": "G",
+      "speak": "G.",
+      "note": "letter NAME"
+    },
+    "phonics-g": {
+      "file": "/audio/phonics/g.mp3",
+      "text": "g",
+      "ssml": "<speak><phoneme alphabet=\"ipa\" ph=\"\u0261\u0259\">g</phoneme></speak>",
+      "note": "phonetic SOUND via IPA - never the letter name",
+      "speak": "guh",
+      "speakFree": "guh",
+      "$freeNote": "speakFree is the free-path approximation; the Google path uses exact IPA. Edit + regenerate this one clip if it sounds off."
+    },
+    "word-g": {
+      "file": "/audio/words/goat.mp3",
+      "text": "goat",
+      "speak": "goat!"
+    },
+    "letter-h": {
+      "file": "/audio/letters/h.mp3",
+      "text": "H",
+      "speak": "H.",
+      "note": "letter NAME"
+    },
+    "phonics-h": {
+      "file": "/audio/phonics/h.mp3",
+      "text": "h",
+      "ssml": "<speak><phoneme alphabet=\"ipa\" ph=\"h\u0259\">h</phoneme></speak>",
+      "note": "phonetic SOUND via IPA - never the letter name",
+      "speak": "huh",
+      "speakFree": "huh",
+      "$freeNote": "speakFree is the free-path approximation; the Google path uses exact IPA. Edit + regenerate this one clip if it sounds off."
+    },
+    "word-h": {
+      "file": "/audio/words/hat.mp3",
+      "text": "hat",
+      "speak": "hat!"
+    },
+    "letter-i": {
+      "file": "/audio/letters/i.mp3",
+      "text": "I",
+      "speak": "I.",
+      "note": "letter NAME"
+    },
+    "phonics-i": {
+      "file": "/audio/phonics/i.mp3",
+      "text": "i",
+      "ssml": "<speak><phoneme alphabet=\"ipa\" ph=\"\u026a\">i</phoneme></speak>",
+      "note": "phonetic SOUND via IPA - never the letter name",
+      "speak": "ih",
+      "speakFree": "ih",
+      "$freeNote": "speakFree is the free-path approximation; the Google path uses exact IPA. Edit + regenerate this one clip if it sounds off."
+    },
+    "word-i": {
+      "file": "/audio/words/igloo.mp3",
+      "text": "igloo",
+      "speak": "igloo!"
+    },
+    "letter-j": {
+      "file": "/audio/letters/j.mp3",
+      "text": "J",
+      "speak": "J.",
+      "note": "letter NAME"
+    },
+    "phonics-j": {
+      "file": "/audio/phonics/j.mp3",
+      "text": "j",
+      "ssml": "<speak><phoneme alphabet=\"ipa\" ph=\"d\u0292\u0259\">j</phoneme></speak>",
+      "note": "phonetic SOUND via IPA - never the letter name",
+      "speak": "juh",
+      "speakFree": "juh",
+      "$freeNote": "speakFree is the free-path approximation; the Google path uses exact IPA. Edit + regenerate this one clip if it sounds off."
+    },
+    "word-j": {
+      "file": "/audio/words/jam.mp3",
+      "text": "jam",
+      "speak": "jam!"
+    },
+    "letter-k": {
+      "file": "/audio/letters/k.mp3",
+      "text": "K",
+      "speak": "K.",
+      "note": "letter NAME"
+    },
+    "phonics-k": {
+      "file": "/audio/phonics/k.mp3",
+      "text": "k",
+      "ssml": "<speak><phoneme alphabet=\"ipa\" ph=\"k\u0259\">k</phoneme></speak>",
+      "note": "phonetic SOUND via IPA - never the letter name",
+      "speak": "kuh",
+      "speakFree": "kuh",
+      "$freeNote": "speakFree is the free-path approximation; the Google path uses exact IPA. Edit + regenerate this one clip if it sounds off."
+    },
+    "word-k": {
+      "file": "/audio/words/kite.mp3",
+      "text": "kite",
+      "speak": "kite!"
+    },
+    "letter-l": {
+      "file": "/audio/letters/l.mp3",
+      "text": "L",
+      "speak": "L.",
+      "note": "letter NAME"
+    },
+    "phonics-l": {
+      "file": "/audio/phonics/l.mp3",
+      "text": "l",
+      "ssml": "<speak><phoneme alphabet=\"ipa\" ph=\"l\u02d0\">l</phoneme></speak>",
+      "note": "phonetic SOUND via IPA - never the letter name",
+      "speak": "ll",
+      "speakFree": "lll",
+      "$freeNote": "speakFree is the free-path approximation; the Google path uses exact IPA. Edit + regenerate this one clip if it sounds off."
+    },
+    "word-l": {
+      "file": "/audio/words/lion.mp3",
+      "text": "lion",
+      "speak": "lion!"
+    },
+    "letter-m": {
+      "file": "/audio/letters/m.mp3",
+      "text": "M",
+      "speak": "M.",
+      "note": "letter NAME"
+    },
+    "phonics-m": {
+      "file": "/audio/phonics/m.mp3",
+      "text": "m",
+      "ssml": "<speak><phoneme alphabet=\"ipa\" ph=\"m\u02d0\">m</phoneme></speak>",
+      "note": "phonetic SOUND via IPA - never the letter name",
+      "speak": "mm",
+      "speakFree": "mmm",
+      "$freeNote": "speakFree is the free-path approximation; the Google path uses exact IPA. Edit + regenerate this one clip if it sounds off."
+    },
+    "word-m": {
+      "file": "/audio/words/moon.mp3",
+      "text": "moon",
+      "speak": "moon!"
+    },
+    "letter-n": {
+      "file": "/audio/letters/n.mp3",
+      "text": "N",
+      "speak": "N.",
+      "note": "letter NAME"
+    },
+    "phonics-n": {
+      "file": "/audio/phonics/n.mp3",
+      "text": "n",
+      "ssml": "<speak><phoneme alphabet=\"ipa\" ph=\"n\u02d0\">n</phoneme></speak>",
+      "note": "phonetic SOUND via IPA - never the letter name",
+      "speak": "nn",
+      "speakFree": "nnn",
+      "$freeNote": "speakFree is the free-path approximation; the Google path uses exact IPA. Edit + regenerate this one clip if it sounds off."
+    },
+    "word-n": {
+      "file": "/audio/words/nest.mp3",
+      "text": "nest",
+      "speak": "nest!"
+    },
+    "letter-o": {
+      "file": "/audio/letters/o.mp3",
+      "text": "O",
+      "speak": "O.",
+      "note": "letter NAME"
+    },
+    "phonics-o": {
+      "file": "/audio/phonics/o.mp3",
+      "text": "o",
+      "ssml": "<speak><phoneme alphabet=\"ipa\" ph=\"\u0251\u02d0\">o</phoneme></speak>",
+      "note": "phonetic SOUND via IPA - never the letter name",
+      "speak": "o",
+      "speakFree": "aw",
+      "$freeNote": "speakFree is the free-path approximation; the Google path uses exact IPA. Edit + regenerate this one clip if it sounds off."
+    },
+    "word-o": {
+      "file": "/audio/words/octopus.mp3",
+      "text": "octopus",
+      "speak": "octopus!"
+    },
+    "letter-p": {
+      "file": "/audio/letters/p.mp3",
+      "text": "P",
+      "speak": "P.",
+      "note": "letter NAME"
+    },
+    "phonics-p": {
+      "file": "/audio/phonics/p.mp3",
+      "text": "p",
+      "ssml": "<speak><phoneme alphabet=\"ipa\" ph=\"p\u0259\">p</phoneme></speak>",
+      "note": "phonetic SOUND via IPA - never the letter name",
+      "speak": "puh",
+      "speakFree": "puh",
+      "$freeNote": "speakFree is the free-path approximation; the Google path uses exact IPA. Edit + regenerate this one clip if it sounds off."
+    },
+    "word-p": {
+      "file": "/audio/words/pig.mp3",
+      "text": "pig",
+      "speak": "pig!"
+    },
+    "letter-q": {
+      "file": "/audio/letters/q.mp3",
+      "text": "Q",
+      "speak": "Q.",
+      "note": "letter NAME"
+    },
+    "phonics-q": {
+      "file": "/audio/phonics/q.mp3",
+      "text": "q",
+      "ssml": "<speak><phoneme alphabet=\"ipa\" ph=\"kw\u0259\">q</phoneme></speak>",
+      "note": "phonetic SOUND via IPA - never the letter name",
+      "speak": "kwuh",
+      "speakFree": "kwuh",
+      "$freeNote": "speakFree is the free-path approximation; the Google path uses exact IPA. Edit + regenerate this one clip if it sounds off."
+    },
+    "word-q": {
+      "file": "/audio/words/queen.mp3",
+      "text": "queen",
+      "speak": "queen!"
+    },
+    "letter-r": {
+      "file": "/audio/letters/r.mp3",
+      "text": "R",
+      "speak": "R.",
+      "note": "letter NAME"
+    },
+    "phonics-r": {
+      "file": "/audio/phonics/r.mp3",
+      "text": "r",
+      "ssml": "<speak><phoneme alphabet=\"ipa\" ph=\"\u0279\u02d0\">r</phoneme></speak>",
+      "note": "phonetic SOUND via IPA - never the letter name",
+      "speak": "rr",
+      "speakFree": "rrr",
+      "$freeNote": "speakFree is the free-path approximation; the Google path uses exact IPA. Edit + regenerate this one clip if it sounds off."
+    },
+    "word-r": {
+      "file": "/audio/words/rabbit.mp3",
+      "text": "rabbit",
+      "speak": "rabbit!"
+    },
+    "letter-s": {
+      "file": "/audio/letters/s.mp3",
+      "text": "S",
+      "speak": "S.",
+      "note": "letter NAME"
+    },
+    "phonics-s": {
+      "file": "/audio/phonics/s.mp3",
+      "text": "s",
+      "ssml": "<speak><phoneme alphabet=\"ipa\" ph=\"s\u02d0\">s</phoneme></speak>",
+      "note": "phonetic SOUND via IPA - never the letter name",
+      "speak": "ss",
+      "speakFree": "sss",
+      "$freeNote": "speakFree is the free-path approximation; the Google path uses exact IPA. Edit + regenerate this one clip if it sounds off."
+    },
+    "word-s": {
+      "file": "/audio/words/sun.mp3",
+      "text": "sun",
+      "speak": "sun!"
+    },
+    "letter-t": {
+      "file": "/audio/letters/t.mp3",
+      "text": "T",
+      "speak": "T.",
+      "note": "letter NAME"
+    },
+    "phonics-t": {
+      "file": "/audio/phonics/t.mp3",
+      "text": "t",
+      "ssml": "<speak><phoneme alphabet=\"ipa\" ph=\"t\u0259\">t</phoneme></speak>",
+      "note": "phonetic SOUND via IPA - never the letter name",
+      "speak": "tuh",
+      "speakFree": "tuh",
+      "$freeNote": "speakFree is the free-path approximation; the Google path uses exact IPA. Edit + regenerate this one clip if it sounds off."
+    },
+    "word-t": {
+      "file": "/audio/words/tiger.mp3",
+      "text": "tiger",
+      "speak": "tiger!"
+    },
+    "letter-u": {
+      "file": "/audio/letters/u.mp3",
+      "text": "U",
+      "speak": "U.",
+      "note": "letter NAME"
+    },
+    "phonics-u": {
+      "file": "/audio/phonics/u.mp3",
+      "text": "u",
+      "ssml": "<speak><phoneme alphabet=\"ipa\" ph=\"\u028c\">u</phoneme></speak>",
+      "note": "phonetic SOUND via IPA - never the letter name",
+      "speak": "uh",
+      "speakFree": "uh",
+      "$freeNote": "speakFree is the free-path approximation; the Google path uses exact IPA. Edit + regenerate this one clip if it sounds off."
+    },
+    "word-u": {
+      "file": "/audio/words/umbrella.mp3",
+      "text": "umbrella",
+      "speak": "umbrella!"
+    },
+    "letter-v": {
+      "file": "/audio/letters/v.mp3",
+      "text": "V",
+      "speak": "V.",
+      "note": "letter NAME"
+    },
+    "phonics-v": {
+      "file": "/audio/phonics/v.mp3",
+      "text": "v",
+      "ssml": "<speak><phoneme alphabet=\"ipa\" ph=\"v\u02d0\">v</phoneme></speak>",
+      "note": "phonetic SOUND via IPA - never the letter name",
+      "speak": "vv",
+      "speakFree": "vvv",
+      "$freeNote": "speakFree is the free-path approximation; the Google path uses exact IPA. Edit + regenerate this one clip if it sounds off."
+    },
+    "word-v": {
+      "file": "/audio/words/van.mp3",
+      "text": "van",
+      "speak": "van!"
+    },
+    "letter-w": {
+      "file": "/audio/letters/w.mp3",
+      "text": "W",
+      "speak": "W.",
+      "note": "letter NAME"
+    },
+    "phonics-w": {
+      "file": "/audio/phonics/w.mp3",
+      "text": "w",
+      "ssml": "<speak><phoneme alphabet=\"ipa\" ph=\"w\u0259\">w</phoneme></speak>",
+      "note": "phonetic SOUND via IPA - never the letter name",
+      "speak": "wuh",
+      "speakFree": "wuh",
+      "$freeNote": "speakFree is the free-path approximation; the Google path uses exact IPA. Edit + regenerate this one clip if it sounds off."
+    },
+    "word-w": {
+      "file": "/audio/words/water.mp3",
+      "text": "water",
+      "speak": "water!"
+    },
+    "letter-x": {
+      "file": "/audio/letters/x.mp3",
+      "text": "X",
+      "speak": "X.",
+      "note": "letter NAME"
+    },
+    "phonics-x": {
+      "file": "/audio/phonics/x.mp3",
+      "text": "x",
+      "ssml": "<speak><phoneme alphabet=\"ipa\" ph=\"ks\">x</phoneme></speak>",
+      "note": "phonetic SOUND via IPA - never the letter name",
+      "speak": "ks",
+      "speakFree": "ks",
+      "$freeNote": "speakFree is the free-path approximation; the Google path uses exact IPA. Edit + regenerate this one clip if it sounds off."
+    },
+    "word-x": {
+      "file": "/audio/words/box.mp3",
+      "text": "box",
+      "speak": "box!"
+    },
+    "letter-y": {
+      "file": "/audio/letters/y.mp3",
+      "text": "Y",
+      "speak": "Y.",
+      "note": "letter NAME"
+    },
+    "phonics-y": {
+      "file": "/audio/phonics/y.mp3",
+      "text": "y",
+      "ssml": "<speak><phoneme alphabet=\"ipa\" ph=\"j\u0259\">y</phoneme></speak>",
+      "note": "phonetic SOUND via IPA - never the letter name",
+      "speak": "yuh",
+      "speakFree": "yuh",
+      "$freeNote": "speakFree is the free-path approximation; the Google path uses exact IPA. Edit + regenerate this one clip if it sounds off."
+    },
+    "word-y": {
+      "file": "/audio/words/yoyo.mp3",
+      "text": "yo-yo",
+      "speak": "yo-yo!"
+    },
+    "letter-z": {
+      "file": "/audio/letters/z.mp3",
+      "text": "Z",
+      "speak": "Z.",
+      "note": "letter NAME"
+    },
+    "phonics-z": {
+      "file": "/audio/phonics/z.mp3",
+      "text": "z",
+      "ssml": "<speak><phoneme alphabet=\"ipa\" ph=\"z\u02d0\">z</phoneme></speak>",
+      "note": "phonetic SOUND via IPA - never the letter name",
+      "speak": "zz",
+      "speakFree": "zzz",
+      "$freeNote": "speakFree is the free-path approximation; the Google path uses exact IPA. Edit + regenerate this one clip if it sounds off."
+    },
+    "word-z": {
+      "file": "/audio/words/zebra.mp3",
+      "text": "zebra",
+      "speak": "zebra!"
+    },
+    "number-1": {
+      "file": "/audio/numbers/1.mp3",
+      "text": "1",
+      "speak": "1."
+    },
+    "number-2": {
+      "file": "/audio/numbers/2.mp3",
+      "text": "2",
+      "speak": "2."
+    },
+    "number-3": {
+      "file": "/audio/numbers/3.mp3",
+      "text": "3",
+      "speak": "3."
+    },
+    "number-4": {
+      "file": "/audio/numbers/4.mp3",
+      "text": "4",
+      "speak": "4."
+    },
+    "number-5": {
+      "file": "/audio/numbers/5.mp3",
+      "text": "5",
+      "speak": "5."
+    },
+    "number-6": {
+      "file": "/audio/numbers/6.mp3",
+      "text": "6",
+      "speak": "6."
+    },
+    "number-7": {
+      "file": "/audio/numbers/7.mp3",
+      "text": "7",
+      "speak": "7."
+    },
+    "number-8": {
+      "file": "/audio/numbers/8.mp3",
+      "text": "8",
+      "speak": "8."
+    },
+    "number-9": {
+      "file": "/audio/numbers/9.mp3",
+      "text": "9",
+      "speak": "9."
+    },
+    "number-10": {
+      "file": "/audio/numbers/10.mp3",
+      "text": "10",
+      "speak": "10."
+    },
+    "instr-watch-carefully": {
+      "file": "/audio/instructions/watch-carefully.mp3",
+      "text": "Watch carefully!",
+      "speak": "Watch carefully!"
+    },
+    "instr-your-turn": {
+      "file": "/audio/instructions/your-turn.mp3",
+      "text": "Now it's your turn!",
+      "speak": "Now it's your turn!"
+    },
+    "instr-try-again": {
+      "file": "/audio/instructions/try-again.mp3",
+      "text": "Try again!",
+      "speak": "Try again!"
+    },
+    "instr-again": {
+      "file": "/audio/instructions/again.mp3",
+      "text": "Again!",
+      "speak": "Again!"
+    },
+    "instr-next": {
+      "file": "/audio/instructions/next.mp3",
+      "text": "Next!",
+      "speak": "Next!"
+    },
+    "instr-choose-a-letter": {
+      "file": "/audio/instructions/choose-a-letter.mp3",
+      "text": "Pick a letter",
+      "speak": "Pick a letter!"
+    },
+    "instr-choose-a-number": {
+      "file": "/audio/instructions/choose-a-number.mp3",
+      "text": "Pick a number",
+      "speak": "Pick a number!"
+    },
+    "instr-put-letters-in-order": {
+      "file": "/audio/instructions/put-letters-in-order.mp3",
+      "text": "Put the letters in order!",
+      "speak": "Put the letters in order!"
+    },
+    "cheer-well-done": {
+      "file": "/audio/encouragement/well-done.mp3",
+      "text": "Well done!",
+      "speak": "Well done!"
+    },
+    "cheer-great-job": {
+      "file": "/audio/encouragement/great-job.mp3",
+      "text": "Great job!",
+      "speak": "Great job!"
+    },
+    "cheer-fantastic": {
+      "file": "/audio/encouragement/fantastic.mp3",
+      "text": "Fantastic!",
+      "speak": "Fantastic!"
+    },
+    "cheer-amazing": {
+      "file": "/audio/encouragement/amazing.mp3",
+      "text": "Amazing!",
+      "speak": "Amazing!"
+    },
+    "cheer-you-did-it": {
+      "file": "/audio/encouragement/you-did-it.mp3",
+      "text": "You did it!",
+      "speak": "You did it!"
+    },
+    "cheer-wonderful": {
+      "file": "/audio/encouragement/wonderful.mp3",
+      "text": "Wonderful!",
+      "speak": "Wonderful!"
+    },
+    "cheer-youre-doing-great": {
+      "file": "/audio/encouragement/youre-doing-great.mp3",
+      "text": "You're doing great!",
+      "speak": "You're doing great!"
+    },
+    "jungle-a": {
+      "file": "/audio/jungle/a.mp3",
+      "text": "Find the A!",
+      "speak": "Find the A! A is for Alligator!",
+      "note": "Jungle ABC Spy level intro + hint (single natural recording)"
+    },
+    "jungle-b": {
+      "file": "/audio/jungle/b.mp3",
+      "text": "Find the B!",
+      "speak": "Find the B! B is for Bear!",
+      "note": "Jungle ABC Spy level intro + hint (single natural recording)"
+    },
+    "jungle-c": {
+      "file": "/audio/jungle/c.mp3",
+      "text": "Find the C!",
+      "speak": "Find the C! C is for Cat!",
+      "note": "Jungle ABC Spy level intro + hint (single natural recording)"
+    },
+    "jungle-d": {
+      "file": "/audio/jungle/d.mp3",
+      "text": "Find the D!",
+      "speak": "Find the D! D is for Dog!",
+      "note": "Jungle ABC Spy level intro + hint (single natural recording)"
+    },
+    "jungle-e": {
+      "file": "/audio/jungle/e.mp3",
+      "text": "Find the E!",
+      "speak": "Find the E! E is for Elephant!",
+      "note": "Jungle ABC Spy level intro + hint (single natural recording)"
+    },
+    "jungle-f": {
+      "file": "/audio/jungle/f.mp3",
+      "text": "Find the F!",
+      "speak": "Find the F! F is for Frog!",
+      "note": "Jungle ABC Spy level intro + hint (single natural recording)"
+    },
+    "jungle-g": {
+      "file": "/audio/jungle/g.mp3",
+      "text": "Find the G!",
+      "speak": "Find the G! G is for Giraffe!",
+      "note": "Jungle ABC Spy level intro + hint (single natural recording)"
+    },
+    "jungle-h": {
+      "file": "/audio/jungle/h.mp3",
+      "text": "Find the H!",
+      "speak": "Find the H! H is for Horse!",
+      "note": "Jungle ABC Spy level intro + hint (single natural recording)"
+    },
+    "jungle-i": {
+      "file": "/audio/jungle/i.mp3",
+      "text": "Find the I!",
+      "speak": "Find the I! I is for Iguana!",
+      "note": "Jungle ABC Spy level intro + hint (single natural recording)"
+    },
+    "jungle-j": {
+      "file": "/audio/jungle/j.mp3",
+      "text": "Find the J!",
+      "speak": "Find the J! J is for Jellyfish!",
+      "note": "Jungle ABC Spy level intro + hint (single natural recording)"
+    },
+    "jungle-k": {
+      "file": "/audio/jungle/k.mp3",
+      "text": "Find the K!",
+      "speak": "Find the K! K is for Koala!",
+      "note": "Jungle ABC Spy level intro + hint (single natural recording)"
+    },
+    "jungle-l": {
+      "file": "/audio/jungle/l.mp3",
+      "text": "Find the L!",
+      "speak": "Find the L! L is for Lion!",
+      "note": "Jungle ABC Spy level intro + hint (single natural recording)"
+    },
+    "jungle-m": {
+      "file": "/audio/jungle/m.mp3",
+      "text": "Find the M!",
+      "speak": "Find the M! M is for Monkey!",
+      "note": "Jungle ABC Spy level intro + hint (single natural recording)"
+    },
+    "jungle-n": {
+      "file": "/audio/jungle/n.mp3",
+      "text": "Find the N!",
+      "speak": "Find the N! N is for Nest!",
+      "note": "Jungle ABC Spy level intro + hint (single natural recording)"
+    },
+    "jungle-o": {
+      "file": "/audio/jungle/o.mp3",
+      "text": "Find the O!",
+      "speak": "Find the O! O is for Octopus!",
+      "note": "Jungle ABC Spy level intro + hint (single natural recording)"
+    },
+    "jungle-p": {
+      "file": "/audio/jungle/p.mp3",
+      "text": "Find the P!",
+      "speak": "Find the P! P is for Penguin!",
+      "note": "Jungle ABC Spy level intro + hint (single natural recording)"
+    },
+    "jungle-q": {
+      "file": "/audio/jungle/q.mp3",
+      "text": "Find the Q!",
+      "speak": "Find the Q! Q is for Quail!",
+      "note": "Jungle ABC Spy level intro + hint (single natural recording)"
+    },
+    "jungle-r": {
+      "file": "/audio/jungle/r.mp3",
+      "text": "Find the R!",
+      "speak": "Find the R! R is for Rabbit!",
+      "note": "Jungle ABC Spy level intro + hint (single natural recording)"
+    },
+    "jungle-s": {
+      "file": "/audio/jungle/s.mp3",
+      "text": "Find the S!",
+      "speak": "Find the S! S is for Snake!",
+      "note": "Jungle ABC Spy level intro + hint (single natural recording)"
+    },
+    "jungle-t": {
+      "file": "/audio/jungle/t.mp3",
+      "text": "Find the T!",
+      "speak": "Find the T! T is for Turtle!",
+      "note": "Jungle ABC Spy level intro + hint (single natural recording)"
+    },
+    "jungle-u": {
+      "file": "/audio/jungle/u.mp3",
+      "text": "Find the U!",
+      "speak": "Find the U! U is for Umbrella Bird!",
+      "note": "Jungle ABC Spy level intro + hint (single natural recording)"
+    },
+    "jungle-v": {
+      "file": "/audio/jungle/v.mp3",
+      "text": "Find the V!",
+      "speak": "Find the V! V is for Vulture!",
+      "note": "Jungle ABC Spy level intro + hint (single natural recording)"
+    },
+    "jungle-w": {
+      "file": "/audio/jungle/w.mp3",
+      "text": "Find the W!",
+      "speak": "Find the W! W is for Whale!",
+      "note": "Jungle ABC Spy level intro + hint (single natural recording)"
+    },
+    "jungle-x": {
+      "file": "/audio/jungle/x.mp3",
+      "text": "Find the X!",
+      "speak": "Find the X! X is for X-ray Fish!",
+      "note": "Jungle ABC Spy level intro + hint (single natural recording)"
+    },
+    "jungle-y": {
+      "file": "/audio/jungle/y.mp3",
+      "text": "Find the Y!",
+      "speak": "Find the Y! Y is for Yak!",
+      "note": "Jungle ABC Spy level intro + hint (single natural recording)"
+    },
+    "jungle-z": {
+      "file": "/audio/jungle/z.mp3",
+      "text": "Find the Z!",
+      "speak": "Find the Z! Z is for Zebra!",
+      "note": "Jungle ABC Spy level intro + hint (single natural recording)"
+    },
+    "jungle-find-a": {
+      "file": "/audio/jungle/find-a.mp3",
+      "text": "Find the A!",
+      "speak": "Find the A! A is for Alligator!",
+      "note": "jungle level intro + hint \u2014 one natural sentence per letter"
+    },
+    "jungle-find-b": {
+      "file": "/audio/jungle/find-b.mp3",
+      "text": "Find the B!",
+      "speak": "Find the B! B is for Bear!",
+      "note": "jungle level intro + hint \u2014 one natural sentence per letter"
+    },
+    "jungle-find-c": {
+      "file": "/audio/jungle/find-c.mp3",
+      "text": "Find the C!",
+      "speak": "Find the C! C is for Cat!",
+      "note": "jungle level intro + hint \u2014 one natural sentence per letter"
+    },
+    "jungle-find-d": {
+      "file": "/audio/jungle/find-d.mp3",
+      "text": "Find the D!",
+      "speak": "Find the D! D is for Dog!",
+      "note": "jungle level intro + hint \u2014 one natural sentence per letter"
+    },
+    "jungle-find-e": {
+      "file": "/audio/jungle/find-e.mp3",
+      "text": "Find the E!",
+      "speak": "Find the E! E is for Elephant!",
+      "note": "jungle level intro + hint \u2014 one natural sentence per letter"
+    },
+    "jungle-find-f": {
+      "file": "/audio/jungle/find-f.mp3",
+      "text": "Find the F!",
+      "speak": "Find the F! F is for Frog!",
+      "note": "jungle level intro + hint \u2014 one natural sentence per letter"
+    },
+    "jungle-find-g": {
+      "file": "/audio/jungle/find-g.mp3",
+      "text": "Find the G!",
+      "speak": "Find the G! G is for Giraffe!",
+      "note": "jungle level intro + hint \u2014 one natural sentence per letter"
+    },
+    "jungle-find-h": {
+      "file": "/audio/jungle/find-h.mp3",
+      "text": "Find the H!",
+      "speak": "Find the H! H is for Horse!",
+      "note": "jungle level intro + hint \u2014 one natural sentence per letter"
+    },
+    "jungle-find-i": {
+      "file": "/audio/jungle/find-i.mp3",
+      "text": "Find the I!",
+      "speak": "Find the I! I is for Iguana!",
+      "note": "jungle level intro + hint \u2014 one natural sentence per letter"
+    },
+    "jungle-find-j": {
+      "file": "/audio/jungle/find-j.mp3",
+      "text": "Find the J!",
+      "speak": "Find the J! J is for Jellyfish!",
+      "note": "jungle level intro + hint \u2014 one natural sentence per letter"
+    },
+    "jungle-find-k": {
+      "file": "/audio/jungle/find-k.mp3",
+      "text": "Find the K!",
+      "speak": "Find the K! K is for Koala!",
+      "note": "jungle level intro + hint \u2014 one natural sentence per letter"
+    },
+    "jungle-find-l": {
+      "file": "/audio/jungle/find-l.mp3",
+      "text": "Find the L!",
+      "speak": "Find the L! L is for Lion!",
+      "note": "jungle level intro + hint \u2014 one natural sentence per letter"
+    },
+    "jungle-find-m": {
+      "file": "/audio/jungle/find-m.mp3",
+      "text": "Find the M!",
+      "speak": "Find the M! M is for Monkey!",
+      "note": "jungle level intro + hint \u2014 one natural sentence per letter"
+    },
+    "jungle-find-n": {
+      "file": "/audio/jungle/find-n.mp3",
+      "text": "Find the N!",
+      "speak": "Find the N! N is for Nest!",
+      "note": "jungle level intro + hint \u2014 one natural sentence per letter"
+    },
+    "jungle-find-o": {
+      "file": "/audio/jungle/find-o.mp3",
+      "text": "Find the O!",
+      "speak": "Find the O! O is for Octopus!",
+      "note": "jungle level intro + hint \u2014 one natural sentence per letter"
+    },
+    "jungle-find-p": {
+      "file": "/audio/jungle/find-p.mp3",
+      "text": "Find the P!",
+      "speak": "Find the P! P is for Penguin!",
+      "note": "jungle level intro + hint \u2014 one natural sentence per letter"
+    },
+    "jungle-find-q": {
+      "file": "/audio/jungle/find-q.mp3",
+      "text": "Find the Q!",
+      "speak": "Find the Q! Q is for Quail!",
+      "note": "jungle level intro + hint \u2014 one natural sentence per letter"
+    },
+    "jungle-find-r": {
+      "file": "/audio/jungle/find-r.mp3",
+      "text": "Find the R!",
+      "speak": "Find the R! R is for Rabbit!",
+      "note": "jungle level intro + hint \u2014 one natural sentence per letter"
+    },
+    "jungle-find-s": {
+      "file": "/audio/jungle/find-s.mp3",
+      "text": "Find the S!",
+      "speak": "Find the S! S is for Snake!",
+      "note": "jungle level intro + hint \u2014 one natural sentence per letter"
+    },
+    "jungle-find-t": {
+      "file": "/audio/jungle/find-t.mp3",
+      "text": "Find the T!",
+      "speak": "Find the T! T is for Turtle!",
+      "note": "jungle level intro + hint \u2014 one natural sentence per letter"
+    },
+    "jungle-find-u": {
+      "file": "/audio/jungle/find-u.mp3",
+      "text": "Find the U!",
+      "speak": "Find the U! U is for Umbrella Bird!",
+      "note": "jungle level intro + hint \u2014 one natural sentence per letter"
+    },
+    "jungle-find-v": {
+      "file": "/audio/jungle/find-v.mp3",
+      "text": "Find the V!",
+      "speak": "Find the V! V is for Vulture!",
+      "note": "jungle level intro + hint \u2014 one natural sentence per letter"
+    },
+    "jungle-find-w": {
+      "file": "/audio/jungle/find-w.mp3",
+      "text": "Find the W!",
+      "speak": "Find the W! W is for Whale!",
+      "note": "jungle level intro + hint \u2014 one natural sentence per letter"
+    },
+    "jungle-find-x": {
+      "file": "/audio/jungle/find-x.mp3",
+      "text": "Find the X!",
+      "speak": "Find the X! X is for X-ray Fish!",
+      "note": "jungle level intro + hint \u2014 one natural sentence per letter"
+    },
+    "jungle-find-y": {
+      "file": "/audio/jungle/find-y.mp3",
+      "text": "Find the Y!",
+      "speak": "Find the Y! Y is for Yak!",
+      "note": "jungle level intro + hint \u2014 one natural sentence per letter"
+    },
+    "jungle-find-z": {
+      "file": "/audio/jungle/find-z.mp3",
+      "text": "Find the Z!",
+      "speak": "Find the Z! Z is for Zebra!",
+      "note": "jungle level intro + hint \u2014 one natural sentence per letter"
+    }
+  },
+  "edgeVoice": {
+    "name": "en-US-AnaNeural",
+    "rate": "-8%",
+    "pitch": "+0Hz",
+    "$note": "Used by the EDGE generator (no billing, no account). AnaNeural is a real child voice. Edge ignores custom <phoneme> SSML, so phonics use the 'speak' spellings below \u2014 listen and respell per clip if any sound is off."
+  },
+  "voiceFree": {
+    "name": "en-US-AnaNeural",
+    "rate": "-8%",
+    "pitch": "+0Hz",
+    "$note": "Genuine child voice on the free Edge endpoint. Alternatives: en-US-JennyNeural (warm adult), en-GB-MaisieNeural (British child)."
+  }
+}

@@ -1,231 +1,86 @@
 "use client";
 
-import { useCallback, useEffect } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import Link from "next/link";
+import { motion } from "framer-motion";
+import { GAMES } from "@games/registry";
 
-import { useGameStore } from "@/stores/gameStore";
-import { LETTER_DATA } from "@/constants/letterData";
-import { LOWERCASE_LETTER_DATA } from "@/constants/lowercaseLetterData";
-import { NUMBER_DATA } from "@/constants/numberData";
-
-import { SplashScreen } from "@/components/screens/SplashScreen";
-import { MainMenuScreen } from "@/components/screens/MainMenuScreen";
-import { HomeScreen } from "@/components/screens/HomeScreen";
-import { ModeSelectScreen } from "@/components/screens/ModeSelectScreen";
-import { TracingScreen } from "@/components/screens/TracingScreen";
-import { CelebrationScreen } from "@/components/screens/CelebrationScreen";
-import { CompletionScreen } from "@/components/screens/CompletionScreen";
-import { LetterSequencingScreen } from "@/components/screens/LetterSequencingScreen";
-
-const PAGE_TRANSITIONS = {
-  initial: { opacity: 0, scale: 0.97, y: 10 },
-  animate: { opacity: 1, scale: 1, y: 0 },
-  exit: { opacity: 0, scale: 1.02, y: -8 },
-  transition: { duration: 0.3, ease: [0.22, 1, 0.36, 1] },
-};
-
-export default function GamePage() {
-  const {
-    screen,
-    module,
-    practiceMode,
-    setScreen,
-    setModule,
-    setPracticeMode,
-    progress,
-    lowercaseProgress,
-    completeCurrentLetter,
-    goToLetter,
-    resetProgress,
-    resetLowercaseProgress,
-    resetNumbersProgress,
-  } = useGameStore();
-
-  const { numbersProgress } = useGameStore();
-  const currentProgress =
-    module === "lowercase" ? lowercaseProgress : module === "numbers" ? numbersProgress : progress;
-  const letterData =
-    module === "lowercase" ? LOWERCASE_LETTER_DATA : module === "numbers" ? NUMBER_DATA : LETTER_DATA;
-  const currentLetter = letterData[currentProgress.currentLetterIndex];
-  const isLastLetter = currentProgress.currentLetterIndex >= letterData.length - 1;
-
-  // Handle splash → main-menu transition
-  const handleSplashComplete = useCallback(() => {
-    setScreen("main-menu");
-  }, [setScreen]);
-
-  // Main menu → module home
-  const handleSelectModule = useCallback(
-    (selectedModule: typeof module) => {
-      setModule(selectedModule);
-      if (selectedModule === "sequencing") {
-        setScreen("sequencing");
-      } else {
-        setScreen("home");
-      }
-    },
-    [setModule, setScreen]
-  );
-
-  // A practice mode must be chosen once per session before the first letter
-  const enterTracing = useCallback(() => {
-    setScreen(practiceMode ? "tracing" : "mode-select");
-  }, [setScreen, practiceMode]);
-
-  // Home → tracing (via mode-select the first time in a session)
-  const handleContinue = useCallback(() => {
-    if (currentProgress.completedLetters.length >= letterData.length) {
-      setScreen("completion");
-      return;
-    }
-    enterTracing();
-  }, [setScreen, currentProgress.completedLetters.length, letterData.length, enterTracing]);
-
-  // Home → start from beginning
-  const handleStartFromA = useCallback(() => {
-    if (module === "lowercase") {
-      resetLowercaseProgress();
-    } else if (module === "numbers") {
-      resetNumbersProgress();
-    } else {
-      resetProgress();
-    }
-    goToLetter(0);
-    enterTracing();
-  }, [module, resetProgress, resetLowercaseProgress, resetNumbersProgress, goToLetter, enterTracing]);
-
-  // Home → the child taps ANY letter on the alphabet shelf
-  const handleSelectLetter = useCallback(
-    (index: number) => {
-      goToLetter(index);
-      enterTracing();
-    },
-    [goToLetter, enterTracing]
-  );
-
-  // Mode select → tracing (mode remembered for the rest of the session)
-  const handleModeSelected = useCallback(
-    (mode: NonNullable<typeof practiceMode>) => {
-      setPracticeMode(mode);
-      setScreen("tracing");
-    },
-    [setPracticeMode, setScreen]
-  );
-
-  // Tracing complete (once in Free Mode, five stars in 5 Star Mode) → celebration
-  const handleTracingComplete = useCallback(() => {
-    completeCurrentLetter();
-    setScreen("celebration");
-  }, [setScreen, completeCurrentLetter]);
-
-  // Home button during gameplay → main menu
-  const handleGoHome = useCallback(() => {
-    setScreen("main-menu");
-  }, [setScreen]);
-
-  // Celebration → AGAIN: replay the current letter (stars reset via remount)
-  const handleAgain = useCallback(() => {
-    setScreen("tracing");
-  }, [setScreen]);
-
-  // Celebration → NEXT: advance to the next letter (or completion)
-  const handleNext = useCallback(() => {
-    if (isLastLetter || currentProgress.completedLetters.length >= letterData.length) {
-      setScreen("completion");
-    } else {
-      goToLetter(currentProgress.currentLetterIndex + 1);
-      setScreen("tracing");
-    }
-  }, [setScreen, isLastLetter, currentProgress, letterData.length, goToLetter]);
-
-  // Completion → main menu
-  const handlePlayAgain = useCallback(() => {
-    setScreen("main-menu");
-  }, [setScreen]);
-
-  // Safety guard — ensure currentLetter exists for screens that need it
-  const needsLetter =
-    screen !== "splash" &&
-    screen !== "main-menu" &&
-    screen !== "home" &&
-    screen !== "mode-select" &&
-    screen !== "completion" &&
-    screen !== "sequencing";
-
-  if (!currentLetter && needsLetter) {
-    return (
-      <div className="flex h-full items-center justify-center bg-lavender">
-        <div className="text-center">
-          <p className="font-rounded text-xl font-bold text-plum">Loading...</p>
-        </div>
-      </div>
-    );
-  }
-
+/**
+ * Game Portal — styled as a simple, calm picture-book page: cream paper, a
+ * thin ink frame, big friendly game tiles. Cards render from the registry;
+ * adding a game there makes it appear here automatically.
+ */
+export default function PortalHome() {
   return (
-    <div className="relative h-full w-full overflow-hidden">
-      <AnimatePresence mode="wait">
-        {screen === "splash" && (
-          <motion.div key="splash" className="absolute inset-0" {...PAGE_TRANSITIONS}>
-            <SplashScreen onComplete={handleSplashComplete} />
-          </motion.div>
-        )}
+    <div
+      className="flex h-full w-full items-center justify-center overflow-y-auto overflow-x-hidden px-4 py-6"
+      style={{ background: "#EFE7D8" }}
+    >
+      {/* The page */}
+      <motion.div
+        className="relative flex w-full max-w-2xl flex-col items-center gap-8 rounded-2xl px-6 py-10 shadow-xl md:px-12"
+        style={{
+          background: "#FDF9F0",
+          border: "1px solid #E3D9C6",
+          boxShadow: "0 12px 40px rgba(90,72,50,0.18), inset 0 0 0 10px #FDF9F0, inset 0 0 0 11px #EADFC9",
+        }}
+        initial={{ y: 14, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.5 }}
+      >
+        {/* Title, like a book heading */}
+        <div className="flex flex-col items-center gap-1">
+          <h1 className="text-center font-rounded text-4xl font-black text-plum md:text-5xl">
+            Little Learners
+          </h1>
+          <div className="mt-1 h-1 w-24 rounded-full" style={{ background: "#E3D9C6" }} aria-hidden="true" />
+          <p className="mt-1 font-rounded text-sm font-semibold text-plum/45">
+            Pick a game
+          </p>
+        </div>
 
-        {screen === "main-menu" && (
-          <motion.div key="main-menu" className="absolute inset-0" {...PAGE_TRANSITIONS}>
-            <MainMenuScreen onSelectModule={handleSelectModule} />
-          </motion.div>
-        )}
+        {/* Game tiles */}
+        <div className="grid w-full grid-cols-1 gap-5 sm:grid-cols-2">
+          {GAMES.map((game, i) => (
+            <motion.div
+              key={game.id}
+              initial={{ scale: 0.92, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 0.15 + i * 0.08, duration: 0.35 }}
+            >
+              <Link href={game.route} aria-label={`Play ${game.title} — ${game.description}`}>
+                <motion.div
+                  className="flex flex-col items-center gap-2 rounded-2xl px-6 py-8"
+                  style={{
+                    background: "white",
+                    border: `2.5px solid ${game.colors.border}`,
+                  }}
+                  whileTap={{ scale: 0.96 }}
+                  whileHover={{ scale: 1.03 }}
+                >
+                  <span className="leading-none" style={{ fontSize: "clamp(44px, 8vw, 64px)" }} aria-hidden="true">
+                    {game.glyph}
+                  </span>
+                  <span className="font-rounded text-2xl font-black" style={{ color: game.colors.text }}>
+                    {game.title}
+                  </span>
+                  <span className="text-center font-rounded text-sm font-semibold text-plum/45">
+                    {game.description}
+                  </span>
+                </motion.div>
+              </Link>
+            </motion.div>
+          ))}
+        </div>
 
-        {screen === "home" && (
-          <motion.div key="home" className="absolute inset-0" {...PAGE_TRANSITIONS}>
-            <HomeScreen
-              onContinue={handleContinue}
-              onStartFromA={handleStartFromA}
-              onSelectLetter={handleSelectLetter}
-            />
-          </motion.div>
-        )}
-
-        {screen === "mode-select" && (
-          <motion.div key="mode-select" className="absolute inset-0" {...PAGE_TRANSITIONS}>
-            <ModeSelectScreen onSelect={handleModeSelected} />
-          </motion.div>
-        )}
-
-        {screen === "tracing" && currentLetter && (
-          <motion.div key={`tracing-${currentLetter.letter}`} className="absolute inset-0" {...PAGE_TRANSITIONS}>
-            <TracingScreen
-              letter={currentLetter}
-              mode={practiceMode ?? "five-star"}
-              onComplete={handleTracingComplete}
-              onHome={handleGoHome}
-            />
-          </motion.div>
-        )}
-
-        {screen === "celebration" && currentLetter && (
-          <motion.div key={`celebration-${currentLetter.letter}`} className="absolute inset-0" {...PAGE_TRANSITIONS}>
-            <CelebrationScreen
-              letter={currentLetter.letter}
-              onAgain={handleAgain}
-              onNext={handleNext}
-            />
-          </motion.div>
-        )}
-
-        {screen === "completion" && (
-          <motion.div key="completion" className="absolute inset-0" {...PAGE_TRANSITIONS}>
-            <CompletionScreen onPlayAgain={handlePlayAgain} />
-          </motion.div>
-        )}
-
-        {screen === "sequencing" && (
-          <motion.div key="sequencing" className="absolute inset-0" {...PAGE_TRANSITIONS}>
-            <LetterSequencingScreen onHome={handleGoHome} />
-          </motion.div>
-        )}
-      </AnimatePresence>
+        {/* Page-corner curl */}
+        <svg
+          className="pointer-events-none absolute bottom-0 right-0"
+          width="46" height="46" viewBox="0 0 46 46" aria-hidden="true"
+        >
+          <path d="M46 0 L46 46 L0 46 Q30 42 42 30 Q46 20 46 0 Z" fill="#F3ECDD" />
+          <path d="M46 46 L14 46 Q34 40 46 14 Z" fill="#E8DFCB" />
+        </svg>
+      </motion.div>
     </div>
   );
 }

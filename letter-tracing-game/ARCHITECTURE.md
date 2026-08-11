@@ -5,35 +5,56 @@ aged 3–7, designed autism-friendly: calm, predictable, forgiving, and never
 punishing. No backend — all state is local (zustand + localStorage), all
 audio is generated (Web Speech + synthesized tones), all art is inline SVG.
 
+## Portal architecture
+
+The project is a MULTI-GAME PORTAL. The homepage (`/`) renders game cards
+from `src/games/registry.ts`; each game lives at `/games/<id>` with all of
+its code isolated in `src/games/<id>/`. Cross-game functionality lives in
+`src/shared/` — audio (playCorrectSound(), sayPraise(), the speech engine
+with its sticky single voice), reusable UI (Button, RotateDevicePrompt),
+decorative environments, the portal settings store (sound on/off, volume,
+persisted), and utilities (shuffle). Adding a game = create its folder, add
+its route page, add one registry entry.
+
 ## Directory map
 
 ```
 src/
   app/
     layout.tsx          Full-viewport shell (no phone-frame container)
-    page.tsx            Screen router + all cross-screen flow handlers
+    page.tsx            PORTAL homepage (cards from the game registry)
+    games/letter-tracing/page.tsx   Route → the letter-tracing game
+  shared/
+    audio/              sfx.ts (generated-WAV vocabulary: playCorrectSound,
+                        playIncorrectSound, playClickSound, playChime,
+                        playStarPop, playFanfare, playCelebrationSound;
+                        initAudio wires the settings store to Howler),
+                        speech.ts (sticky voice engine), phrases.ts
+    components/ui       Button, RotateDevicePrompt
+    components/animations  Sparkles, SceneDecor, HomeEnvironment, clouds
+    stores/settingsStore.ts  portal-level sound/volume (persisted)
+    utils/random.ts     shuffle
+    types/game.ts       GameMeta (registry card shape)
+  games/
+    registry.ts         THE list of games the portal shows
+    letter-tracing/     the complete first game (structure below)
+    game-2/README.md    the pattern for the next game
     globals.css         Design tokens in CSS: responsive board size
                         (--trace-size), rotate-prompt visibility,
                         short-landscape helpers
-  types/index.ts        Shared domain types (Module, GameScreen,
-                        PracticeMode, LetterDefinition, GameProgress)
-  constants/
-    symbols.ts          Canonical A–Z / 1–10 symbol lists (single source)
-    letterData.ts       Uppercase stroke geometry (ordered writing strokes)
-    lowercaseLetterData.ts
-    numberData.ts       Numbers 1–10 stroke geometry
-    phonics.ts          Letter NAME vs SOUND vs ANCHOR WORD data
-    rewards.ts          Sticker/celebration data
-  stores/gameStore.ts   zustand store; progress persisted per module,
-                        practiceMode is session-only (excluded from persist)
-  hooks/useAudio.ts     Game audio API: synthesized SFX (Howler + generated
-                        WAV) and speech phrases; owns TIMING of the
-                        name→sound→word intro
-  utils/
-    pathUtils.ts        SVG path building/sampling for stroke data
-    speech.ts           Speech engine: sticky single-voice selection,
-                        safe speak()/speakParts() chaining
-  components/
+  games/letter-tracing/
+    types.ts            Game domain types (Module, GameScreen, PracticeMode,
+                        LetterDefinition, GameProgress)
+    constants/          symbols, letterData, lowercaseLetterData, numberData,
+                        phonics (name/sound/ANCHOR WORD), rewards
+    store/gameStore.ts  the game's own zustand store (progress per module
+                        persisted; practiceMode session-only)
+    hooks/useAudio.ts   thin game hook: phonics timing (name→sound→word) on
+                        top of the shared audio layer — the screens' API was
+                        kept byte-identical through the refactor
+    utils/pathUtils.ts  SVG path building/sampling for stroke data
+    LetterTracingGame.tsx  top-level screen router for this game
+    components/
     tracing/
       constants.ts      Engine tuning: tolerances, thresholds, palette
       geometry.ts       Per-stroke precomputed geometry + frontier window

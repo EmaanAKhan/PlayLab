@@ -6,7 +6,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "generate-audio": "node scripts/generate-audio-edge.mjs",
+    "generate-audio:google": "node scripts/generate-audio.mjs",
+    "generate-audio:free": "node scripts/generate-audio-free.mjs"
   },
   "dependencies": {
     "next": "^15.5.4",
@@ -26,6 +29,7 @@
     "eslint-config-next": "15.2.4",
     "postcss": "^8",
     "tailwindcss": "^3.4.1",
-    "typescript": "^5"
+    "typescript": "^5",
+    "@google-cloud/text-to-speech": "^5.4.0"
   }
 }
