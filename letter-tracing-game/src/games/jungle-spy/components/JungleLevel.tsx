@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { useJungleStore } from "@games/jungle-spy/store/jungleStore";
 import { animalFor, JUNGLE_ANIMALS } from "@games/jungle-spy/constants/animals";
@@ -90,7 +91,8 @@ function buildBubbles(target: string, letterCase: "upper" | "lower"): Bubble[] {
 }
 
 export function JungleLevel() {
-  const { currentLetter, letterCase, markFound, setLetter, setScreen } = useJungleStore();
+  const router = useRouter();
+  const { currentLetter, letterCase, markFound, setLetter } = useJungleStore();
   const animal = animalFor(currentLetter);
   const Art = ANIMAL_ART[animal.art];
   const display = letterCase === "lower" ? currentLetter.toLowerCase() : currentLetter;
@@ -99,6 +101,16 @@ export function JungleLevel() {
   const [shakeId, setShakeId] = useState<number | null>(null);
   const [won, setWon] = useState(false);
   const [round, setRound] = useState(0);
+  // Measured from the actual rendered root — NOT window.innerWidth/height via
+  // position:fixed, which breaks (confetti bunches to one side) inside any
+  // transformed Framer Motion ancestor. This matches the tracing game's
+  // reliable CelebrationScreen pattern.
+  const rootRef = useRef<HTMLDivElement>(null);
+  const [dims, setDims] = useState({ w: 360, h: 640 });
+  useEffect(() => {
+    const el = rootRef.current;
+    if (el) setDims({ w: el.offsetWidth, h: el.offsetHeight });
+  }, []);
 
   const targetsLeft = useMemo(
     () => bubbles.filter((b) => b.isTarget && !b.popped).length,
@@ -151,9 +163,11 @@ export function JungleLevel() {
   );
 
   const goNext = useCallback(() => {
+    stopVoice(); // never let the cheer keep talking into the next level
     void playClip("instr-next");
     const idx = JUNGLE_ANIMALS.findIndex((a) => a.letter === currentLetter);
     const next = JUNGLE_ANIMALS[(idx + 1) % JUNGLE_ANIMALS.length];
+    setRound((r) => r + 1); // fresh keys — the win overlay and board fully reset
     setLetter(next.letter);
   }, [currentLetter, setLetter]);
 
@@ -164,15 +178,16 @@ export function JungleLevel() {
 
   return (
     <div
+      ref={rootRef}
       className="relative flex h-full w-full flex-col items-center overflow-hidden px-4 py-3"
-      style={{ background: "linear-gradient(165deg, #E8F8EE 0%, #FFF6D6 100%)" }}
+      style={{ background: "linear-gradient(180deg, #C8F0D8 0%, #E8F8EF 60%, #C8F0D8 100%)" }}
     >
       <JungleBackdrop />
 
       {/* Top bar */}
       <div className="relative z-10 flex w-full max-w-2xl items-center justify-between gap-2">
         <button
-          onClick={() => { playClickSound(); setScreen("grid"); }}
+          onClick={() => { playClickSound(); router.back(); }}
           className="flex min-h-[44px] items-center gap-1.5 rounded-full bg-white/80 px-3.5 py-2 shadow-soft"
           aria-label="Back to the letter grid"
         >
@@ -301,12 +316,8 @@ export function JungleLevel() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
-            <div className="pointer-events-none fixed inset-0" aria-hidden="true">
-              <CelebrationSparkles
-                active
-                width={typeof window !== "undefined" ? window.innerWidth : 800}
-                height={typeof window !== "undefined" ? window.innerHeight : 600}
-              />
+            <div className="pointer-events-none absolute inset-0" aria-hidden="true">
+              <CelebrationSparkles active width={dims.w} height={dims.h} />
             </div>
             <motion.div
               className="overflow-hidden rounded-full"
@@ -336,14 +347,11 @@ export function JungleLevel() {
               </button>
               <button
                 onClick={goNext}
-                className="inline-flex min-h-[52px] items-center gap-2 rounded-full px-7 font-rounded text-base font-black text-white shadow-lg"
-                style={{ background: "#3DAA72" }}
+              className="min-h-[52px] rounded-full bg-white px-6 font-rounded text-base font-black text-white shadow-lg"
+                style={{ background: "#3DAA72"}}
                 aria-label="Go to the next letter"
               >
                 <span>Next</span>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                  <path d="M9 6l6 6-6 6" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
               </button>
             </div>
           </motion.div>

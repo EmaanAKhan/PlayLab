@@ -69,7 +69,7 @@ export function MainMenuScreen({ onSelectModule, onExitPortal }: MainMenuScreenP
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
             <path d="M15 18l-6-6 6-6" stroke="#7C5CBF" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
-          <span className="font-rounded text-xs font-bold text-plum/80">Games</span>
+          <span className="font-rounded text-xs font-bold text-plum/80">Back to Games</span>
         </motion.button>
       )}
 

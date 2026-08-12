@@ -25,4 +25,12 @@ export const GAMES: readonly GameMeta[] = [
     route: "/games/jungle-spy",
     colors: { bg: "#C8F0D8", border: "#66CC94", text: "#3DAA72" },
   },
+  {
+    id: "letter-hunt",
+    title: "Letter Hunt",
+    description: "Find the matching letters",
+    glyph: "🅰️",
+    route: "/games/letter-hunt",
+    colors: { bg: "#FFE1EC", border: "#FF8FA3", text: "#D14D82" },
+  },
 ];

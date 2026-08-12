@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 
 import { useCallback, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import { useScreenHistorySync } from "@shared/hooks/useScreenHistorySync";
 
 import { useGameStore } from "@games/letter-tracing/store/gameStore";
 import { LETTER_DATA } from "@games/letter-tracing/constants/letterData";
@@ -25,6 +26,22 @@ const PAGE_TRANSITIONS = {
   exit: { opacity: 0, scale: 1.02, y: -8 },
   transition: { duration: 0.3, ease: [0.22, 1, 0.36, 1] },
 };
+
+/**
+ * Coarse history bucket for the tracing game's larger screen graph:
+ *   entry  — splash
+ *   menu   — main-menu, home (the letter/number shelf — browsing, not play)
+ *   mode   — mode-select (five-star vs free)
+ *   play   — tracing, celebration, sequencing, completion (gameplay itself;
+ *            collapsed together deliberately — a 26-letter session would
+ *            otherwise leave 26+ stacked history entries)
+ */
+function toBucket(screen: string): "entry" | "menu" | "mode" | "play" {
+  if (screen === "splash") return "entry";
+  if (screen === "main-menu" || screen === "home") return "menu";
+  if (screen === "mode-select") return "mode";
+  return "play"; // tracing, celebration, sequencing, completion
+}
 
 export function LetterTracingGame() {
   const router = useRouter();
@@ -53,6 +70,24 @@ export function LetterTracingGame() {
   const isLastLetter = currentProgress.currentLetterIndex >= letterData.length - 1;
 
   // Handle splash → main-menu transition
+  // Back button: step backward through entry → menu → mode → play instead
+  // of exiting straight to the portal. Popping to "menu" always resolves to
+  // main-menu specifically (a safe, always-valid landing spot) rather than
+  // trying to reconstruct whether "home" was showing — simple and correct
+  // for the common case of retreating out of gameplay.
+  const handlePop = useCallback(
+    (bucket: string) => {
+      if (bucket === "menu") setScreen("main-menu");
+      else if (bucket === "mode") setScreen("mode-select");
+      // "entry" and "play" popped-to have no reconstruction to do — entry
+      // is only ever the initial state, and play's exact screen (tracing vs
+      // sequencing vs celebration) was already set by whichever forward
+      // action pushed that entry in the first place.
+    },
+    [setScreen]
+  );
+  useScreenHistorySync(toBucket(screen), handlePop);
+
   const handleSplashComplete = useCallback(() => {
     setScreen("main-menu");
   }, [setScreen]);

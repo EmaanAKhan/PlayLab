@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { useScreenHistorySync } from "@shared/hooks/useScreenHistorySync";
 import { AnimatePresence, motion } from "framer-motion";
 import { useJungleStore } from "@games/jungle-spy/store/jungleStore";
 import { JungleSplash, JungleGrid } from "@games/jungle-spy/components/JungleScreens";
@@ -16,6 +17,10 @@ const T = {
   transition: { duration: 0.3 },
 };
 
+function toBucket(screen: string): "menu" | "play" {
+  return screen === "level" ? "play" : "menu";
+}
+
 export function JungleSpyGame() {
   const router = useRouter();
   const { screen, setScreen } = useJungleStore();
@@ -27,6 +32,15 @@ export function JungleSpyGame() {
     setScreen("splash");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Back button: from "level" (play), returns to "grid" (letter/case select).
+  const handlePop = useCallback(
+    (bucket: string) => {
+      if (bucket === "menu") setScreen("grid");
+    },
+    [setScreen]
+  );
+  useScreenHistorySync(toBucket(screen), handlePop);
 
   return (
     <main className="relative h-full w-full overflow-hidden">

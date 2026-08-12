@@ -964,6 +964,162 @@
       "text": "Find the Z!",
       "speak": "Find the Z! Z is for Zebra!",
       "note": "jungle level intro + hint \u2014 one natural sentence per letter"
+    },
+    "hunt-find-a": {
+      "file": "/audio/hunt/find-a.mp3",
+      "text": "Can you find A?",
+      "speak": "Can you find A?",
+      "note": "Letter Hunt prompt \u2014 displayed caption matches exactly"
+    },
+    "hunt-find-b": {
+      "file": "/audio/hunt/find-b.mp3",
+      "text": "Can you find B?",
+      "speak": "Can you find B?",
+      "note": "Letter Hunt prompt \u2014 displayed caption matches exactly"
+    },
+    "hunt-find-c": {
+      "file": "/audio/hunt/find-c.mp3",
+      "text": "Can you find C?",
+      "speak": "Can you find C?",
+      "note": "Letter Hunt prompt \u2014 displayed caption matches exactly"
+    },
+    "hunt-find-d": {
+      "file": "/audio/hunt/find-d.mp3",
+      "text": "Can you find D?",
+      "speak": "Can you find D?",
+      "note": "Letter Hunt prompt \u2014 displayed caption matches exactly"
+    },
+    "hunt-find-e": {
+      "file": "/audio/hunt/find-e.mp3",
+      "text": "Can you find E?",
+      "speak": "Can you find E?",
+      "note": "Letter Hunt prompt \u2014 displayed caption matches exactly"
+    },
+    "hunt-find-f": {
+      "file": "/audio/hunt/find-f.mp3",
+      "text": "Can you find F?",
+      "speak": "Can you find F?",
+      "note": "Letter Hunt prompt \u2014 displayed caption matches exactly"
+    },
+    "hunt-find-g": {
+      "file": "/audio/hunt/find-g.mp3",
+      "text": "Can you find G?",
+      "speak": "Can you find G?",
+      "note": "Letter Hunt prompt \u2014 displayed caption matches exactly"
+    },
+    "hunt-find-h": {
+      "file": "/audio/hunt/find-h.mp3",
+      "text": "Can you find H?",
+      "speak": "Can you find H?",
+      "note": "Letter Hunt prompt \u2014 displayed caption matches exactly"
+    },
+    "hunt-find-i": {
+      "file": "/audio/hunt/find-i.mp3",
+      "text": "Can you find I?",
+      "speak": "Can you find I?",
+      "note": "Letter Hunt prompt \u2014 displayed caption matches exactly"
+    },
+    "hunt-find-j": {
+      "file": "/audio/hunt/find-j.mp3",
+      "text": "Can you find J?",
+      "speak": "Can you find J?",
+      "note": "Letter Hunt prompt \u2014 displayed caption matches exactly"
+    },
+    "hunt-find-k": {
+      "file": "/audio/hunt/find-k.mp3",
+      "text": "Can you find K?",
+      "speak": "Can you find K?",
+      "note": "Letter Hunt prompt \u2014 displayed caption matches exactly"
+    },
+    "hunt-find-l": {
+      "file": "/audio/hunt/find-l.mp3",
+      "text": "Can you find L?",
+      "speak": "Can you find L?",
+      "note": "Letter Hunt prompt \u2014 displayed caption matches exactly"
+    },
+    "hunt-find-m": {
+      "file": "/audio/hunt/find-m.mp3",
+      "text": "Can you find M?",
+      "speak": "Can you find M?",
+      "note": "Letter Hunt prompt \u2014 displayed caption matches exactly"
+    },
+    "hunt-find-n": {
+      "file": "/audio/hunt/find-n.mp3",
+      "text": "Can you find N?",
+      "speak": "Can you find N?",
+      "note": "Letter Hunt prompt \u2014 displayed caption matches exactly"
+    },
+    "hunt-find-o": {
+      "file": "/audio/hunt/find-o.mp3",
+      "text": "Can you find O?",
+      "speak": "Can you find O?",
+      "note": "Letter Hunt prompt \u2014 displayed caption matches exactly"
+    },
+    "hunt-find-p": {
+      "file": "/audio/hunt/find-p.mp3",
+      "text": "Can you find P?",
+      "speak": "Can you find P?",
+      "note": "Letter Hunt prompt \u2014 displayed caption matches exactly"
+    },
+    "hunt-find-q": {
+      "file": "/audio/hunt/find-q.mp3",
+      "text": "Can you find Q?",
+      "speak": "Can you find Q?",
+      "note": "Letter Hunt prompt \u2014 displayed caption matches exactly"
+    },
+    "hunt-find-r": {
+      "file": "/audio/hunt/find-r.mp3",
+      "text": "Can you find R?",
+      "speak": "Can you find R?",
+      "note": "Letter Hunt prompt \u2014 displayed caption matches exactly"
+    },
+    "hunt-find-s": {
+      "file": "/audio/hunt/find-s.mp3",
+      "text": "Can you find S?",
+      "speak": "Can you find S?",
+      "note": "Letter Hunt prompt \u2014 displayed caption matches exactly"
+    },
+    "hunt-find-t": {
+      "file": "/audio/hunt/find-t.mp3",
+      "text": "Can you find T?",
+      "speak": "Can you find T?",
+      "note": "Letter Hunt prompt \u2014 displayed caption matches exactly"
+    },
+    "hunt-find-u": {
+      "file": "/audio/hunt/find-u.mp3",
+      "text": "Can you find U?",
+      "speak": "Can you find U?",
+      "note": "Letter Hunt prompt \u2014 displayed caption matches exactly"
+    },
+    "hunt-find-v": {
+      "file": "/audio/hunt/find-v.mp3",
+      "text": "Can you find V?",
+      "speak": "Can you find V?",
+      "note": "Letter Hunt prompt \u2014 displayed caption matches exactly"
+    },
+    "hunt-find-w": {
+      "file": "/audio/hunt/find-w.mp3",
+      "text": "Can you find W?",
+      "speak": "Can you find W?",
+      "note": "Letter Hunt prompt \u2014 displayed caption matches exactly"
+    },
+    "hunt-find-x": {
+      "file": "/audio/hunt/find-x.mp3",
+      "text": "Can you find X?",
+      "speak": "Can you find X?",
+      "note": "Letter Hunt prompt \u2014 displayed caption matches exactly"
+    },
+    "hunt-find-y": {
+      "file": "/audio/hunt/find-y.mp3",
+      "text": "Can you find Y?",
+      "speak": "Can you find Y?",
+      "note": "Letter Hunt prompt \u2014 displayed caption matches exactly"
+    },
+    "hunt-find-z": {
+      "file": "/audio/hunt/find-z.mp3",
+      "text": "Can you find Z?",
+      "speak": "Can you find Z?",
+      "note": "Letter Hunt prompt \u2014 displayed caption matches exactly"
     }
   },
   "edgeVoice": {

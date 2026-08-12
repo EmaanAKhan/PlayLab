@@ -210,22 +210,24 @@ export function JungleGrid({ onExitPortal }: { onExitPortal?: () => void }) {
     >
       <JungleBackdrop />
 
-      {/* Top bar */}
-      <div className="relative z-10 flex w-full max-w-md items-center justify-between md:max-w-2xl">
-        <button
-          onClick={() => {
-            playClickSound();
-            onExitPortal ? onExitPortal() : setScreen("splash");
-          }}
-          className="flex min-h-[44px] items-center gap-1.5 rounded-full bg-white/75 px-3.5 py-2 shadow-soft"
-          aria-label="Back to the game portal"
-        >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-            <path d="M15 18l-6-6 6-6" stroke="#7C5CBF" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-          <span className="font-rounded text-xs font-bold text-plum/80">Games</span>
-        </button>
-        {/* case toggle */}
+      {/* Back to the game portal — pinned top-left, same as every other game */}
+      <button
+        onClick={() => {
+          playClickSound();
+          onExitPortal ? onExitPortal() : setScreen("splash");
+        }}
+        className="absolute left-4 top-4 z-20 flex min-h-[44px] items-center gap-1.5 rounded-full bg-white/75 px-3.5 py-2 shadow-soft"
+        aria-label="Back to the game portal"
+      >
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+          <path d="M15 18l-6-6 6-6" stroke="#7C5CBF" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+        <span className="font-rounded text-xs font-bold text-plum/80">Back to Games</span>
+      </button>
+
+      {/* Top bar — case toggle now centered on its own, no longer sharing
+          the row with the back button */}
+      <div className="relative z-10 flex w-full max-w-md items-center justify-center md:max-w-2xl">
         <div className="flex rounded-full bg-white/70 p-1" role="group" aria-label="Letter size">
           {(["upper", "lower"] as const).map((c) => (
             <button

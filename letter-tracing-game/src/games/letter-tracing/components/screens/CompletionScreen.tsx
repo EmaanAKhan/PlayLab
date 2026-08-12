@@ -15,7 +15,11 @@ interface CompletionScreenProps {
 
 export function CompletionScreen({ onPlayAgain }: CompletionScreenProps) {
   const { playCelebration } = useAudio();
-  const { resetProgress } = useGameStore();
+  const { resetProgress, module } = useGameStore();
+  const isNumbers = module === "numbers";
+  const symbols = isNumbers
+    ? ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"]
+    : "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
   const containerRef = useRef<HTMLDivElement>(null);
   const [dimensions, setDimensions] = useState({ w: 360, h: 640 });
 
@@ -59,7 +63,7 @@ export function CompletionScreen({ onPlayAgain }: CompletionScreenProps) {
             You did it!
           </motion.h1>
           <p className="mt-2 font-rounded text-xl font-bold text-plum/70">
-            You learned all 26 letters!
+            {isNumbers ? "You learned all 10 numbers!" : "You learned all 26 letters!"}
           </p>
         </motion.div>
 
@@ -71,7 +75,7 @@ export function CompletionScreen({ onPlayAgain }: CompletionScreenProps) {
           transition={{ delay: 0.2, type: "spring", stiffness: 180, damping: 14 }}
         >
           <div className="flex flex-wrap justify-center gap-2 rounded-4xl bg-white/80 p-5 shadow-card max-w-[320px]">
-            {"ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("").map((l, i) => (
+            {symbols.map((l, i) => (
               <motion.div
                 key={l}
                 className="flex h-9 w-9 items-center justify-center rounded-xl bg-plum shadow-sm"
