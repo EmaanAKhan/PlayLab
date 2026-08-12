@@ -64,30 +64,80 @@ const SIZE_TIERS = [
 
 /** Slowly rotating concentric rings — a calm (non-flashing) hypnotic pattern
  *  behind each letter, purely to make the board busier/harder to scan. */
-function HypnoRings({ hue }: { hue: string }) {
-  const rings = [0.95, 0.76, 0.57, 0.38, 0.19];
-  return (
-    <motion.svg
-      viewBox="0 0 100 100"
-      className="absolute inset-0 h-full w-full"
-      style={{ opacity: 0.4 }}
-      animate={{ rotate: 360 }}
-      transition={{ duration: 13, repeat: Infinity, ease: "linear" }}
-      aria-hidden="true"
-    >
-      {rings.map((r, i) => (
-        <circle
-          key={i}
-          cx="50" cy="50" r={r * 46}
-          fill="none"
-          stroke={hue}
-          strokeWidth="6"
-          strokeDasharray={i % 2 === 0 ? "10 7" : "4 6"}
-          opacity={0.5 + (i % 2) * 0.3}
-        />
-      ))}
-    </motion.svg>
-  );
+/** Six clashing background patterns — rings, stripes, checker, dots,
+ *  chevrons, waves — randomized per card so the board reads as genuinely
+ *  chaotic to scan. All motion stays SLOW (≥13s loops, no flashing, no
+ *  pulsing): busy to look at, never strobing. */
+function CardPattern({ hue, variant }: { hue: string; variant: number }) {
+  const spin = {
+    animate: { rotate: 360 },
+    transition: { duration: 14 + (variant % 3) * 3, repeat: Infinity, ease: "linear" as const },
+  };
+  const drift = {
+    animate: { x: [0, 10, 0] },
+    transition: { duration: 11, repeat: Infinity, ease: "easeInOut" as const },
+  };
+
+  switch (variant % 6) {
+    case 0: // concentric dashed rings (the original)
+      return (
+        <motion.svg viewBox="0 0 100 100" className="absolute inset-0 h-full w-full" style={{ opacity: 0.45 }} {...spin} aria-hidden="true">
+          {[0.95, 0.76, 0.57, 0.38, 0.19].map((r, i) => (
+            <circle key={i} cx="50" cy="50" r={r * 46} fill="none" stroke={hue} strokeWidth="6"
+              strokeDasharray={i % 2 === 0 ? "10 7" : "4 6"} opacity={0.5 + (i % 2) * 0.3} />
+          ))}
+        </motion.svg>
+      );
+    case 1: // diagonal stripes
+      return (
+        <motion.svg viewBox="0 0 100 100" className="absolute inset-0 h-full w-full" style={{ opacity: 0.4 }} {...drift} aria-hidden="true">
+          {Array.from({ length: 12 }).map((_, i) => (
+            <line key={i} x1={-30 + i * 14} y1="110" x2={10 + i * 14} y2="-10"
+              stroke={hue} strokeWidth="5" opacity={i % 2 ? 0.9 : 0.5} />
+          ))}
+        </motion.svg>
+      );
+    case 2: // checkerboard
+      return (
+        <svg viewBox="0 0 100 100" className="absolute inset-0 h-full w-full" style={{ opacity: 0.3 }} aria-hidden="true">
+          {Array.from({ length: 36 }).map((_, i) => {
+            const x = (i % 6) * 17 - 1;
+            const y = Math.floor(i / 6) * 17 - 1;
+            return (i % 6 + Math.floor(i / 6)) % 2 === 0
+              ? <rect key={i} x={x} y={y} width="17" height="17" fill={hue} />
+              : null;
+          })}
+        </svg>
+      );
+    case 3: // offset polka dots
+      return (
+        <motion.svg viewBox="0 0 100 100" className="absolute inset-0 h-full w-full" style={{ opacity: 0.45 }} {...spin} aria-hidden="true">
+          {Array.from({ length: 25 }).map((_, i) => {
+            const row = Math.floor(i / 5);
+            const x = (i % 5) * 22 + (row % 2 ? 11 : 0);
+            return <circle key={i} cx={x} cy={row * 22 + 6} r={4 + (i % 3) * 2} fill={hue} opacity={0.4 + (i % 3) * 0.2} />;
+          })}
+        </motion.svg>
+      );
+    case 4: // chevrons / zigzag
+      return (
+        <motion.svg viewBox="0 0 100 100" className="absolute inset-0 h-full w-full" style={{ opacity: 0.4 }} {...drift} aria-hidden="true">
+          {Array.from({ length: 7 }).map((_, i) => (
+            <path key={i} d={`M-5 ${i * 16} L15 ${i * 16 + 10} L35 ${i * 16} L55 ${i * 16 + 10} L75 ${i * 16} L95 ${i * 16 + 10} L115 ${i * 16}`}
+              fill="none" stroke={hue} strokeWidth="4.5" opacity={i % 2 ? 0.85 : 0.5} />
+          ))}
+        </motion.svg>
+      );
+    default: // wavy lines
+      return (
+        <motion.svg viewBox="0 0 100 100" className="absolute inset-0 h-full w-full" style={{ opacity: 0.42 }} {...drift} aria-hidden="true">
+          {Array.from({ length: 7 }).map((_, i) => (
+            <path key={i} d={`M-10 ${8 + i * 15} Q15 ${i * 15 - 4} 40 ${8 + i * 15} T90 ${8 + i * 15} T140 ${8 + i * 15}`}
+              fill="none" stroke={hue} strokeWidth="5" opacity={i % 2 ? 0.9 : 0.55} />
+          ))}
+        </motion.svg>
+      );
+  }
 }
 
 function buildCards(target: string): Card[] {
@@ -378,7 +428,7 @@ export function HuntLevel() {
                 {/* slow, calm hypnotic ring pattern — clipped to the card shape only,
                     so the sparkle burst below can still fly freely outside it */}
                 <div className="absolute inset-0 overflow-hidden" style={{ borderRadius: c.style.radius }}>
-                  <HypnoRings hue={c.style.border} />
+                  <CardPattern hue={c.style.border} variant={c.id} />
                 </div>
                 {/* soft halo keeps the letter legible over the busy rings */}
                 <span

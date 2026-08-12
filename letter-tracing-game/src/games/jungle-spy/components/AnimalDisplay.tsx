@@ -19,7 +19,7 @@ export function AnimalDisplay({ art }: { art: string }) {
     <img
       src={animalPhotoPath(art)}
       alt=""
-      className="h-full w-full rounded-full object-cover"
+      className="h-full w-full object-cover"
       onError={() => setPhotoFailed(true)}
       draggable={false}
     />

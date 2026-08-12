@@ -15,10 +15,15 @@ interface CompletionScreenProps {
 
 export function CompletionScreen({ onPlayAgain }: CompletionScreenProps) {
   const { playCelebration } = useAudio();
-  const { resetProgress, module } = useGameStore();
+  const { resetProgress, resetLowercaseProgress, resetNumbersProgress, module } = useGameStore();
   const isNumbers = module === "numbers";
+  // Badge glyphs must match the module just completed — this previously
+  // always showed uppercase "A B C…" even after finishing the LOWERCASE
+  // module, the same module-blindness as the reset bug above.
   const symbols = isNumbers
     ? ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"]
+    : module === "lowercase"
+    ? "abcdefghijklmnopqrstuvwxyz".split("")
     : "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
   const containerRef = useRef<HTMLDivElement>(null);
   const [dimensions, setDimensions] = useState({ w: 360, h: 640 });
@@ -33,8 +38,15 @@ export function CompletionScreen({ onPlayAgain }: CompletionScreenProps) {
     return () => clearTimeout(t);
   }, [playCelebration]);
 
+  // Reset the module the child actually just finished — not always uppercase.
+  // (Previously this always called resetProgress(), which silently reset the
+  // UPPERCASE bucket even when the child had just completed lowercase or
+  // numbers, leaving the just-finished module stuck at "completion" forever
+  // and wiping unrelated uppercase progress.)
   const handlePlayAgain = () => {
-    resetProgress();
+    if (module === "lowercase") resetLowercaseProgress();
+    else if (module === "numbers") resetNumbersProgress();
+    else resetProgress();
     onPlayAgain();
   };
 

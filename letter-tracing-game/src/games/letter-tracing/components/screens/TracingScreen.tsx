@@ -86,6 +86,17 @@ export function TracingScreen({ letter, mode, onComplete, onHome }: TracingScree
   } = useAudio();
   const hasAutoPlayed = useRef(false);
   const starsRef = useRef(0);
+  // Tracks setTimeouts scheduled by handleLetterSuccess so they can be
+  // cancelled if the child navigates away (e.g. taps Home) before they fire.
+  // Without this, a stale timer could call onComplete() after the screen has
+  // already changed, unexpectedly yanking the child back to "celebration".
+  const successTimeoutsRef = useRef<ReturnType<typeof setTimeout>[]>([]);
+  useEffect(() => {
+    return () => {
+      successTimeoutsRef.current.forEach(clearTimeout);
+      successTimeoutsRef.current = [];
+    };
+  }, []);
   const [introDone, setIntroDone] = useState(false);
   const [anchorMode, setAnchorMode] = useState<AnchorMode>("hidden");
 
@@ -168,16 +179,24 @@ export function TracingScreen({ letter, mode, onComplete, onHome }: TracingScree
     setStars(nextStars);
     if (mode === "five-star") playStarPop();
     setBurstActive(true);
-    setTimeout(() => setBurstActive(false), 600);
+
+    // All of these are deliberately delayed for pacing — but if the child
+    // navigates away in the meantime (e.g. taps Home), none of them should
+    // still fire, so every id is tracked and cleared on unmount.
+    const schedule = (fn: () => void, ms: number) => {
+      successTimeoutsRef.current.push(setTimeout(fn, ms));
+    };
+
+    schedule(() => setBurstActive(false), 600);
 
     if (nextStars >= starTarget) {
       // Letter finished — celebration screen offers Again / Next
-      if (mode === "five-star") setTimeout(() => playFiveStars(), 150);
-      setTimeout(onComplete, 1100);
+      if (mode === "five-star") schedule(() => playFiveStars(), 150);
+      schedule(onComplete, 1100);
     } else {
       // Reset the SAME letter for another round — no dialogs, no buttons.
       // Repeat rounds skip the pencil demo (withDemo only on attempt 0).
-      setTimeout(() => {
+      schedule(() => {
         setProgress(0);
         setAttempt((a) => a + 1);
       }, 800);

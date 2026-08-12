@@ -51,7 +51,7 @@ export function JungleBackdrop() {
 }
 
 /** Splash: title + pick a case (ABC / abc) */
-export function JungleSplash() {
+export function JungleSplash({ onExitPortal }: { onExitPortal?: () => void }) {
   const { setCase, setScreen } = useJungleStore();
   const pick = (c: "upper" | "lower") => {
     playClickSound();
@@ -64,6 +64,19 @@ export function JungleSplash() {
       style={{ background: "linear-gradient(165deg, #E8F8EE 0%, #FFF6D6 100%)" }}
     >
       <JungleBackdrop />
+
+      {onExitPortal && (
+        <button
+          onClick={() => { playClickSound(); onExitPortal(); }}
+          className="absolute left-4 top-4 z-20 flex min-h-[44px] items-center gap-1.5 rounded-full bg-white/75 px-3.5 py-2 shadow-soft"
+          aria-label="Back to the game portal"
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+            <path d="M15 18l-6-6 6-6" stroke="#7C5CBF" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+          <span className="font-rounded text-xs font-bold text-plum/80">Back to Games</span>
+        </button>
+      )}
 
       {/* Jungle sun */}
       <motion.svg
@@ -187,7 +200,7 @@ export function JungleSplash() {
 }
 
 /** Alphabet grid on leafy tiles + rainbow progress */
-export function JungleGrid({ onExitPortal }: { onExitPortal?: () => void }) {
+export function JungleGrid() {
   const { letterCase, found, setLetter, setScreen, setCase } = useJungleStore();
   const foundCount = found.length;
 
@@ -210,19 +223,19 @@ export function JungleGrid({ onExitPortal }: { onExitPortal?: () => void }) {
     >
       <JungleBackdrop />
 
-      {/* Back to the game portal — pinned top-left, same as every other game */}
+      {/* Back to this game's home (the ABC/abc splash) — pinned top-left */}
       <button
         onClick={() => {
           playClickSound();
-          onExitPortal ? onExitPortal() : setScreen("splash");
+          setScreen("splash");
         }}
         className="absolute left-4 top-4 z-20 flex min-h-[44px] items-center gap-1.5 rounded-full bg-white/75 px-3.5 py-2 shadow-soft"
-        aria-label="Back to the game portal"
+        aria-label="Back to Jungle Spy home"
       >
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-          <path d="M15 18l-6-6 6-6" stroke="#7C5CBF" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M15 18l-6-6 6-6" stroke="#3DAA72" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
-        <span className="font-rounded text-xs font-bold text-plum/80">Back to Games</span>
+        <span className="font-rounded text-xs font-bold" style={{ color: "#3DAA72" }}>Back</span>
       </button>
 
       {/* Top bar — case toggle now centered on its own, no longer sharing

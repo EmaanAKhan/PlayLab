@@ -558,7 +558,7 @@ export function TracingCanvas({
       running = false;
       if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
     };
-  }, [letter, setPhase, onFirstTurn]);
+  }, [letter, setPhase, onFirstTurn, primeDemoStroke]);
 
   // ── Pointer input ───────────────────────────────────────────────────────────
   const getCanvasPoint = useCallback((e: React.PointerEvent<HTMLCanvasElement>): [number, number] => {

@@ -62,7 +62,14 @@ export function CelebrationScreen({ letter, onAgain, onNext }: CelebrationScreen
     "#804020", "#205040", "#703060", "#806010", "#205060",
     "#B03030", "#106040", "#507010", "#405090", "#604010", "#204060",
   ];
-  const color = LETTER_COLORS[(letter.charCodeAt(0) - 65) % LETTER_COLORS.length];
+  // +LETTER_COLORS.length before % guards against a negative index for
+  // non-A-Z characters (the Numbers module passes digits like "1".."10",
+  // whose char codes are below 65 — without this the badge silently lost
+  // its themed color/border on every number).
+  const color =
+    LETTER_COLORS[
+      ((letter.charCodeAt(0) - 65) % LETTER_COLORS.length + LETTER_COLORS.length) % LETTER_COLORS.length
+    ];
 
   return (
     <div

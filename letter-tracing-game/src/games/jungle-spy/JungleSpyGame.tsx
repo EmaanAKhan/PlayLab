@@ -9,12 +9,11 @@ import { JungleSplash, JungleGrid } from "@games/jungle-spy/components/JungleScr
 import { JungleLevel } from "@games/jungle-spy/components/JungleLevel";
 import { RotateDevicePrompt } from "@shared/components/ui/RotateDevicePrompt";
 import { initAudio } from "@shared/audio/sfx";
-
-const T = {
-  initial: { opacity: 0 },
-  animate: { opacity: 1 },
-  exit: { opacity: 0 },
-  transition: { duration: 0.3 },
+const PAGE_TRANSITION = {
+  initial: { opacity: 0, scale: 0.97, y: 10 },
+  animate: { opacity: 1, scale: 1, y: 0 },
+  exit: { opacity: 0, scale: 1.02, y: -8 },
+  transition: { duration: 0.3, ease: [0.22, 1, 0.36, 1] },
 };
 
 function toBucket(screen: string): "menu" | "play" {
@@ -47,17 +46,17 @@ export function JungleSpyGame() {
       <RotateDevicePrompt />
       <AnimatePresence mode="wait">
         {screen === "splash" && (
-          <motion.div key="splash" className="absolute inset-0" {...T}>
-            <JungleSplash />
+          <motion.div key="splash" className="absolute inset-0" {...PAGE_TRANSITION}>
+            <JungleSplash onExitPortal={() => router.push("/")} />
           </motion.div>
         )}
         {screen === "grid" && (
-          <motion.div key="grid" className="absolute inset-0" {...T}>
-            <JungleGrid onExitPortal={() => router.push("/")} />
+          <motion.div key="grid" className="absolute inset-0" {...PAGE_TRANSITION}>
+            <JungleGrid />
           </motion.div>
         )}
         {screen === "level" && (
-          <motion.div key="level" className="absolute inset-0" {...T}>
+          <motion.div key="level" className="absolute inset-0" {...PAGE_TRANSITION}>
             <JungleLevel />
           </motion.div>
         )}

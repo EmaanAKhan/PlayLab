@@ -82,6 +82,23 @@ button, a {
   }
 }
 
+/* ─── Reduced motion ─────────────────────────────────────────────────────────
+   Baseline safety net for anyone with prefers-reduced-motion enabled: caps
+   CSS-driven animation/transition duration app-wide. NOTE — this does NOT
+   reach the Framer Motion tweens used throughout every screen (those are
+   JS-driven, not CSS), so infinite decorative loops (bobbing animals,
+   drifting clouds, rotating rings) still play at full motion. Fully honoring
+   this setting would mean wiring framer-motion's useReducedMotion() through
+   each animated component — flagged as a follow-up, not done here. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
 /* Compact gameplay chrome on short landscape viewports */
 @media (orientation: landscape) and (max-height: 560px) {
   .hide-on-short {

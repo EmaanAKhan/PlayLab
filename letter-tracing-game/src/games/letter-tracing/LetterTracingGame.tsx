@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useScreenHistorySync } from "@shared/hooks/useScreenHistorySync";
+import { PAGE_TRANSITION } from "@shared/constants/transitions";
 
 import { useGameStore } from "@games/letter-tracing/store/gameStore";
 import { LETTER_DATA } from "@games/letter-tracing/constants/letterData";
@@ -19,13 +20,6 @@ import { TracingScreen } from "@games/letter-tracing/components/screens/TracingS
 import { CelebrationScreen } from "@games/letter-tracing/components/screens/CelebrationScreen";
 import { CompletionScreen } from "@games/letter-tracing/components/screens/CompletionScreen";
 import { LetterSequencingScreen } from "@games/letter-tracing/components/screens/LetterSequencingScreen";
-
-const PAGE_TRANSITIONS = {
-  initial: { opacity: 0, scale: 0.97, y: 10 },
-  animate: { opacity: 1, scale: 1, y: 0 },
-  exit: { opacity: 0, scale: 1.02, y: -8 },
-  transition: { duration: 0.3, ease: [0.22, 1, 0.36, 1] },
-};
 
 /**
  * Coarse history bucket for the tracing game's larger screen graph:
@@ -204,20 +198,20 @@ export function LetterTracingGame() {
     <div className="relative h-full w-full overflow-hidden">
       <AnimatePresence mode="wait">
         {screen === "splash" && (
-          <motion.div key="splash" className="absolute inset-0" {...PAGE_TRANSITIONS}>
+          <motion.div key="splash" className="absolute inset-0" {...PAGE_TRANSITION}>
             <SplashScreen onComplete={handleSplashComplete} />
           </motion.div>
         )}
 
         {screen === "main-menu" && (
-          <motion.div key="main-menu" className="absolute inset-0" {...PAGE_TRANSITIONS}>
+          <motion.div key="main-menu" className="absolute inset-0" {...PAGE_TRANSITION}>
             <MainMenuScreen
-              onExitPortal={() => router.push("/")} onSelectModule={handleSelectModule} />
+              onExitPortal={handleGoHome} onSelectModule={handleSelectModule} />
           </motion.div>
         )}
 
         {screen === "home" && (
-          <motion.div key="home" className="absolute inset-0" {...PAGE_TRANSITIONS}>
+          <motion.div key="home" className="absolute inset-0" {...PAGE_TRANSITION}>
             <HomeScreen
               onContinue={handleContinue}
               onStartFromA={handleStartFromA}
@@ -227,13 +221,13 @@ export function LetterTracingGame() {
         )}
 
         {screen === "mode-select" && (
-          <motion.div key="mode-select" className="absolute inset-0" {...PAGE_TRANSITIONS}>
+          <motion.div key="mode-select" className="absolute inset-0" {...PAGE_TRANSITION}>
             <ModeSelectScreen onSelect={handleModeSelected} />
           </motion.div>
         )}
 
         {screen === "tracing" && currentLetter && (
-          <motion.div key={`tracing-${currentLetter.letter}`} className="absolute inset-0" {...PAGE_TRANSITIONS}>
+          <motion.div key={`tracing-${currentLetter.letter}`} className="absolute inset-0" {...PAGE_TRANSITION}>
             <TracingScreen
               letter={currentLetter}
               mode={practiceMode ?? "five-star"}
@@ -244,7 +238,7 @@ export function LetterTracingGame() {
         )}
 
         {screen === "celebration" && currentLetter && (
-          <motion.div key={`celebration-${currentLetter.letter}`} className="absolute inset-0" {...PAGE_TRANSITIONS}>
+          <motion.div key={`celebration-${currentLetter.letter}`} className="absolute inset-0" {...PAGE_TRANSITION}>
             <CelebrationScreen
               letter={currentLetter.letter}
               onAgain={handleAgain}
@@ -254,13 +248,13 @@ export function LetterTracingGame() {
         )}
 
         {screen === "completion" && (
-          <motion.div key="completion" className="absolute inset-0" {...PAGE_TRANSITIONS}>
+          <motion.div key="completion" className="absolute inset-0" {...PAGE_TRANSITION}>
             <CompletionScreen onPlayAgain={handlePlayAgain} />
           </motion.div>
         )}
 
         {screen === "sequencing" && (
-          <motion.div key="sequencing" className="absolute inset-0" {...PAGE_TRANSITIONS}>
+          <motion.div key="sequencing" className="absolute inset-0" {...PAGE_TRANSITION}>
             <LetterSequencingScreen onHome={handleGoHome} />
           </motion.div>
         )}

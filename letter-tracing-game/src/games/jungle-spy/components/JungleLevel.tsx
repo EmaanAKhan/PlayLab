@@ -248,15 +248,15 @@ export function JungleLevel() {
         >
           {/* soft medallion keeps the animal the unmistakable centerpiece */}
           <div
-            className="flex items-center justify-center rounded-full shadow-lg"
+            className="flex items-center justify-center rounded-3xl shadow-lg"
             style={{
-              width: "clamp(140px, 32vmin, 240px)",
-              height: "clamp(140px, 32vmin, 240px)",
-              background: "radial-gradient(circle, #FFFFFF 55%, #EAF9F0 100%)",
+              width: "clamp(170px, 40vmin, 300px)",
+              height: "clamp(170px, 40vmin, 300px)",
+              background: "#FFFFFF",
               border: "4px solid #A8E3BC",
             }}
           >
-            <div className="flex items-center justify-center overflow-hidden rounded-full" style={{ width: "86%", height: "86%" }}>
+            <div className="flex items-center justify-center overflow-hidden rounded-lg" style={{ width: "94%", height: "94%" }}>
               <AnimalDisplay art={animal.art} />
             </div>
           </div>
@@ -320,8 +320,8 @@ export function JungleLevel() {
               <CelebrationSparkles active width={dims.w} height={dims.h} />
             </div>
             <motion.div
-              className="overflow-hidden rounded-full"
-              style={{ width: "clamp(120px, 28vmin, 210px)", height: "clamp(120px, 28vmin, 210px)" }}
+              className="overflow-hidden rounded-lg"
+              style={{ width: "clamp(150px, 34vmin, 260px)", height: "clamp(150px, 34vmin, 260px)" }}
               initial={{ scale: 0.5, y: 20 }}
               animate={{ scale: 1, y: [0, -14, 0] }}
               transition={{

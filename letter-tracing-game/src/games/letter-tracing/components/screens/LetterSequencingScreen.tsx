@@ -7,6 +7,11 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@shared/components/ui/Button";
 import { CelebrationSparkles } from "@shared/components/animations/Sparkles";
 import { playClip, preloadClips, clipText } from "@shared/audio/voice";
+// Shared SFX (not a local Web Audio implementation): keeps this screen's
+// correct/incorrect sounds consistent with every other game AND correctly
+// silenced by the Settings mute toggle, which only controls Howler's master
+// volume — a screen-local AudioContext would ignore that setting entirely.
+import { playCorrectSound, playIncorrectSound } from "@shared/audio/sfx";
 import { SceneDecor } from "@shared/components/animations/SceneDecor";
 import { RotateDevicePrompt } from "@shared/components/ui/RotateDevicePrompt";
 
@@ -20,31 +25,6 @@ interface Puzzle {
   letters: string[];
   shuffled: string[];
 }
-
-// ─── Audio helpers (Web Audio API, no files needed) ───────────────────────────
-
-function playTone(frequencies: number[], duration: number, volume = 0.22) {
-  if (typeof window === "undefined") return;
-  try {
-    const ctx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
-    const gain = ctx.createGain();
-    gain.gain.setValueAtTime(volume, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
-    gain.connect(ctx.destination);
-    for (const freq of frequencies) {
-      const osc = ctx.createOscillator();
-      osc.type = "sine";
-      osc.frequency.setValueAtTime(freq, ctx.currentTime);
-      osc.connect(gain);
-      osc.start();
-      osc.stop(ctx.currentTime + duration);
-    }
-    setTimeout(() => ctx.close(), (duration + 0.1) * 1000);
-  } catch (_) { /* silent fallback */ }
-}
-
-const playSuccessSound = () => playTone([523, 659, 784], 0.35);
-const playErrorSound   = () => playTone([220, 196], 0.28, 0.15);
 
 // ─── Puzzle generation ────────────────────────────────────────────────────────
 
@@ -300,7 +280,7 @@ export function LetterSequencingScreen({ onHome }: LetterSequencingScreenProps) 
       // Check if slot is already occupied
       if (slots[targetSlotIndex] !== null && targetSlotIndex !== sourceSlotIndex) {
         // Occupied — shake and error
-        playErrorSound();
+        playIncorrectSound();
         setShakeLetter(letter);
         setTryAgainVisible(true);
         setTimeout(() => { setShakeLetter(null); setTryAgainVisible(false); }, 900);
@@ -323,7 +303,7 @@ export function LetterSequencingScreen({ onHome }: LetterSequencingScreenProps) 
       const isCorrectSlot = currentPuzzle.letters[targetSlotIndex] === letter;
 
       if (!isCorrectSlot) {
-        playErrorSound();
+        playIncorrectSound();
         void playClip("instr-try-again"); // spoken phrase matches the retry feedback
         setShakeLetter(letter);
         setTryAgainVisible(true);
@@ -336,7 +316,7 @@ export function LetterSequencingScreen({ onHome }: LetterSequencingScreenProps) 
       }
 
       // Correct placement
-      playSuccessSound();
+      playCorrectSound();
       setSlots(newSlots);
       setAvailable(newAvailable);
 

@@ -15,8 +15,14 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
   }, [onComplete]);
 
   return (
-    <div className="relative flex h-full w-full flex-col items-center justify-center overflow-hidden"
+    // Tap anywhere to skip the wait — matches Letter Hunt's splash, which is
+    // tappable for the same reason: a child who already knows the app
+    // shouldn't be forced through an unskippable multi-second intro every time.
+    <button
+      className="relative flex h-full w-full flex-col items-center justify-center overflow-hidden"
       style={{ background: "linear-gradient(160deg, #E8F4FF 0%, #F0E8FF 50%, #E8FFE8 100%)" }}
+      onClick={onComplete}
+      aria-label="Letter Tracing — tap to start"
     >
       <FloatingClouds />
 
@@ -98,6 +104,6 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
           ))}
         </motion.div>
       </motion.div>
-    </div>
+    </button>
   );
 }

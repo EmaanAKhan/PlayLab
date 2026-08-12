@@ -9,13 +9,7 @@ import { HuntSplash, HuntHome } from "@games/letter-hunt/components/HuntScreens"
 import { HuntLevel } from "@games/letter-hunt/components/HuntLevel";
 import { RotateDevicePrompt } from "@shared/components/ui/RotateDevicePrompt";
 import { initAudio } from "@shared/audio/sfx";
-
-const T = {
-  initial: { opacity: 0 },
-  animate: { opacity: 1 },
-  exit: { opacity: 0 },
-  transition: { duration: 0.3 },
-};
+import { PAGE_TRANSITION } from "@shared/constants/transitions";
 
 /** Coarse history bucket for this game's screen graph. "level" (gameplay)
  *  is its own step; splash/home collapse into "menu" so switching letters
@@ -53,17 +47,17 @@ export function LetterHuntGame() {
       <RotateDevicePrompt />
       <AnimatePresence mode="wait">
         {screen === "splash" && (
-          <motion.div key="splash" className="absolute inset-0" {...T}>
+          <motion.div key="splash" className="absolute inset-0" {...PAGE_TRANSITION}>
             <HuntSplash />
           </motion.div>
         )}
         {screen === "home" && (
-          <motion.div key="home" className="absolute inset-0" {...T}>
+          <motion.div key="home" className="absolute inset-0" {...PAGE_TRANSITION}>
             <HuntHome onExitPortal={() => router.push("/")} />
           </motion.div>
         )}
         {screen === "level" && (
-          <motion.div key="level" className="absolute inset-0" {...T}>
+          <motion.div key="level" className="absolute inset-0" {...PAGE_TRANSITION}>
             <HuntLevel />
           </motion.div>
         )}

@@ -2,9 +2,15 @@ import type { Config } from "tailwindcss";
 
 const config: Config = {
   content: [
-    "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
-    "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
+    // MUST cover everywhere Tailwind classes are actually written. Note:
+    // ./src/games and ./src/shared were previously missing — the games only
+    // ever worked because a dead pre-refactor copy of their screens sat in
+    // ./src/components and happened to contain the same class names, so
+    // Tailwind generated them by accident. Deleting that dead code broke
+    // every class used only by the games. These globs are the real fix.
     "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
+    "./src/games/**/*.{js,ts,jsx,tsx,mdx}",
+    "./src/shared/**/*.{js,ts,jsx,tsx,mdx}",
   ],
   theme: {
     extend: {
