@@ -33,4 +33,12 @@ export const GAMES: readonly GameMeta[] = [
     route: "/games/letter-hunt",
     colors: { bg: "#FFE1EC", border: "#FF8FA3", text: "#D14D82" },
   },
+  {
+    id: "feed-the-shark",
+    title: "Feed the Shark",
+    description: "Match big & small letters",
+    glyph: "🦈",
+    route: "/games/feed-the-shark",
+    colors: { bg: "#D4EEFF", border: "#74B9FF", text: "#2980B9" },
+  },
 ];

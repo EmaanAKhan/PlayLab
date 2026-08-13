@@ -11,8 +11,9 @@
  *   2. pip install edge-tts        (or: py -m pip install edge-tts)
  *
  * Then:
- *   npm run generate-audio:free                          # everything
- *   node scripts/generate-audio-free.mjs phonics-b       # single clips
+ *   npm run generate-audio:free                          # ONLY missing clips (default)
+ *   node scripts/generate-audio-free.mjs --all           # regenerate everything
+ *   node scripts/generate-audio-free.mjs phonics-b       # specific clips (even if they exist)
  */
 import { readFileSync, mkdirSync, existsSync, statSync } from "node:fs";
 import { dirname, join } from "node:path";
@@ -23,7 +24,9 @@ const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const manifest = JSON.parse(
   readFileSync(join(root, "src/shared/audio/manifest.json"), "utf8")
 );
-const only = process.argv.slice(2);
+const args = process.argv.slice(2);
+const regenerateAll = args.includes("--all");
+const only = args.filter((a) => !a.startsWith("--"));
 const voice = manifest.voiceFree ?? { name: "en-US-AnaNeural", rate: "-8%", pitch: "+0Hz" };
 
 // ── Locate the edge-tts CLI (direct script, or via python/py module) ───────
@@ -71,10 +74,18 @@ function generate(clip, outPath) {
   }
 }
 
-let done = 0, failed = 0;
+let done = 0, failed = 0, skipped = 0;
 for (const [id, clip] of Object.entries(manifest.clips)) {
   if (only.length && !only.includes(id)) continue;
   const outPath = join(root, "public", clip.file);
+  // DEFAULT: skip clips whose file already exists — a plain run only fills
+  // in what's missing, so adding two new clips never re-records the other
+  // 181 (regeneration is slow and not byte-identical). Explicitly named
+  // clips and --all runs always regenerate.
+  if (!only.length && !regenerateAll && existsSync(outPath) && statSync(outPath).size >= 500) {
+    skipped++;
+    continue;
+  }
   mkdirSync(dirname(outPath), { recursive: true });
   try {
     try {
@@ -91,5 +102,5 @@ for (const [id, clip] of Object.entries(manifest.clips)) {
   }
   await sleep(300); // be polite to the free endpoint
 }
-console.log(`\n${done} generated, ${failed} failed.`);
+console.log(`\n${done} generated, ${skipped} skipped (already exist), ${failed} failed.`);
 if (failed) process.exit(1);

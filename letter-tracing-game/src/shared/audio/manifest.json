@@ -5,7 +5,7 @@
     "name": "en-US-Neural2-H",
     "speakingRate": 0.92,
     "pitch": 0.0,
-    "$note": "Used by the GOOGLE generator (billing path) \u2014 supports exact IPA phonics."
+    "$note": "Used by the GOOGLE generator (billing path) — supports exact IPA phonics."
   },
   "clips": {
     "letter-a": {
@@ -17,7 +17,7 @@
     "phonics-a": {
       "file": "/audio/phonics/a.mp3",
       "text": "a",
-      "ssml": "<speak><phoneme alphabet=\"ipa\" ph=\"\u00e6\">a</phoneme></speak>",
+      "ssml": "<speak><phoneme alphabet=\"ipa\" ph=\"æ\">a</phoneme></speak>",
       "note": "phonetic SOUND via IPA - never the letter name",
       "speak": "aa",
       "speakFree": "ah",
@@ -37,7 +37,7 @@
     "phonics-b": {
       "file": "/audio/phonics/b.mp3",
       "text": "b",
-      "ssml": "<speak><phoneme alphabet=\"ipa\" ph=\"b\u0259\">b</phoneme></speak>",
+      "ssml": "<speak><phoneme alphabet=\"ipa\" ph=\"bə\">b</phoneme></speak>",
       "note": "phonetic SOUND via IPA - never the letter name",
       "speak": "buh",
       "speakFree": "buh",
@@ -57,7 +57,7 @@
     "phonics-c": {
       "file": "/audio/phonics/c.mp3",
       "text": "c",
-      "ssml": "<speak><phoneme alphabet=\"ipa\" ph=\"k\u0259\">c</phoneme></speak>",
+      "ssml": "<speak><phoneme alphabet=\"ipa\" ph=\"kə\">c</phoneme></speak>",
       "note": "phonetic SOUND via IPA - never the letter name",
       "speak": "kuh",
       "speakFree": "kuh",
@@ -77,7 +77,7 @@
     "phonics-d": {
       "file": "/audio/phonics/d.mp3",
       "text": "d",
-      "ssml": "<speak><phoneme alphabet=\"ipa\" ph=\"d\u0259\">d</phoneme></speak>",
+      "ssml": "<speak><phoneme alphabet=\"ipa\" ph=\"də\">d</phoneme></speak>",
       "note": "phonetic SOUND via IPA - never the letter name",
       "speak": "duh",
       "speakFree": "duh",
@@ -97,7 +97,7 @@
     "phonics-e": {
       "file": "/audio/phonics/e.mp3",
       "text": "e",
-      "ssml": "<speak><phoneme alphabet=\"ipa\" ph=\"\u025b\">e</phoneme></speak>",
+      "ssml": "<speak><phoneme alphabet=\"ipa\" ph=\"ɛ\">e</phoneme></speak>",
       "note": "phonetic SOUND via IPA - never the letter name",
       "speak": "eh",
       "speakFree": "eh",
@@ -117,7 +117,7 @@
     "phonics-f": {
       "file": "/audio/phonics/f.mp3",
       "text": "f",
-      "ssml": "<speak><phoneme alphabet=\"ipa\" ph=\"f\u02d0\">f</phoneme></speak>",
+      "ssml": "<speak><phoneme alphabet=\"ipa\" ph=\"fː\">f</phoneme></speak>",
       "note": "phonetic SOUND via IPA - never the letter name",
       "speak": "ff",
       "speakFree": "fff",
@@ -137,7 +137,7 @@
     "phonics-g": {
       "file": "/audio/phonics/g.mp3",
       "text": "g",
-      "ssml": "<speak><phoneme alphabet=\"ipa\" ph=\"\u0261\u0259\">g</phoneme></speak>",
+      "ssml": "<speak><phoneme alphabet=\"ipa\" ph=\"ɡə\">g</phoneme></speak>",
       "note": "phonetic SOUND via IPA - never the letter name",
       "speak": "guh",
       "speakFree": "guh",
@@ -157,7 +157,7 @@
     "phonics-h": {
       "file": "/audio/phonics/h.mp3",
       "text": "h",
-      "ssml": "<speak><phoneme alphabet=\"ipa\" ph=\"h\u0259\">h</phoneme></speak>",
+      "ssml": "<speak><phoneme alphabet=\"ipa\" ph=\"hə\">h</phoneme></speak>",
       "note": "phonetic SOUND via IPA - never the letter name",
       "speak": "huh",
       "speakFree": "huh",
@@ -177,7 +177,7 @@
     "phonics-i": {
       "file": "/audio/phonics/i.mp3",
       "text": "i",
-      "ssml": "<speak><phoneme alphabet=\"ipa\" ph=\"\u026a\">i</phoneme></speak>",
+      "ssml": "<speak><phoneme alphabet=\"ipa\" ph=\"ɪ\">i</phoneme></speak>",
       "note": "phonetic SOUND via IPA - never the letter name",
       "speak": "ih",
       "speakFree": "ih",
@@ -197,7 +197,7 @@
     "phonics-j": {
       "file": "/audio/phonics/j.mp3",
       "text": "j",
-      "ssml": "<speak><phoneme alphabet=\"ipa\" ph=\"d\u0292\u0259\">j</phoneme></speak>",
+      "ssml": "<speak><phoneme alphabet=\"ipa\" ph=\"dʒə\">j</phoneme></speak>",
       "note": "phonetic SOUND via IPA - never the letter name",
       "speak": "juh",
       "speakFree": "juh",
@@ -217,7 +217,7 @@
     "phonics-k": {
       "file": "/audio/phonics/k.mp3",
       "text": "k",
-      "ssml": "<speak><phoneme alphabet=\"ipa\" ph=\"k\u0259\">k</phoneme></speak>",
+      "ssml": "<speak><phoneme alphabet=\"ipa\" ph=\"kə\">k</phoneme></speak>",
       "note": "phonetic SOUND via IPA - never the letter name",
       "speak": "kuh",
       "speakFree": "kuh",
@@ -237,7 +237,7 @@
     "phonics-l": {
       "file": "/audio/phonics/l.mp3",
       "text": "l",
-      "ssml": "<speak><phoneme alphabet=\"ipa\" ph=\"l\u02d0\">l</phoneme></speak>",
+      "ssml": "<speak><phoneme alphabet=\"ipa\" ph=\"lː\">l</phoneme></speak>",
       "note": "phonetic SOUND via IPA - never the letter name",
       "speak": "ll",
       "speakFree": "lll",
@@ -257,7 +257,7 @@
     "phonics-m": {
       "file": "/audio/phonics/m.mp3",
       "text": "m",
-      "ssml": "<speak><phoneme alphabet=\"ipa\" ph=\"m\u02d0\">m</phoneme></speak>",
+      "ssml": "<speak><phoneme alphabet=\"ipa\" ph=\"mː\">m</phoneme></speak>",
       "note": "phonetic SOUND via IPA - never the letter name",
       "speak": "mm",
       "speakFree": "mmm",
@@ -277,7 +277,7 @@
     "phonics-n": {
       "file": "/audio/phonics/n.mp3",
       "text": "n",
-      "ssml": "<speak><phoneme alphabet=\"ipa\" ph=\"n\u02d0\">n</phoneme></speak>",
+      "ssml": "<speak><phoneme alphabet=\"ipa\" ph=\"nː\">n</phoneme></speak>",
       "note": "phonetic SOUND via IPA - never the letter name",
       "speak": "nn",
       "speakFree": "nnn",
@@ -297,7 +297,7 @@
     "phonics-o": {
       "file": "/audio/phonics/o.mp3",
       "text": "o",
-      "ssml": "<speak><phoneme alphabet=\"ipa\" ph=\"\u0251\u02d0\">o</phoneme></speak>",
+      "ssml": "<speak><phoneme alphabet=\"ipa\" ph=\"ɑː\">o</phoneme></speak>",
       "note": "phonetic SOUND via IPA - never the letter name",
       "speak": "o",
       "speakFree": "aw",
@@ -317,7 +317,7 @@
     "phonics-p": {
       "file": "/audio/phonics/p.mp3",
       "text": "p",
-      "ssml": "<speak><phoneme alphabet=\"ipa\" ph=\"p\u0259\">p</phoneme></speak>",
+      "ssml": "<speak><phoneme alphabet=\"ipa\" ph=\"pə\">p</phoneme></speak>",
       "note": "phonetic SOUND via IPA - never the letter name",
       "speak": "puh",
       "speakFree": "puh",
@@ -337,7 +337,7 @@
     "phonics-q": {
       "file": "/audio/phonics/q.mp3",
       "text": "q",
-      "ssml": "<speak><phoneme alphabet=\"ipa\" ph=\"kw\u0259\">q</phoneme></speak>",
+      "ssml": "<speak><phoneme alphabet=\"ipa\" ph=\"kwə\">q</phoneme></speak>",
       "note": "phonetic SOUND via IPA - never the letter name",
       "speak": "kwuh",
       "speakFree": "kwuh",
@@ -357,7 +357,7 @@
     "phonics-r": {
       "file": "/audio/phonics/r.mp3",
       "text": "r",
-      "ssml": "<speak><phoneme alphabet=\"ipa\" ph=\"\u0279\u02d0\">r</phoneme></speak>",
+      "ssml": "<speak><phoneme alphabet=\"ipa\" ph=\"ɹː\">r</phoneme></speak>",
       "note": "phonetic SOUND via IPA - never the letter name",
       "speak": "rr",
       "speakFree": "rrr",
@@ -377,7 +377,7 @@
     "phonics-s": {
       "file": "/audio/phonics/s.mp3",
       "text": "s",
-      "ssml": "<speak><phoneme alphabet=\"ipa\" ph=\"s\u02d0\">s</phoneme></speak>",
+      "ssml": "<speak><phoneme alphabet=\"ipa\" ph=\"sː\">s</phoneme></speak>",
       "note": "phonetic SOUND via IPA - never the letter name",
       "speak": "ss",
       "speakFree": "sss",
@@ -397,7 +397,7 @@
     "phonics-t": {
       "file": "/audio/phonics/t.mp3",
       "text": "t",
-      "ssml": "<speak><phoneme alphabet=\"ipa\" ph=\"t\u0259\">t</phoneme></speak>",
+      "ssml": "<speak><phoneme alphabet=\"ipa\" ph=\"tə\">t</phoneme></speak>",
       "note": "phonetic SOUND via IPA - never the letter name",
       "speak": "tuh",
       "speakFree": "tuh",
@@ -417,7 +417,7 @@
     "phonics-u": {
       "file": "/audio/phonics/u.mp3",
       "text": "u",
-      "ssml": "<speak><phoneme alphabet=\"ipa\" ph=\"\u028c\">u</phoneme></speak>",
+      "ssml": "<speak><phoneme alphabet=\"ipa\" ph=\"ʌ\">u</phoneme></speak>",
       "note": "phonetic SOUND via IPA - never the letter name",
       "speak": "uh",
       "speakFree": "uh",
@@ -437,7 +437,7 @@
     "phonics-v": {
       "file": "/audio/phonics/v.mp3",
       "text": "v",
-      "ssml": "<speak><phoneme alphabet=\"ipa\" ph=\"v\u02d0\">v</phoneme></speak>",
+      "ssml": "<speak><phoneme alphabet=\"ipa\" ph=\"vː\">v</phoneme></speak>",
       "note": "phonetic SOUND via IPA - never the letter name",
       "speak": "vv",
       "speakFree": "vvv",
@@ -457,7 +457,7 @@
     "phonics-w": {
       "file": "/audio/phonics/w.mp3",
       "text": "w",
-      "ssml": "<speak><phoneme alphabet=\"ipa\" ph=\"w\u0259\">w</phoneme></speak>",
+      "ssml": "<speak><phoneme alphabet=\"ipa\" ph=\"wə\">w</phoneme></speak>",
       "note": "phonetic SOUND via IPA - never the letter name",
       "speak": "wuh",
       "speakFree": "wuh",
@@ -497,7 +497,7 @@
     "phonics-y": {
       "file": "/audio/phonics/y.mp3",
       "text": "y",
-      "ssml": "<speak><phoneme alphabet=\"ipa\" ph=\"j\u0259\">y</phoneme></speak>",
+      "ssml": "<speak><phoneme alphabet=\"ipa\" ph=\"jə\">y</phoneme></speak>",
       "note": "phonetic SOUND via IPA - never the letter name",
       "speak": "yuh",
       "speakFree": "yuh",
@@ -517,7 +517,7 @@
     "phonics-z": {
       "file": "/audio/phonics/z.mp3",
       "text": "z",
-      "ssml": "<speak><phoneme alphabet=\"ipa\" ph=\"z\u02d0\">z</phoneme></speak>",
+      "ssml": "<speak><phoneme alphabet=\"ipa\" ph=\"zː\">z</phoneme></speak>",
       "note": "phonetic SOUND via IPA - never the letter name",
       "speak": "zz",
       "speakFree": "zzz",
@@ -813,320 +813,330 @@
       "file": "/audio/jungle/find-a.mp3",
       "text": "Find the A!",
       "speak": "Find the A! A is for Alligator!",
-      "note": "jungle level intro + hint \u2014 one natural sentence per letter"
+      "note": "jungle level intro + hint — one natural sentence per letter"
     },
     "jungle-find-b": {
       "file": "/audio/jungle/find-b.mp3",
       "text": "Find the B!",
       "speak": "Find the B! B is for Bear!",
-      "note": "jungle level intro + hint \u2014 one natural sentence per letter"
+      "note": "jungle level intro + hint — one natural sentence per letter"
     },
     "jungle-find-c": {
       "file": "/audio/jungle/find-c.mp3",
       "text": "Find the C!",
       "speak": "Find the C! C is for Cat!",
-      "note": "jungle level intro + hint \u2014 one natural sentence per letter"
+      "note": "jungle level intro + hint — one natural sentence per letter"
     },
     "jungle-find-d": {
       "file": "/audio/jungle/find-d.mp3",
       "text": "Find the D!",
       "speak": "Find the D! D is for Dog!",
-      "note": "jungle level intro + hint \u2014 one natural sentence per letter"
+      "note": "jungle level intro + hint — one natural sentence per letter"
     },
     "jungle-find-e": {
       "file": "/audio/jungle/find-e.mp3",
       "text": "Find the E!",
       "speak": "Find the E! E is for Elephant!",
-      "note": "jungle level intro + hint \u2014 one natural sentence per letter"
+      "note": "jungle level intro + hint — one natural sentence per letter"
     },
     "jungle-find-f": {
       "file": "/audio/jungle/find-f.mp3",
       "text": "Find the F!",
       "speak": "Find the F! F is for Frog!",
-      "note": "jungle level intro + hint \u2014 one natural sentence per letter"
+      "note": "jungle level intro + hint — one natural sentence per letter"
     },
     "jungle-find-g": {
       "file": "/audio/jungle/find-g.mp3",
       "text": "Find the G!",
       "speak": "Find the G! G is for Giraffe!",
-      "note": "jungle level intro + hint \u2014 one natural sentence per letter"
+      "note": "jungle level intro + hint — one natural sentence per letter"
     },
     "jungle-find-h": {
       "file": "/audio/jungle/find-h.mp3",
       "text": "Find the H!",
       "speak": "Find the H! H is for Horse!",
-      "note": "jungle level intro + hint \u2014 one natural sentence per letter"
+      "note": "jungle level intro + hint — one natural sentence per letter"
     },
     "jungle-find-i": {
       "file": "/audio/jungle/find-i.mp3",
       "text": "Find the I!",
       "speak": "Find the I! I is for Iguana!",
-      "note": "jungle level intro + hint \u2014 one natural sentence per letter"
+      "note": "jungle level intro + hint — one natural sentence per letter"
     },
     "jungle-find-j": {
       "file": "/audio/jungle/find-j.mp3",
       "text": "Find the J!",
       "speak": "Find the J! J is for Jellyfish!",
-      "note": "jungle level intro + hint \u2014 one natural sentence per letter"
+      "note": "jungle level intro + hint — one natural sentence per letter"
     },
     "jungle-find-k": {
       "file": "/audio/jungle/find-k.mp3",
       "text": "Find the K!",
       "speak": "Find the K! K is for Koala!",
-      "note": "jungle level intro + hint \u2014 one natural sentence per letter"
+      "note": "jungle level intro + hint — one natural sentence per letter"
     },
     "jungle-find-l": {
       "file": "/audio/jungle/find-l.mp3",
       "text": "Find the L!",
       "speak": "Find the L! L is for Lion!",
-      "note": "jungle level intro + hint \u2014 one natural sentence per letter"
+      "note": "jungle level intro + hint — one natural sentence per letter"
     },
     "jungle-find-m": {
       "file": "/audio/jungle/find-m.mp3",
       "text": "Find the M!",
       "speak": "Find the M! M is for Monkey!",
-      "note": "jungle level intro + hint \u2014 one natural sentence per letter"
+      "note": "jungle level intro + hint — one natural sentence per letter"
     },
     "jungle-find-n": {
       "file": "/audio/jungle/find-n.mp3",
       "text": "Find the N!",
       "speak": "Find the N! N is for Nest!",
-      "note": "jungle level intro + hint \u2014 one natural sentence per letter"
+      "note": "jungle level intro + hint — one natural sentence per letter"
     },
     "jungle-find-o": {
       "file": "/audio/jungle/find-o.mp3",
       "text": "Find the O!",
       "speak": "Find the O! O is for Octopus!",
-      "note": "jungle level intro + hint \u2014 one natural sentence per letter"
+      "note": "jungle level intro + hint — one natural sentence per letter"
     },
     "jungle-find-p": {
       "file": "/audio/jungle/find-p.mp3",
       "text": "Find the P!",
       "speak": "Find the P! P is for Penguin!",
-      "note": "jungle level intro + hint \u2014 one natural sentence per letter"
+      "note": "jungle level intro + hint — one natural sentence per letter"
     },
     "jungle-find-q": {
       "file": "/audio/jungle/find-q.mp3",
       "text": "Find the Q!",
       "speak": "Find the Q! Q is for Quail!",
-      "note": "jungle level intro + hint \u2014 one natural sentence per letter"
+      "note": "jungle level intro + hint — one natural sentence per letter"
     },
     "jungle-find-r": {
       "file": "/audio/jungle/find-r.mp3",
       "text": "Find the R!",
       "speak": "Find the R! R is for Rabbit!",
-      "note": "jungle level intro + hint \u2014 one natural sentence per letter"
+      "note": "jungle level intro + hint — one natural sentence per letter"
     },
     "jungle-find-s": {
       "file": "/audio/jungle/find-s.mp3",
       "text": "Find the S!",
       "speak": "Find the S! S is for Snake!",
-      "note": "jungle level intro + hint \u2014 one natural sentence per letter"
+      "note": "jungle level intro + hint — one natural sentence per letter"
     },
     "jungle-find-t": {
       "file": "/audio/jungle/find-t.mp3",
       "text": "Find the T!",
       "speak": "Find the T! T is for Turtle!",
-      "note": "jungle level intro + hint \u2014 one natural sentence per letter"
+      "note": "jungle level intro + hint — one natural sentence per letter"
     },
     "jungle-find-u": {
       "file": "/audio/jungle/find-u.mp3",
       "text": "Find the U!",
       "speak": "Find the U! U is for Umbrella Bird!",
-      "note": "jungle level intro + hint \u2014 one natural sentence per letter"
+      "note": "jungle level intro + hint — one natural sentence per letter"
     },
     "jungle-find-v": {
       "file": "/audio/jungle/find-v.mp3",
       "text": "Find the V!",
       "speak": "Find the V! V is for Vulture!",
-      "note": "jungle level intro + hint \u2014 one natural sentence per letter"
+      "note": "jungle level intro + hint — one natural sentence per letter"
     },
     "jungle-find-w": {
       "file": "/audio/jungle/find-w.mp3",
       "text": "Find the W!",
       "speak": "Find the W! W is for Whale!",
-      "note": "jungle level intro + hint \u2014 one natural sentence per letter"
+      "note": "jungle level intro + hint — one natural sentence per letter"
     },
     "jungle-find-x": {
       "file": "/audio/jungle/find-x.mp3",
       "text": "Find the X!",
       "speak": "Find the X! X is for X-ray Fish!",
-      "note": "jungle level intro + hint \u2014 one natural sentence per letter"
+      "note": "jungle level intro + hint — one natural sentence per letter"
     },
     "jungle-find-y": {
       "file": "/audio/jungle/find-y.mp3",
       "text": "Find the Y!",
       "speak": "Find the Y! Y is for Yak!",
-      "note": "jungle level intro + hint \u2014 one natural sentence per letter"
+      "note": "jungle level intro + hint — one natural sentence per letter"
     },
     "jungle-find-z": {
       "file": "/audio/jungle/find-z.mp3",
       "text": "Find the Z!",
       "speak": "Find the Z! Z is for Zebra!",
-      "note": "jungle level intro + hint \u2014 one natural sentence per letter"
+      "note": "jungle level intro + hint — one natural sentence per letter"
+    },
+    "shark-intro": {
+      "file": "/audio/shark/intro.mp3",
+      "text": "Letters A to Z — feed the shark!",
+      "speak": "Letters A to Z. Feed the shark!"
+    },
+    "shark-instruction": {
+      "file": "/audio/shark/instruction.mp3",
+      "text": "Drag the little fish to the shark with its matching letter!",
+      "speak": "Drag the little fish to the shark with its matching letter!"
     },
     "hunt-find-a": {
       "file": "/audio/hunt/find-a.mp3",
       "text": "Can you find A?",
       "speak": "Can you find A?",
-      "note": "Letter Hunt prompt \u2014 displayed caption matches exactly"
+      "note": "Letter Hunt prompt — displayed caption matches exactly"
     },
     "hunt-find-b": {
       "file": "/audio/hunt/find-b.mp3",
       "text": "Can you find B?",
       "speak": "Can you find B?",
-      "note": "Letter Hunt prompt \u2014 displayed caption matches exactly"
+      "note": "Letter Hunt prompt — displayed caption matches exactly"
     },
     "hunt-find-c": {
       "file": "/audio/hunt/find-c.mp3",
       "text": "Can you find C?",
       "speak": "Can you find C?",
-      "note": "Letter Hunt prompt \u2014 displayed caption matches exactly"
+      "note": "Letter Hunt prompt — displayed caption matches exactly"
     },
     "hunt-find-d": {
       "file": "/audio/hunt/find-d.mp3",
       "text": "Can you find D?",
       "speak": "Can you find D?",
-      "note": "Letter Hunt prompt \u2014 displayed caption matches exactly"
+      "note": "Letter Hunt prompt — displayed caption matches exactly"
     },
     "hunt-find-e": {
       "file": "/audio/hunt/find-e.mp3",
       "text": "Can you find E?",
       "speak": "Can you find E?",
-      "note": "Letter Hunt prompt \u2014 displayed caption matches exactly"
+      "note": "Letter Hunt prompt — displayed caption matches exactly"
     },
     "hunt-find-f": {
       "file": "/audio/hunt/find-f.mp3",
       "text": "Can you find F?",
       "speak": "Can you find F?",
-      "note": "Letter Hunt prompt \u2014 displayed caption matches exactly"
+      "note": "Letter Hunt prompt — displayed caption matches exactly"
     },
     "hunt-find-g": {
       "file": "/audio/hunt/find-g.mp3",
       "text": "Can you find G?",
       "speak": "Can you find G?",
-      "note": "Letter Hunt prompt \u2014 displayed caption matches exactly"
+      "note": "Letter Hunt prompt — displayed caption matches exactly"
     },
     "hunt-find-h": {
       "file": "/audio/hunt/find-h.mp3",
       "text": "Can you find H?",
       "speak": "Can you find H?",
-      "note": "Letter Hunt prompt \u2014 displayed caption matches exactly"
+      "note": "Letter Hunt prompt — displayed caption matches exactly"
     },
     "hunt-find-i": {
       "file": "/audio/hunt/find-i.mp3",
       "text": "Can you find I?",
       "speak": "Can you find I?",
-      "note": "Letter Hunt prompt \u2014 displayed caption matches exactly"
+      "note": "Letter Hunt prompt — displayed caption matches exactly"
     },
     "hunt-find-j": {
       "file": "/audio/hunt/find-j.mp3",
       "text": "Can you find J?",
       "speak": "Can you find J?",
-      "note": "Letter Hunt prompt \u2014 displayed caption matches exactly"
+      "note": "Letter Hunt prompt — displayed caption matches exactly"
     },
     "hunt-find-k": {
       "file": "/audio/hunt/find-k.mp3",
       "text": "Can you find K?",
       "speak": "Can you find K?",
-      "note": "Letter Hunt prompt \u2014 displayed caption matches exactly"
+      "note": "Letter Hunt prompt — displayed caption matches exactly"
     },
     "hunt-find-l": {
       "file": "/audio/hunt/find-l.mp3",
       "text": "Can you find L?",
       "speak": "Can you find L?",
-      "note": "Letter Hunt prompt \u2014 displayed caption matches exactly"
+      "note": "Letter Hunt prompt — displayed caption matches exactly"
     },
     "hunt-find-m": {
       "file": "/audio/hunt/find-m.mp3",
       "text": "Can you find M?",
       "speak": "Can you find M?",
-      "note": "Letter Hunt prompt \u2014 displayed caption matches exactly"
+      "note": "Letter Hunt prompt — displayed caption matches exactly"
     },
     "hunt-find-n": {
       "file": "/audio/hunt/find-n.mp3",
       "text": "Can you find N?",
       "speak": "Can you find N?",
-      "note": "Letter Hunt prompt \u2014 displayed caption matches exactly"
+      "note": "Letter Hunt prompt — displayed caption matches exactly"
     },
     "hunt-find-o": {
       "file": "/audio/hunt/find-o.mp3",
       "text": "Can you find O?",
       "speak": "Can you find O?",
-      "note": "Letter Hunt prompt \u2014 displayed caption matches exactly"
+      "note": "Letter Hunt prompt — displayed caption matches exactly"
     },
     "hunt-find-p": {
       "file": "/audio/hunt/find-p.mp3",
       "text": "Can you find P?",
       "speak": "Can you find P?",
-      "note": "Letter Hunt prompt \u2014 displayed caption matches exactly"
+      "note": "Letter Hunt prompt — displayed caption matches exactly"
     },
     "hunt-find-q": {
       "file": "/audio/hunt/find-q.mp3",
       "text": "Can you find Q?",
       "speak": "Can you find Q?",
-      "note": "Letter Hunt prompt \u2014 displayed caption matches exactly"
+      "note": "Letter Hunt prompt — displayed caption matches exactly"
     },
     "hunt-find-r": {
       "file": "/audio/hunt/find-r.mp3",
       "text": "Can you find R?",
       "speak": "Can you find R?",
-      "note": "Letter Hunt prompt \u2014 displayed caption matches exactly"
+      "note": "Letter Hunt prompt — displayed caption matches exactly"
     },
     "hunt-find-s": {
       "file": "/audio/hunt/find-s.mp3",
       "text": "Can you find S?",
       "speak": "Can you find S?",
-      "note": "Letter Hunt prompt \u2014 displayed caption matches exactly"
+      "note": "Letter Hunt prompt — displayed caption matches exactly"
     },
     "hunt-find-t": {
       "file": "/audio/hunt/find-t.mp3",
       "text": "Can you find T?",
       "speak": "Can you find T?",
-      "note": "Letter Hunt prompt \u2014 displayed caption matches exactly"
+      "note": "Letter Hunt prompt — displayed caption matches exactly"
     },
     "hunt-find-u": {
       "file": "/audio/hunt/find-u.mp3",
       "text": "Can you find U?",
       "speak": "Can you find U?",
-      "note": "Letter Hunt prompt \u2014 displayed caption matches exactly"
+      "note": "Letter Hunt prompt — displayed caption matches exactly"
     },
     "hunt-find-v": {
       "file": "/audio/hunt/find-v.mp3",
       "text": "Can you find V?",
       "speak": "Can you find V?",
-      "note": "Letter Hunt prompt \u2014 displayed caption matches exactly"
+      "note": "Letter Hunt prompt — displayed caption matches exactly"
     },
     "hunt-find-w": {
       "file": "/audio/hunt/find-w.mp3",
       "text": "Can you find W?",
       "speak": "Can you find W?",
-      "note": "Letter Hunt prompt \u2014 displayed caption matches exactly"
+      "note": "Letter Hunt prompt — displayed caption matches exactly"
     },
     "hunt-find-x": {
       "file": "/audio/hunt/find-x.mp3",
       "text": "Can you find X?",
       "speak": "Can you find X?",
-      "note": "Letter Hunt prompt \u2014 displayed caption matches exactly"
+      "note": "Letter Hunt prompt — displayed caption matches exactly"
     },
     "hunt-find-y": {
       "file": "/audio/hunt/find-y.mp3",
       "text": "Can you find Y?",
       "speak": "Can you find Y?",
-      "note": "Letter Hunt prompt \u2014 displayed caption matches exactly"
+      "note": "Letter Hunt prompt — displayed caption matches exactly"
     },
     "hunt-find-z": {
       "file": "/audio/hunt/find-z.mp3",
       "text": "Can you find Z?",
       "speak": "Can you find Z?",
-      "note": "Letter Hunt prompt \u2014 displayed caption matches exactly"
+      "note": "Letter Hunt prompt — displayed caption matches exactly"
     }
   },
   "edgeVoice": {
     "name": "en-US-AnaNeural",
     "rate": "-8%",
     "pitch": "+0Hz",
-    "$note": "Used by the EDGE generator (no billing, no account). AnaNeural is a real child voice. Edge ignores custom <phoneme> SSML, so phonics use the 'speak' spellings below \u2014 listen and respell per clip if any sound is off."
+    "$note": "Used by the EDGE generator (no billing, no account). AnaNeural is a real child voice. Edge ignores custom <phoneme> SSML, so phonics use the 'speak' spellings below — listen and respell per clip if any sound is off."
   },
   "voiceFree": {
     "name": "en-US-AnaNeural",
