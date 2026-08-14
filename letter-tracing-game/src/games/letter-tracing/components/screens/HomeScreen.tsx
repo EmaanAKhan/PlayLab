@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import { Button } from "@shared/components/ui/Button";
+import { StartOptions } from "@shared/components/ui/StartOptions";
 import { HomeEnvironment } from "@shared/components/animations/HomeEnvironment";
 import { LETTER_SYMBOLS, NUMBER_SYMBOLS } from "@games/letter-tracing/constants/symbols";
 import { playClip, clipText } from "@shared/audio/voice";
@@ -14,6 +15,8 @@ interface HomeScreenProps {
   onStartFromA: () => void;
   /** The child taps any letter on the shelf to start tracing from it */
   onSelectLetter: (index: number) => void;
+  /** Back to the game's main menu */
+  onBack?: () => void;
 }
 
 // ─── SVG nature elements ──────────────────────────────────────────────────────
@@ -149,7 +152,7 @@ function HedgehogSvg({ x, y }: { x: number; y: number }) {
 // ─── Component ────────────────────────────────────────────────────────────────
 
 
-export function HomeScreen({ onContinue, onStartFromA, onSelectLetter }: HomeScreenProps) {
+export function HomeScreen({ onContinue, onStartFromA, onSelectLetter, onBack }: HomeScreenProps) {
   const { progress, module, lowercaseProgress, numbersProgress, practiceMode, setPracticeMode } =
     useGameStore();
   const currentProgress =
@@ -328,6 +331,20 @@ export function HomeScreen({ onContinue, onStartFromA, onSelectLetter }: HomeScr
       {/* ── Garden environment: birds & butterflies in the outer bands ──── */}
       <HomeEnvironment />
 
+      {/* Back to the main menu */}
+      {onBack && (
+        <button
+          onClick={onBack}
+          className="absolute left-4 top-4 z-20 flex min-h-[44px] items-center gap-1.5 rounded-full bg-white/75 px-3.5 py-2 shadow-soft"
+          aria-label="Back to the main menu"
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+            <path d="M15 18l-6-6 6-6" stroke="#7C5CBF" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+          <span className="font-rounded text-xs font-bold text-plum/80">Back</span>
+        </button>
+      )}
+
       {/* ── Content ──────────────────────────────────────────────────────── */}
       <div className="relative z-10 flex w-full flex-col items-center px-6 pt-10">
         {/* Logo */}
@@ -470,38 +487,22 @@ export function HomeScreen({ onContinue, onStartFromA, onSelectLetter }: HomeScr
         </motion.div>
       </div>
 
-      {/* Buttons */}
-      <div className="relative z-10 flex w-full max-w-sm flex-col items-center gap-3 px-6 pb-10">
-        <motion.div
-          className="w-full"
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.35 }}
-        >
-          <Button size="xl" onClick={onContinue} className="w-full" aria-label="Continue where you left off">
-            {completedCount === 0 ? "Start Learning" : "Continue"}
-          </Button>
-        </motion.div>
-
-        {completedCount > 0 && (
-          <motion.div
-            className="w-full"
-            initial={{ y: 20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.45 }}
-          >
-            <Button
-              size="md"
-              variant="secondary"
-              onClick={onStartFromA}
-              className="w-full"
-              aria-label={module === "numbers" ? "Start over from number 1" : "Start over from letter A"}
-            >
-              {module === "numbers" ? "Start from 1" : "Start from A"}
-            </Button>
-          </motion.div>
-        )}
-      </div>
+      {/* Unified start flow — the same shared control as Letter Hunt and
+          Jungle Spy: Continue (when progress exists) + Start from A/1. The
+          shelf above covers "choose a letter". */}
+      <motion.div
+        className="relative z-10 px-6 pb-10"
+        initial={{ y: 20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.35 }}
+      >
+        <StartOptions
+          hasProgress={completedCount > 0}
+          onContinue={onContinue}
+          onStartFromA={completedCount > 0 ? onStartFromA : onContinue}
+          startLabel={module === "numbers" ? "Start from 1" : "Start from A"}
+        />
+      </motion.div>
     </div>
   );
 }

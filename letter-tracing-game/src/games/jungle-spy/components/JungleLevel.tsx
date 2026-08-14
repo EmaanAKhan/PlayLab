@@ -1,10 +1,10 @@
 "use client";
-
+import { StarRow } from "@shared/components/ui/StarRow";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { useJungleStore } from "@games/jungle-spy/store/jungleStore";
-import { animalFor, JUNGLE_ANIMALS } from "@games/jungle-spy/constants/animals";
+import { animalFor, JUNGLE_ANIMALS, animalPhotoPath } from "@games/jungle-spy/constants/animals";
 import { ANIMAL_ART } from "@shared/components/illustrations/AnimalArt";
 import { AnimalDisplay } from "@games/jungle-spy/components/AnimalDisplay";
 import { JungleBackdrop } from "@games/jungle-spy/components/JungleScreens";
@@ -18,20 +18,33 @@ import {
 } from "@shared/audio/sfx";
 import { playClip, preloadClips, clipText, stopVoice } from "@shared/audio/voice";
 
-/** Age-5 tuning: few, HUGE, well-spaced bubbles; no failure states. */
-const TOTAL_BUBBLES = 15;
-const MIN_TARGETS = 7;
-const MAX_TARGETS = 8;
+/** Age-5 tuning: HUGE, well-spaced bubbles; no failure states.
+ *  Exactly 5 copies of the target to find, among 16 visible letters. */
+const TOTAL_BUBBLES = 16;
+const TARGET_COUNT = 5;
 
-/** 16 hand-placed slots (percent of the play area) ringing the center so the
- *  animal stays clear; 15 are used per round. Big gaps — nothing tiny. */
-const SLOTS: readonly [number, number][] = [
-  [11, 12], [30, 8], [50, 6], [70, 8], [89, 12],
-  [6, 33], [94, 33],
-  [5, 56], [95, 56],
-  [12, 78], [30, 87], [50, 91], [70, 87], [88, 78],
-  [21, 55], [79, 55],
-];
+/** Bubble positions on two concentric ORBITS around the animal (percent of
+ *  the play area) — a rounded ring composition instead of the old rigid
+ *  edge rows, nudged downward so the top of the scene can breathe. Small
+ *  random jitter per round keeps it organic without ever overlapping: ring
+ *  spacing guarantees clearance and every point is clamped inside bounds. */
+function orbitSlots(): [number, number][] {
+  const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
+  const pts: [number, number][] = [];
+  const CX = 50;
+  const CY = 55; // ring center sits below screen-center — breathing room up top
+  for (let i = 0; i < 10; i++) {
+    const a = (i / 10) * Math.PI * 2 - Math.PI / 2 + (Math.random() - 0.5) * 0.14;
+    pts.push([clamp(CX + 44 * Math.cos(a), 5, 95), clamp(CY + 40 * Math.sin(a), 8, 93)]);
+  }
+  for (let i = 0; i < 6; i++) {
+    const a = (i / 6) * Math.PI * 2 - Math.PI / 2 + Math.PI / 6 + (Math.random() - 0.5) * 0.16;
+    // inner ring pushed out (29,25 → 35,31) so even the largest medallion
+    // size keeps clear water between the animal and the nearest letters
+    pts.push([clamp(CX + 35 * Math.cos(a), 8, 92), clamp(CY + 31 * Math.sin(a), 12, 90)]);
+  }
+  return pts;
+}
 
 interface Bubble {
   id: number;
@@ -49,10 +62,10 @@ interface Bubble {
  *  printed I-Spy sheet. The tap area stays ≥48px via button padding even for
  *  the smallest tier. */
 const LETTER_FONT = [
-  "clamp(46px, 9.5vmin, 80px)",
-  "clamp(38px, 7.8vmin, 64px)",
-  "clamp(30px, 6.2vmin, 52px)",
-  "clamp(24px, 5vmin, 42px)",
+  "clamp(56px, 11.5vmin, 96px)",
+  "clamp(48px, 9.6vmin, 80px)",
+  "clamp(40px, 8vmin, 66px)",
+  "clamp(32px, 6.5vmin, 54px)",
 ] as const;
 
 /** Bright, friendly letter colors (reference-sheet palette) */
@@ -68,14 +81,13 @@ const LETTER_COLORS = [
 ];
 
 function buildBubbles(target: string, letterCase: "upper" | "lower"): Bubble[] {
-  const targetCount = MIN_TARGETS + Math.floor(Math.random() * (MAX_TARGETS - MIN_TARGETS + 1));
   const others = JUNGLE_ANIMALS.map((a) => a.letter).filter((l) => l !== target);
-  const decoys = shuffle(others).slice(0, TOTAL_BUBBLES - targetCount);
+  const decoys = shuffle(others).slice(0, TOTAL_BUBBLES - TARGET_COUNT);
   const letters = shuffle([
-    ...Array.from({ length: targetCount }, () => ({ letter: target, isTarget: true })),
+    ...Array.from({ length: TARGET_COUNT }, () => ({ letter: target, isTarget: true })),
     ...decoys.map((l) => ({ letter: l, isTarget: false })),
   ]);
-  const slots = shuffle(SLOTS).slice(0, TOTAL_BUBBLES);
+  const slots = orbitSlots();
   // Sizes cycle big→medium→small so every board mixes clearly different
   // bubble sizes without any becoming a tiny target
   return letters.map((l, i) => ({
@@ -146,6 +158,10 @@ export function JungleLevel() {
             setTimeout(() => {
               setWon(true);
               markFound(currentLetter);
+              // warm the next letter's photo while the child celebrates
+              const idx = JUNGLE_ANIMALS.findIndex((a) => a.letter === currentLetter);
+              const nxt = JUNGLE_ANIMALS[(idx + 1) % JUNGLE_ANIMALS.length];
+              new Image().src = animalPhotoPath(nxt.art);
               void playClip("cheer-great-job").then(() => playFanfare());
             }, 350);
           }
@@ -206,38 +222,20 @@ export function JungleLevel() {
         <div className="min-h-[44px] w-[84px]" aria-hidden="true" />
       </div>
 
-      {/* Checklist strip — one slot per hidden letter; each fills in colored
-          with a little pop as it is found (like the worksheet's top row) */}
+      {/* Collected stars — the shared gold-star row every game uses */}
       <div
-        className="relative z-10 mt-2 flex items-center justify-center gap-2 rounded-2xl bg-white/85 px-4 py-1.5 shadow-soft"
+        className="relative z-10 mt-2 flex items-center justify-center rounded-2xl bg-white/85 px-4 py-1.5 shadow-soft"
         role="status"
-        aria-label={`${targetsTotal - targetsLeft} of ${targetsTotal} letters found`}
       >
-        {Array.from({ length: targetsTotal }).map((_, i) => {
-          const isFound = i < targetsTotal - targetsLeft;
-          return (
-            <motion.span
-              key={i}
-              className="font-rounded font-black"
-              style={{ fontSize: "clamp(18px, 3.6vmin, 28px)", lineHeight: 1 }}
-              initial={false}
-              animate={{
-                color: isFound ? "#3DAA72" : "rgba(107, 91, 123, 0.22)",
-                scale: isFound ? [1, 1.45, 1] : 1,
-              }}
-              transition={{ duration: 0.4 }}
-              aria-hidden="true"
-            >
-              {display}
-            </motion.span>
-          );
-        })}
+        <StarRow earned={targetsTotal - targetsLeft} total={targetsTotal} />
       </div>
 
       {/* Play area */}
       <div className="relative z-10 mt-1 w-full max-w-3xl flex-1">
         {/* Animal center */}
-        <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+        {/* anchored at (50%, 55%) — the SAME center orbitSlots() rings around,
+            so the letter ring and the animal can never drift apart */}
+        <div className="pointer-events-none absolute left-1/2 top-[55%] flex -translate-x-1/2 -translate-y-1/2 flex-col items-center">
         <motion.div
           className="flex flex-col items-center"
           initial={{ scale: 0.6, opacity: 0 }}
@@ -248,15 +246,15 @@ export function JungleLevel() {
         >
           {/* soft medallion keeps the animal the unmistakable centerpiece */}
           <div
-            className="flex items-center justify-center rounded-3xl shadow-lg"
+            className="flex items-center justify-center rounded-full shadow-lg"
             style={{
-              width: "clamp(170px, 40vmin, 300px)",
-              height: "clamp(170px, 40vmin, 300px)",
-              background: "#FFFFFF",
+              width: "clamp(140px, 32vmin, 240px)",
+              height: "clamp(140px, 32vmin, 240px)",
+              background: "radial-gradient(circle, #FFFFFF 55%, #EAF9F0 100%)",
               border: "4px solid #A8E3BC",
             }}
           >
-            <div className="flex items-center justify-center overflow-hidden rounded-lg" style={{ width: "94%", height: "94%" }}>
+            <div className="flex items-center justify-center overflow-hidden rounded-full" style={{ width: "86%", height: "86%" }}>
               <AnimalDisplay art={animal.art} />
             </div>
           </div>
@@ -320,8 +318,8 @@ export function JungleLevel() {
               <CelebrationSparkles active width={dims.w} height={dims.h} />
             </div>
             <motion.div
-              className="overflow-hidden rounded-lg"
-              style={{ width: "clamp(150px, 34vmin, 260px)", height: "clamp(150px, 34vmin, 260px)" }}
+              className="overflow-hidden rounded-full"
+              style={{ width: "clamp(120px, 28vmin, 210px)", height: "clamp(120px, 28vmin, 210px)" }}
               initial={{ scale: 0.5, y: 20 }}
               animate={{ scale: 1, y: [0, -14, 0] }}
               transition={{

@@ -9,6 +9,7 @@ import {
 } from "@shared/components/illustrations/AnimalArt";
 import { playClip } from "@shared/audio/voice";
 import { playClickSound } from "@shared/audio/sfx";
+import { StartOptions } from "@shared/components/ui/StartOptions";
 
 /** Soft jungle backdrop: layered pastel leaves and vines in the margins.
  *  Decorative only — pointer-events none, calm slow sway. */
@@ -216,6 +217,12 @@ export function JungleGrid() {
     setScreen("level");
   };
 
+  // Unified start flow (same as Letter Tracing / Letter Hunt): continue from
+  // the first animal not yet found, or start over from A.
+  const ALPHA = JUNGLE_ANIMALS.map((a) => a.letter);
+  const nextUnfound = ALPHA.find((l) => !found.includes(l)) ?? "A";
+  const hasProgress = found.length > 0 && found.length < ALPHA.length;
+
   return (
     <div
       className="relative flex h-full w-full flex-col items-center gap-4 overflow-y-auto overflow-x-hidden px-5 py-6"
@@ -225,10 +232,7 @@ export function JungleGrid() {
 
       {/* Back to this game's home (the ABC/abc splash) — pinned top-left */}
       <button
-        onClick={() => {
-          playClickSound();
-          setScreen("splash");
-        }}
+        onClick={() => { playClickSound(); setScreen("splash"); }}
         className="absolute left-4 top-4 z-20 flex min-h-[44px] items-center gap-1.5 rounded-full bg-white/75 px-3.5 py-2 shadow-soft"
         aria-label="Back to Jungle Spy home"
       >
@@ -280,6 +284,7 @@ export function JungleGrid() {
         </div>
       </div>
 
+      
       {/* Letter tiles */}
       <div
         className="relative z-10 grid w-full max-w-md gap-2.5 md:max-w-2xl"
@@ -319,6 +324,14 @@ export function JungleGrid() {
           );
         })}
       </div>
+
+      {/* Unified start flow — beneath the grid, matching the other games */}
+      <StartOptions
+        hasProgress={hasProgress}
+        onContinue={() => openLetter(nextUnfound)}
+        continueLabel={`Continue · ${nextUnfound}`}
+        onStartFromA={() => openLetter("A")}
+      />
     </div>
   );
 }

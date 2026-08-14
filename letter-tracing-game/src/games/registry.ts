@@ -34,6 +34,14 @@ export const GAMES: readonly GameMeta[] = [
     colors: { bg: "#FFE1EC", border: "#FF8FA3", text: "#D14D82" },
   },
   {
+    id: "magnet-match",
+    title: "Magnet Match",
+    description: "Alphabet soup with the chef",
+    glyph: "🍲",
+    route: "/games/magnet-match",
+    colors: { bg: "#FBE7A2", border: "#E8B33D", text: "#8A5A2E" },
+  },
+  {
     id: "feed-the-shark",
     title: "Feed the Shark",
     description: "Match big & small letters",

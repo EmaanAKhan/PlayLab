@@ -6,6 +6,7 @@ import { useHuntStore } from "@games/letter-hunt/store/huntStore";
 import { PencilPal } from "@games/letter-hunt/components/PennyArt";
 import { HomeEnvironment } from "@shared/components/animations/HomeEnvironment";
 import { Button } from "@shared/components/ui/Button";
+import { StartOptions } from "@shared/components/ui/StartOptions";
 import { playClickSound } from "@shared/audio/sfx";
 import { playClip } from "@shared/audio/voice";
 
@@ -83,9 +84,11 @@ export function HuntHome({ onExitPortal }: { onExitPortal?: () => void }) {
     setScreen("level");
   };
 
+  const hasProgress = currentIndex > 0 || completed.length > 0;
+
   return (
     <div
-      className="relative flex h-full w-full flex-col items-center gap-4 overflow-y-auto overflow-x-hidden px-6 py-8"
+      className="relative flex h-full w-full flex-col overflow-y-auto overflow-x-hidden px-6 py-6"
       style={{ background: "linear-gradient(180deg, #C8F0D8 0%, #E8F8EF 60%, #C8F0D8 100%)" }}
     >
       <HomeEnvironment />
@@ -103,7 +106,12 @@ export function HuntHome({ onExitPortal }: { onExitPortal?: () => void }) {
         </button>
       )}
 
-      <div className="relative z-10 mt-6 flex flex-col items-center gap-1">
+      {/* m-auto wrapper: the whole selection column sits at the VERTICAL
+          CENTER of the viewport (was pinned high), and on short screens it
+          scrolls cleanly from the top instead of clipping */}
+      <div className="relative z-10 m-auto flex w-full flex-col items-center gap-4">
+
+      <div className="relative z-10 flex flex-col items-center gap-1">
         <h1 className="font-rounded text-3xl font-black text-plum md:text-4xl">Letter Hunt</h1>
         <p className="font-rounded text-sm font-semibold text-plum/50">
           Find the matching letters!
@@ -118,25 +126,6 @@ export function HuntHome({ onExitPortal }: { onExitPortal?: () => void }) {
       >
         <PencilPal />
       </motion.div>
-
-      {/* Narrower, side-by-side buttons — not stretched to the panel width */}
-      <div className="relative z-10 flex items-center gap-3">
-        <Button
-          size="md"
-          onClick={() => { playClickSound(); setScreen("level"); }}
-          aria-label={`Continue hunting from the letter ${LETTERS[currentIndex]}`}
-        >
-          Continue · {LETTERS[currentIndex]}
-        </Button>
-        <Button
-          size="md"
-          variant="secondary"
-          onClick={startFromA}
-          aria-label="Start hunting from the letter A"
-        >
-          Start from A
-        </Button>
-      </div>
 
       {/* soft progress */}
       <div className="relative z-10 w-full max-w-xs">
@@ -163,7 +152,7 @@ export function HuntHome({ onExitPortal }: { onExitPortal?: () => void }) {
       >
         <div className="mb-3 text-center">
           <span className="font-rounded text-sm font-bold text-plum/70">
-            Or pick any letter
+            Pick a letter
           </span>
         </div>
         <div
@@ -196,6 +185,15 @@ export function HuntHome({ onExitPortal }: { onExitPortal?: () => void }) {
           })}
         </div>
       </motion.div>
+
+      {/* Unified start flow — beneath the grid, same shared control as the other games */}
+      <StartOptions
+        hasProgress={hasProgress}
+        onContinue={() => { setScreen("level"); }}
+        continueLabel={`Continue · ${LETTERS[currentIndex]}`}
+        onStartFromA={startFromA}
+      />
+      </div>
     </div>
   );
 }

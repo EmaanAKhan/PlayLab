@@ -5,7 +5,9 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useScreenHistorySync } from "@shared/hooks/useScreenHistorySync";
+import { startMusic, stopMusic } from "@shared/audio/music";
 import { PAGE_TRANSITION } from "@shared/constants/transitions";
+import { PORTAL_ROUTE } from "@shared/constants/routes";
 
 import { useGameStore } from "@games/letter-tracing/store/gameStore";
 import { LETTER_DATA } from "@games/letter-tracing/constants/letterData";
@@ -54,6 +56,16 @@ export function LetterTracingGame() {
     resetLowercaseProgress,
     resetNumbersProgress,
   } = useGameStore();
+
+
+  // Background music: starts once the child taps past the splash (that tap
+  // unlocks the AudioContext), loops for the whole session, fades out when
+  // the game unmounts. startMusic is a shared singleton — hopping between
+  // games can never stack two tracks.
+  useEffect(() => {
+    if (screen !== "splash") startMusic();
+  }, [screen]);
+  useEffect(() => () => stopMusic(), []);
 
   const { numbersProgress } = useGameStore();
   const currentProgress =
@@ -206,7 +218,7 @@ export function LetterTracingGame() {
         {screen === "main-menu" && (
           <motion.div key="main-menu" className="absolute inset-0" {...PAGE_TRANSITION}>
             <MainMenuScreen
-              onExitPortal={handleGoHome} onSelectModule={handleSelectModule} />
+              onExitPortal={() => router.push(PORTAL_ROUTE)} onSelectModule={handleSelectModule} />
           </motion.div>
         )}
 
@@ -216,6 +228,7 @@ export function LetterTracingGame() {
               onContinue={handleContinue}
               onStartFromA={handleStartFromA}
               onSelectLetter={handleSelectLetter}
+              onBack={handleGoHome}
             />
           </motion.div>
         )}

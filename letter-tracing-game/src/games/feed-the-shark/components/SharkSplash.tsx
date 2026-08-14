@@ -7,6 +7,7 @@ import { playClickSound } from "@shared/audio/sfx";
 import { playClip, preloadClips, stopVoice } from "@shared/audio/voice";
 import { FriendlyShark, LetterFish } from "@games/feed-the-shark/components/SharkArt";
 import { OceanBackdrop, BubbleStream } from "@games/feed-the-shark/components/OceanBackdrop";
+import { useSharkStore } from "@games/feed-the-shark/store/sharkStore";
 
 interface SharkSplashProps {
   onStart: () => void;
@@ -16,6 +17,7 @@ interface SharkSplashProps {
 }
 
 export function SharkSplash({ onStart, onExitPortal, hasProgress }: SharkSplashProps) {
+  const { mode, setMode } = useSharkStore();
   // Narration on entry — the same delayed-clip pattern as the other games'
   // home screens, with stopVoice cleanup so leaving never leaves it talking.
   useEffect(() => {
@@ -97,6 +99,38 @@ export function SharkSplash({ onStart, onExitPortal, hasProgress }: SharkSplashP
             <div className="rounded-full bg-white/75 p-1.5 shadow-soft"><LetterFish letter="c" colorIndex={0} /></div>
           </motion.div>
         </div>
+      </motion.div>
+
+      {/* Game mode — one fish at a time, or both fish together */}
+      <motion.div
+        className="relative z-10 flex rounded-full bg-white/80 p-1 shadow-soft"
+        role="group"
+        aria-label="Game mode"
+        initial={{ y: 12, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.3 }}
+      >
+        {([
+          { id: "one" as const, label: "🐟 One by One", aria: "One fish at a time" },
+          { id: "both" as const, label: "🐟🐟 Both", aria: "Both fish at the same time" },
+        ]).map((m) => {
+          const selected = mode === m.id;
+          return (
+            <button
+              key={m.id}
+              onClick={() => { playClickSound(); setMode(m.id); }}
+              className="min-h-[40px] rounded-full px-4 font-rounded text-sm font-black"
+              style={{
+                background: selected ? "#2980B9" : "transparent",
+                color: selected ? "white" : "#2980B9",
+              }}
+              aria-pressed={selected}
+              aria-label={m.aria}
+            >
+              {m.label}
+            </button>
+          );
+        })}
       </motion.div>
 
       {/* Start */}

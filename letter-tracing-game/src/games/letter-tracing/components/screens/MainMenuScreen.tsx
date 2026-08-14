@@ -62,7 +62,7 @@ export function MainMenuScreen({ onSelectModule, onExitPortal }: MainMenuScreenP
           className="absolute left-4 top-4 z-20 flex min-h-[44px] items-center gap-1.5 rounded-full bg-white/75 px-3.5 py-2 shadow-soft"
           whileTap={{ scale: 0.93 }}
           whileHover={{ scale: 1.05 }}
-          aria-label="Back to games"
+          aria-label="Back to the game portal"
           initial={{ x: -14, opacity: 0 }}
           animate={{ x: 0, opacity: 1 }}
         >

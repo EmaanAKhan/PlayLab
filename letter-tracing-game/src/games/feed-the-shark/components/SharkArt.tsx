@@ -10,10 +10,8 @@ import { useId } from "react";
  * style as the platform's other art (AnimalArt, PennyArt).
  */
 
-const BODY = "#8FC6EA";
-const DARK = "#5D9EC9";
-const MOUTH = "#4A2C3E";
-const THROAT = "#7A4A63";
+const BODY = "#57A7E3";
+const DARK = "#3E7FC4";
 
 export function FriendlyShark({
   letter,
@@ -25,80 +23,82 @@ export function FriendlyShark({
 }) {
   // Unique per instance — two sharks render at once, ids must not collide
   const mouthClipId = useId();
-  // Small rounded teeth: one zigzag ring along the top lip pointing down,
-  // one along the bottom lip pointing up. strokeLinejoin round keeps every
-  // point soft.
-  const topTeeth = "M56 124 " + Array.from({ length: 8 }, () => "l5.5 10 l5.5 -10").join(" ");
-  const bottomTeeth = "M62 166 " + Array.from({ length: 7 }, () => "l5.4 -9 l5.4 9").join(" ");
+  // Small, even, cartoon teeth built INTO the white smile band (like the
+  // reference) — not floating rings in a dark hole. 8 up top, 7 below.
+  const topTeeth = "M52 127 " + Array.from({ length: 8 }, () => "l6 10.5 l6 -10.5").join(" ");
+  const bottomTeeth = "M58 170 " + Array.from({ length: 7 }, () => "l6 -9.5 l6 9.5").join(" ");
 
   return (
-    <svg viewBox="0 0 200 200" className="h-full w-full" aria-hidden="true">
-      {/* dorsal fin */}
-      <path d="M100 36 L78 76 L122 76 Z" fill={DARK} />
-      {/* letter card perched on the fin */}
-      <rect x="70" y="4" width="60" height="46" rx="9" fill="white" stroke={DARK} strokeWidth="3" />
-      <text
-        x="100" y="30"
-        textAnchor="middle" dominantBaseline="central"
-        fontSize="32" fontWeight="900" fill="#2980B9"
-        style={{ fontFamily: "Nunito, sans-serif" }}
-      >
+    <svg viewBox="0 0 200 210" className="h-full w-full" aria-hidden="true">
+      {/* dorsal fin + letter card perched on it */}
+      <path d="M100 40 L80 76 L120 76 Z" fill={DARK} />
+      <rect x="70" y="2" width="60" height="44" rx="9" fill="white" stroke={DARK} strokeWidth="3" />
+      <text x="100" y="26" textAnchor="middle" dominantBaseline="central" fontSize="31" fontWeight="900" fill="#2980B9" style={{ fontFamily: "Nunito, sans-serif" }}>
         {letter}
       </text>
 
-      {/* side fins */}
-      <path d="M20 132 Q2 148 6 166 Q28 158 36 144 Z" fill={DARK} />
-      <path d="M180 132 Q198 148 194 166 Q172 158 164 144 Z" fill={DARK} />
+      {/* soft rounded side fins, angled up-and-out (drawn first so the head
+          overlaps their base) */}
+      <path d="M40 138 Q10 128 8 106 Q34 112 46 130 Q45 136 40 138 Z" fill={DARK} />
+      <path d="M160 138 Q190 128 192 106 Q166 112 154 130 Q155 136 160 138 Z" fill={DARK} />
 
-      {/* head / body */}
-      <ellipse cx="100" cy="134" rx="86" ry="62" fill={BODY} />
-      {/* soft belly light at the bottom */}
-      <path d="M28 158 Q100 202 172 158 Q140 190 100 190 Q60 190 28 158 Z" fill="#EAF6FF" opacity="0.7" />
-
-      {/* googly eyes on top, peeking at the mouth */}
-      <circle cx="74" cy="94" r="14" fill="white" />
-      <circle cx="126" cy="94" r="14" fill="white" />
-      <circle cx="77" cy="98" r="6.2" fill="#3B3B4F" />
-      <circle cx="123" cy="98" r="6.2" fill="#3B3B4F" />
-      <circle cx="79" cy="95.5" r="2" fill="white" />
-      <circle cx="125" cy="95.5" r="2" fill="white" />
+      {/* one big ROUND head — the whole character is the head, like the
+          reference; no long predator silhouette */}
+      <circle cx="100" cy="120" r="76" fill={BODY} />
+      {/* faint hexagon skin pattern on the forehead (reference detail) */}
+      <g stroke="white" strokeWidth="1.5" fill="none" opacity="0.12">
+        <path d="M92 56 l8 -5 8 5 0 9 -8 5 -8 -5 Z" />
+        <path d="M74 66 l8 -5 8 5 0 9 -8 5 -8 -5 Z" />
+        <path d="M110 66 l8 -5 8 5 0 9 -8 5 -8 -5 Z" />
+      </g>
 
       {/* rosy cheeks */}
-      <ellipse cx="42" cy="122" rx="8" ry="5" fill="#FF9EBC" opacity="0.5" />
-      <ellipse cx="158" cy="122" rx="8" ry="5" fill="#FF9EBC" opacity="0.5" />
+      <ellipse cx="36" cy="118" rx="8" ry="5.5" fill="#FF9EBC" opacity="0.55" />
+      <ellipse cx="164" cy="118" rx="8" ry="5.5" fill="#FF9EBC" opacity="0.55" />
 
-      {/* the BIG open mouth — the feed target */}
+      {/* ── the SMILE: a wide white band with upturned corners; teeth are
+             part of the band; warm red interior with a tongue. Big enough
+             that the fed fish visibly sits INSIDE the mouth. ── */}
+      <path d="M32 122 Q100 98 168 122 Q178 158 146 176 Q100 190 54 176 Q22 158 32 122 Z" fill="white" />
       <defs>
-        {/* teeth are clipped to the mouth so they can never spill onto the
-            cheeks — the zigzag rows only exist inside the mouth opening */}
         <clipPath id={mouthClipId}>
-          <ellipse cx="100" cy="146" rx="52" ry="34" />
+          <path d="M44 128 Q100 110 156 128 Q163 154 138 168 Q100 179 62 168 Q37 154 44 128 Z" />
         </clipPath>
       </defs>
-      <ellipse cx="100" cy="146" rx="52" ry="34" fill={MOUTH} />
-      <ellipse cx="100" cy="151" rx="40" ry="24" fill={THROAT} />
-      {/* fed fish snapped inside */}
-      {fedLower && (
-        <g transform="translate(100 149)">
-          <ellipse cx="0" cy="0" rx="17" ry="11.5" fill="#FFB84D" />
-          <path d="M15 0 L26 -8 L26 8 Z" fill="#F2913D" />
-          <circle cx="-9" cy="-3" r="3" fill="white" />
-          <circle cx="-9.5" cy="-2.6" r="1.5" fill="#3B3B4F" />
-          <text
-            x="2" y="1"
-            textAnchor="middle" dominantBaseline="central"
-            fontSize="14" fontWeight="900" fill="#7A4A12"
-            style={{ fontFamily: "Nunito, sans-serif" }}
-          >
-            {fedLower}
-          </text>
-        </g>
-      )}
-      {/* rounded teeth rings — clipped to the mouth opening */}
+      <path d="M44 128 Q100 110 156 128 Q163 154 138 168 Q100 179 62 168 Q37 154 44 128 Z" fill="#A63A4E" />
       <g clipPath={`url(#${mouthClipId})`}>
+        <ellipse cx="100" cy="163" rx="26" ry="10" fill="#D96C7B" />
+        {fedLower && (
+          <g transform="translate(100 146)">
+            <ellipse cx="0" cy="0" rx="17" ry="11.5" fill="#FFB84D" />
+            <path d="M15 0 L26 -8 L26 8 Z" fill="#F2913D" />
+            <circle cx="-9" cy="-3" r="3" fill="white" />
+            <circle cx="-9.5" cy="-2.6" r="1.5" fill="#3B3B4F" />
+            <text x="2" y="1" textAnchor="middle" dominantBaseline="central" fontSize="14" fontWeight="900" fill="#7A4A12" style={{ fontFamily: "Nunito, sans-serif" }}>
+              {fedLower}
+            </text>
+          </g>
+        )}
         <path d={topTeeth} fill="white" stroke="white" strokeWidth="2" strokeLinejoin="round" />
         <path d={bottomTeeth} fill="white" stroke="white" strokeWidth="2" strokeLinejoin="round" />
       </g>
+
+      {/* ENORMOUS friendly eyes — the reference's whole charm: big whites,
+          big pupils, BIG highlights */}
+      <circle cx="72" cy="93" r="21" fill="white" />
+      <circle cx="128" cy="93" r="21" fill="white" />
+      <circle cx="75" cy="96" r="11.5" fill="#2B2B3A" />
+      <circle cx="125" cy="96" r="11.5" fill="#2B2B3A" />
+      <circle cx="79" cy="91" r="4.5" fill="white" />
+      <circle cx="129" cy="91" r="4.5" fill="white" />
+      <circle cx="71" cy="100" r="2" fill="white" />
+      <circle cx="121" cy="100" r="2" fill="white" />
+      {/* soft raised brow dashes — curiosity, never a squint */}
+      <path d="M58 68 Q70 62 82 66" stroke={DARK} strokeWidth="3" fill="none" strokeLinecap="round" opacity="0.5" />
+      <path d="M118 66 Q130 62 142 68" stroke={DARK} strokeWidth="3" fill="none" strokeLinecap="round" opacity="0.5" />
+      {/* tiny nostril dots */}
+      <circle cx="94" cy="112" r="1.8" fill={DARK} opacity="0.5" />
+      <circle cx="106" cy="112" r="1.8" fill={DARK} opacity="0.5" />
     </svg>
   );
 }
@@ -124,7 +124,7 @@ export function LetterFish({ letter, colorIndex = 0 }: { letter: string; colorIn
       <text
         x="48" y="38"
         textAnchor="middle" dominantBaseline="central"
-        fontSize="30" fontWeight="900" fill={c.text}
+        fontSize="34" fontWeight="900" fill={c.text}
         style={{ fontFamily: "Nunito, sans-serif" }}
       >
         {letter}

@@ -37,8 +37,10 @@ src/
     types/game.ts       GameMeta (registry card shape)
   games/
     registry.ts         THE list of games the portal shows
-    letter-tracing/     the complete first game (structure below)
-    game-2/README.md    the pattern for the next game
+    letter-tracing/     the first game (structure below)
+    letter-hunt/        second game — spot the matching letter among decoys
+    jungle-spy/          third game — pop the hidden letter bubbles to find an animal
+    (see /ADDING-A-GAME.md at the repo root for the pattern to add a fourth)
     globals.css         Design tokens in CSS: responsive board size
                         (--trace-size), rotate-prompt visibility,
                         short-landscape helpers

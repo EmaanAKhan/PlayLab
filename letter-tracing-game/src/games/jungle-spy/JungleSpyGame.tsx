@@ -9,12 +9,9 @@ import { JungleSplash, JungleGrid } from "@games/jungle-spy/components/JungleScr
 import { JungleLevel } from "@games/jungle-spy/components/JungleLevel";
 import { RotateDevicePrompt } from "@shared/components/ui/RotateDevicePrompt";
 import { initAudio } from "@shared/audio/sfx";
-const PAGE_TRANSITION = {
-  initial: { opacity: 0, scale: 0.97, y: 10 },
-  animate: { opacity: 1, scale: 1, y: 0 },
-  exit: { opacity: 0, scale: 1.02, y: -8 },
-  transition: { duration: 0.3, ease: [0.22, 1, 0.36, 1] },
-};
+import { startMusic, stopMusic } from "@shared/audio/music";
+import { PAGE_TRANSITION } from "@shared/constants/transitions";
+import { PORTAL_ROUTE } from "@shared/constants/routes";
 
 function toBucket(screen: string): "menu" | "play" {
   return screen === "level" ? "play" : "menu";
@@ -32,6 +29,16 @@ export function JungleSpyGame() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Background music: starts once the child taps past the splash (that tap
+  // unlocks the AudioContext), loops for the whole session, fades out when
+  // the game unmounts. startMusic is a shared singleton — hopping between
+  // games can never stack two tracks.
+  useEffect(() => {
+    if (screen !== "splash") startMusic();
+  }, [screen]);
+  useEffect(() => () => stopMusic(), []);
+
+
   // Back button: from "level" (play), returns to "grid" (letter/case select).
   const handlePop = useCallback(
     (bucket: string) => {
@@ -47,7 +54,7 @@ export function JungleSpyGame() {
       <AnimatePresence mode="wait">
         {screen === "splash" && (
           <motion.div key="splash" className="absolute inset-0" {...PAGE_TRANSITION}>
-            <JungleSplash onExitPortal={() => router.push("/")} />
+            <JungleSplash onExitPortal={() => router.push(PORTAL_ROUTE)} />
           </motion.div>
         )}
         {screen === "grid" && (

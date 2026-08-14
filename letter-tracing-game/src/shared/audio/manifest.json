@@ -965,6 +965,26 @@
       "speak": "Find the Z! Z is for Zebra!",
       "note": "jungle level intro + hint — one natural sentence per letter"
     },
+    "magnet-intro": {
+      "file": "/audio/magnet/intro.mp3",
+      "text": "Help the chef make his soup! Find the matching letter and place it into the pot.",
+      "speak": "Help the chef make his soup! Find the matching letter, and place it into the pot."
+    },
+    "magnet-excellent": {
+      "file": "/audio/magnet/excellent.mp3",
+      "text": "Excellent work!",
+      "speak": "Excellent work!"
+    },
+    "magnet-soup": {
+      "file": "/audio/magnet/soup.mp3",
+      "text": "Alphabet soup!",
+      "speak": "Alphabet soup!"
+    },
+    "cheer-yoo-hoo": {
+      "file": "/audio/cheers/yoo-hoo.mp3",
+      "text": "Yoo hoo!",
+      "speak": "Yoo hoo!"
+    },
     "shark-intro": {
       "file": "/audio/shark/intro.mp3",
       "text": "Letters A to Z — feed the shark!",

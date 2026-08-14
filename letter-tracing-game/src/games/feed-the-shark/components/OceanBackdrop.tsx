@@ -128,32 +128,7 @@ export function BubbleStream() {
     </div>
   );
 }
-/** One copy of the decoration scene — rendered up to three times side by
- *  side on wide screens so the sand never looks empty at the edges. */
-function SeabedScene() {
-  return (
-    <>
-      {/* rocks */}
-      <ellipse cx="60" cy="86" rx="24" ry="13" fill="#B9C4CE" />
-      <ellipse cx="82" cy="90" rx="14" ry="9" fill="#A5B2BE" />
-      <ellipse cx="342" cy="88" rx="20" ry="11" fill="#B9C4CE" />
-      <Shipwreck x={130} y={66} />
-      <g transform="translate(0, 32)">
-        <Coral x={30} color="#FF9EBC" />
-        <Coral x={392} color="#F2913D" />
-        <Coral x={230} color="#C9A9F5" />
-      </g>
-      <Urchin x={182} y={92} r={8} color="#7C4DBE" />
-      <Urchin x={310} y={96} r={6} color="#4A5FA5" />
-      <Shell x={104} y={100} s={1} color="#FFC2D9" />
-      <Shell x={262} y={102} s={0.85} color="#FFE3A9" />
-      <Shell x={382} y={100} s={0.9} color="#C9E8F5" />
-      <PearlShell x={295} y={76} />
-      <path d="M12 98 Q8 74 14 58 M20 100 Q22 76 16 62 M404 96 Q408 72 400 58"
-        stroke="#5DBE8A" strokeWidth="4" fill="none" strokeLinecap="round" opacity="0.75" />
-    </>
-  );
-}
+
 /** Full static seabed scene — anchored to the bottom of the screen.
  *
  * TWO layers, because one SVG can't survive every viewport shape:
@@ -187,37 +162,46 @@ export function OceanBackdrop() {
         <path d="M0 30 Q140 22 280 30 Q360 34 420 28 L420 60 L0 60 Z" fill="#E8D5A5" opacity="0.8" />
       </svg>
 
-      {/* Layer 2 — decorations: one scene centered, and on wide screens two
-          flanking copies (left one mirrored) so the sand is never bare */}
-      <div
-        className="absolute inset-x-0 flex items-end justify-center"
-        style={{ bottom: "clamp(6px, 1.5vh, 16px)" }}
+      {/* Layer 2 — decorations, true proportions, height-capped, centered */}
+      <svg
+        viewBox="0 0 420 110"
+        preserveAspectRatio="xMidYMax meet"
+        className="absolute left-1/2 -translate-x-1/2"
+        style={{
+          bottom: "clamp(6px, 1.5vh, 16px)",
+          width: "min(100%, 1100px)",
+          height: "clamp(64px, 15vh, 120px)",
+        }}
       >
-        <svg
-          viewBox="0 0 420 110"
-          preserveAspectRatio="xMidYMax meet"
-          className="hidden shrink-0 min-[1240px]:block"
-          style={{ height: "clamp(54px, 12.5vh, 102px)", transform: "scaleX(-1)" }}
-        >
-          <SeabedScene />
-        </svg>
-        <svg
-          viewBox="0 0 420 110"
-          preserveAspectRatio="xMidYMax meet"
-          className="shrink-0"
-          style={{ height: "clamp(64px, 15vh, 120px)" }}
-        >
-          <SeabedScene />
-        </svg>
-        <svg
-          viewBox="0 0 420 110"
-          preserveAspectRatio="xMidYMax meet"
-          className="hidden shrink-0 min-[1240px]:block"
-          style={{ height: "clamp(54px, 12.5vh, 102px)" }}
-        >
-          <SeabedScene />
-        </svg>
-      </div>
+        {/* rocks */}
+        <ellipse cx="60" cy="86" rx="24" ry="13" fill="#B9C4CE" />
+        <ellipse cx="82" cy="90" rx="14" ry="9" fill="#A5B2BE" />
+        <ellipse cx="342" cy="88" rx="20" ry="11" fill="#B9C4CE" />
+        {/* shipwreck (left of center, resting on the sand) */}
+        <Shipwreck x={130} y={66} />
+        {/* coral + sea plants */}
+        <g transform="translate(0, 32)">
+          <Coral x={30} color="#FF9EBC" />
+          <Coral x={392} color="#F2913D" />
+          <Coral x={230} color="#C9A9F5" />
+        </g>
+        {/* sea urchins — spread edge to edge so the seabed fills the width */}
+        <Urchin x={14} y={95} r={7} color="#4A5FA5" />
+        <Urchin x={52} y={101} r={5} color="#E85D9E" />
+        <Urchin x={182} y={92} r={8} color="#7C4DBE" />
+        <Urchin x={310} y={96} r={6} color="#4A5FA5" />
+        <Urchin x={368} y={102} r={5} color="#7C4DBE" />
+        <Urchin x={405} y={94} r={7} color="#E85D9E" />
+        {/* small shells */}
+        <Shell x={104} y={100} s={1} color="#FFC2D9" />
+        <Shell x={262} y={102} s={0.85} color="#FFE3A9" />
+        <Shell x={382} y={100} s={0.9} color="#C9E8F5" />
+        {/* THE focal treasure: open shell with pearls, right of center */}
+        <PearlShell x={295} y={76} />
+        {/* seagrass */}
+        <path d="M12 98 Q8 74 14 58 M20 100 Q22 76 16 62 M404 96 Q408 72 400 58"
+          stroke="#5DBE8A" strokeWidth="4" fill="none" strokeLinecap="round" opacity="0.75" />
+      </svg>
     </div>
   );
 }

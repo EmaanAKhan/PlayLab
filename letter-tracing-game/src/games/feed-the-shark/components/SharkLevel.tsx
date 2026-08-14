@@ -7,7 +7,8 @@ import { CelebrationSparkles } from "@shared/components/animations/Sparkles";
 import { playCorrectSound, playIncorrectSound, playClickSound } from "@shared/audio/sfx";
 import { playClip, preloadClips, clipText, stopVoice } from "@shared/audio/voice";
 import { shuffle } from "@shared/utils/random";
-import { ROUNDS, TOTAL_ROUNDS } from "@games/feed-the-shark/constants/letters";
+import { ROUNDS, TOTAL_ROUNDS, type LetterPair } from "@games/feed-the-shark/constants/letters";
+import { useSharkStore } from "@games/feed-the-shark/store/sharkStore";
 import { FriendlyShark, LetterFish } from "@games/feed-the-shark/components/SharkArt";
 import { OceanBackdrop, BubbleStream } from "@games/feed-the-shark/components/OceanBackdrop";
 
@@ -25,6 +26,9 @@ const NEXT_FISH_MS = 900;
 const ROUND_DONE_MS = 2000;
 
 interface DragState {
+  /** lowercase letter of the fish being dragged (identifies the fish in
+   *  "both" mode, where two fish are active at once) */
+  lower: string;
   x: number; // root-relative — never position:fixed, which breaks inside
   y: number; // the transformed PAGE_TRANSITION ancestor (see HuntLevel note)
 }
@@ -37,9 +41,17 @@ export function SharkLevel({ roundIndex, onRoundComplete }: SharkLevelProps) {
   // actually read the letters — the answer is never "always the left shark".
   const sharks = useMemo(() => shuffle([...pair]), [pair]);
 
-  /** Lowercase letters fed so far this round (0 → a's turn, 1 → b's, 2 → done) */
+  const mode = useSharkStore((s) => s.mode);
+  /** Lowercase letters fed so far this round (2 = round done) */
   const [fedLowers, setFedLowers] = useState<string[]>([]);
-  const fish = pair[fedLowers.length]; // the current fish, in pair order (a then b)
+  // "one": the classic flow — a's fish, then b's fish. "both": every unfed
+  // fish is on screen and draggable simultaneously.
+  const activeFish: LetterPair[] =
+    mode === "both"
+      ? pair.filter((p) => !fedLowers.includes(p.lower))
+      : pair[fedLowers.length]
+      ? [pair[fedLowers.length]]
+      : [];
   const [drag, setDrag] = useState<DragState | null>(null);
   const [wrongShake, setWrongShake] = useState<string | null>(null);
   const [happyShark, setHappyShark] = useState<string | null>(null);
@@ -85,32 +97,36 @@ export function SharkLevel({ roundIndex, onRoundComplete }: SharkLevelProps) {
   }, [roundIndex]);
 
   // ── Drag engine — root-relative coordinates, pointer capture ─────────────
-  const toRoot = useCallback((clientX: number, clientY: number): DragState => {
+  const toRoot = useCallback((clientX: number, clientY: number): { x: number; y: number } => {
     const r = rootRef.current?.getBoundingClientRect();
     return { x: clientX - (r?.left ?? 0), y: clientY - (r?.top ?? 0) };
   }, []);
 
   const startDrag = useCallback(
-    (e: React.PointerEvent<HTMLElement>) => {
-      if (!fish || celebrating) return;
+    (e: React.PointerEvent<HTMLElement>, f: LetterPair) => {
+      if (celebrating || drag) return; // one drag at a time, even in "both"
       e.currentTarget.setPointerCapture(e.pointerId);
-      setDrag(toRoot(e.clientX, e.clientY));
+      const p = toRoot(e.clientX, e.clientY);
+      setDrag({ lower: f.lower, x: p.x, y: p.y });
     },
-    [fish, celebrating, toRoot]
+    [celebrating, drag, toRoot]
   );
 
   const moveDrag = useCallback(
     (e: React.PointerEvent<HTMLDivElement>) => {
       if (!drag) return;
-      setDrag(toRoot(e.clientX, e.clientY));
+      const p = toRoot(e.clientX, e.clientY);
+      setDrag({ ...drag, x: p.x, y: p.y });
     },
     [drag, toRoot]
   );
 
   const endDrag = useCallback(
     (e: React.PointerEvent<HTMLDivElement>) => {
-      if (!drag || !fish) return;
+      if (!drag) return;
+      const fish = pair.find((p) => p.lower === drag.lower);
       setDrag(null);
+      if (!fish || fedLowers.includes(fish.lower)) return;
 
       // Which shark was the fish dropped on? Hit boxes are the sharks'
       // visible rects inflated by DROP_SLOP_PX — forgiving on purpose. When
@@ -164,7 +180,7 @@ export function SharkLevel({ roundIndex, onRoundComplete }: SharkLevelProps) {
         schedule(() => setWrongShake(null), 550);
       }
     },
-    [drag, fish, fedLowers, onRoundComplete, schedule]
+    [drag, pair, fedLowers, onRoundComplete, schedule]
   );
 
   const fishSize = "clamp(84px, 18vmin, 132px)";
@@ -253,39 +269,43 @@ export function SharkLevel({ roundIndex, onRoundComplete }: SharkLevelProps) {
         })}
       </div>
 
-      {/* ── The one draggable fish ── */}
-      <div className="relative z-10 flex min-h-[clamp(96px,20vmin,150px)] w-full items-center justify-center pb-[clamp(16px,8vh,56px)]">
-        <AnimatePresence mode="wait">
-          {fish && !celebrating && (
-            <motion.div
-              key={fish.lower}
-              className="touch-none"
-              style={{
-                width: fishSize,
-                cursor: drag ? "grabbing" : "grab",
-                opacity: drag ? 0.25 : 1,
-              }}
-              initial={{ scale: 0, x: -40 }}
-              animate={{ scale: 1, x: 0 }}
-              exit={{ scale: 0, opacity: 0 }}
-              transition={{ type: "spring", stiffness: 260, damping: 18 }}
-              onPointerDown={startDrag}
-              role="button"
-              tabIndex={0}
-              aria-label={`Little fish with the letter ${fish.lower} — drag it to the shark with the big ${fish.upper}`}
-            >
-              {/* white bubble plate — the fish stays legible over any
-                  backdrop decor and clearly reads as "grab me" */}
-              <div className="rounded-full bg-white/80 p-2.5 shadow-card" style={{ border: "3px solid rgba(41,128,185,0.35)" }}>
-                <LetterFish letter={fish.lower} colorIndex={fedLowers.length + roundIndex} />
-              </div>
-            </motion.div>
-          )}
+      {/* ── The draggable fish (one in "one" mode, both in "both") ── */}
+      <div className="relative z-10 flex min-h-[clamp(96px,20vmin,150px)] w-full items-center justify-center gap-[5vw] pb-[clamp(16px,6vh,56px)]">
+        <AnimatePresence mode="popLayout">
+          {!celebrating &&
+            activeFish.map((f, fi) => {
+              const beingDragged = drag?.lower === f.lower;
+              return (
+                <motion.div
+                  key={f.lower}
+                  className="touch-none"
+                  style={{
+                    width: fishSize,
+                    cursor: beingDragged ? "grabbing" : "grab",
+                    opacity: beingDragged ? 0.25 : 1,
+                  }}
+                  initial={{ scale: 0, x: -40 }}
+                  animate={{ scale: 1, x: 0 }}
+                  exit={{ scale: 0, opacity: 0 }}
+                  transition={{ type: "spring", stiffness: 260, damping: 18, delay: fi * 0.07 }}
+                  onPointerDown={(e) => startDrag(e, f)}
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`Little fish with the letter ${f.lower} — drag it to the shark with the big ${f.upper}`}
+                >
+                  {/* white bubble plate — legible over any backdrop decor,
+                      and clearly reads as "grab me" */}
+                  <div className="rounded-full bg-white/80 p-2.5 shadow-card" style={{ border: "3px solid rgba(41,128,185,0.35)" }}>
+                    <LetterFish letter={f.lower} colorIndex={pair.indexOf(f) + roundIndex} />
+                  </div>
+                </motion.div>
+              );
+            })}
         </AnimatePresence>
       </div>
 
       {/* Drag ghost — root-relative absolute, never position:fixed */}
-      {drag && fish && (
+      {drag && (
         <div
           className="pointer-events-none absolute z-40"
           style={{
@@ -297,7 +317,10 @@ export function SharkLevel({ roundIndex, onRoundComplete }: SharkLevelProps) {
           aria-hidden="true"
         >
           <div className="rounded-full bg-white/80 p-2.5 shadow-card" style={{ border: "3px solid rgba(41,128,185,0.35)" }}>
-            <LetterFish letter={fish.lower} colorIndex={fedLowers.length + roundIndex} />
+            <LetterFish
+              letter={drag.lower}
+              colorIndex={pair.findIndex((p) => p.lower === drag.lower) + roundIndex}
+            />
           </div>
         </div>
       )}

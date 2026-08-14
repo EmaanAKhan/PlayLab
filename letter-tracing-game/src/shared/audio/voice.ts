@@ -17,6 +17,7 @@
  */
 
 import { Howl } from "howler";
+import { duckMusic } from "@shared/audio/music";
 import manifest from "./manifest.json";
 
 type ClipId = string;
@@ -75,6 +76,7 @@ export function preloadClips(ids: ClipId[]): void {
 export function stopVoice(): void {
   current?.stop();
   current = null;
+  duckMusic(false);
 }
 
 /**
@@ -88,12 +90,14 @@ export function playClip(id: ClipId): Promise<void> {
     if (!h) return void setTimeout(resolve, 250);
     stopVoice();
     current = h;
+    duckMusic(true); // narration over quiet music, never fighting it
 
     let settled = false;
     const finish = () => {
       if (settled) return;
       settled = true;
       if (current === h) current = null;
+      duckMusic(false);
       h.off("end", finish);
       resolve();
     };
