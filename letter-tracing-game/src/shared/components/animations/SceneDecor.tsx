@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { cssVars } from "@shared/styles/cssVars";
 
 /**
  * Purely decorative, percentage-positioned pastel scenery.
@@ -153,8 +154,8 @@ export function SceneDecor({
       {items.map((item, i) => (
         <motion.div
           key={i}
-          className="absolute opacity-60"
-          style={{ left: item.x, top: item.y }}
+          className="pl-at absolute opacity-60"
+          style={cssVars({ "--pl-x": item.x, "--pl-y": item.y })}
           animate={{
             x: item.driftX ? [0, item.driftX, 0] : 0,
             y: item.driftY ? [0, item.driftY, 0] : [0, -6, 0],

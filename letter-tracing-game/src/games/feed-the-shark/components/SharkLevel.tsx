@@ -3,7 +3,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { CelebrationSparkles } from "@shared/components/animations/Sparkles";
+import { NavPillButton } from "@shared/components/ui/NavPillButton";
+import { CelebrationOverlay } from "@shared/components/game/CelebrationOverlay";
+import { useElementSize } from "@shared/hooks/useElementSize";
+import { useScheduler } from "@shared/hooks/useScheduler";
+import { cssVars } from "@shared/styles/cssVars";
 import { playCorrectSound, playIncorrectSound, playClickSound } from "@shared/audio/sfx";
 import { playClip, preloadClips, clipText, stopVoice } from "@shared/audio/voice";
 import { shuffle } from "@shared/utils/random";
@@ -57,28 +61,13 @@ export function SharkLevel({ roundIndex, onRoundComplete }: SharkLevelProps) {
   const [happyShark, setHappyShark] = useState<string | null>(null);
   const [celebrating, setCelebrating] = useState(false);
 
-  const rootRef = useRef<HTMLDivElement>(null);
+  const [rootRef, dims] = useElementSize();
   const sharkRefs = useRef<Map<string, HTMLDivElement>>(new Map());
-  const [dims, setDims] = useState({ w: 360, h: 640 });
 
   // Every timer this screen schedules, cleared on unmount — nothing can fire
   // a state change or screen advance after the child has navigated away.
-  const timersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
-  const schedule = useCallback((fn: () => void, ms: number) => {
-    timersRef.current.push(setTimeout(fn, ms));
-  }, []);
-  useEffect(() => {
-    return () => {
-      timersRef.current.forEach(clearTimeout);
-      timersRef.current = [];
-      stopVoice();
-    };
-  }, []);
-
-  useEffect(() => {
-    const el = rootRef.current;
-    if (el) setDims({ w: el.offsetWidth, h: el.offsetHeight });
-  }, []);
+  const schedule = useScheduler();
+  useEffect(() => () => stopVoice(), []);
 
   // Fresh round: preload this round's clips; speak the instruction once, on
   // the very first round only (repeating it 13 times would be noise).
@@ -100,7 +89,7 @@ export function SharkLevel({ roundIndex, onRoundComplete }: SharkLevelProps) {
   const toRoot = useCallback((clientX: number, clientY: number): { x: number; y: number } => {
     const r = rootRef.current?.getBoundingClientRect();
     return { x: clientX - (r?.left ?? 0), y: clientY - (r?.top ?? 0) };
-  }, []);
+  }, [rootRef]);
 
   const startDrag = useCallback(
     (e: React.PointerEvent<HTMLElement>, f: LetterPair) => {
@@ -188,8 +177,7 @@ export function SharkLevel({ roundIndex, onRoundComplete }: SharkLevelProps) {
   return (
     <div
       ref={rootRef}
-      className="relative flex h-full w-full flex-col items-center overflow-hidden px-4 py-3"
-      style={{ background: "linear-gradient(180deg, #6FC7EF 0%, #3FA7DC 55%, #2E8FC4 100%)" }}
+      className="fs-bg relative flex h-full w-full flex-col items-center overflow-hidden px-4 py-3"
       onPointerMove={moveDrag}
       onPointerUp={endDrag}
       onPointerCancel={endDrag}
@@ -199,16 +187,13 @@ export function SharkLevel({ roundIndex, onRoundComplete }: SharkLevelProps) {
 
       {/* ── Top bar: back · instruction · progress ── */}
       <div className="relative z-10 flex w-full max-w-2xl items-center justify-between gap-2">
-        <button
+        <NavPillButton
+          label="Back"
+          ariaLabel="Back to the start screen"
+          tone="ocean"
+          surface="strong"
           onClick={() => { playClickSound(); stopVoice(); router.back(); }}
-          className="flex min-h-[44px] items-center gap-1.5 rounded-full bg-white/85 px-3.5 py-2 shadow-soft"
-          aria-label="Back to the start screen"
-        >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-            <path d="M15 18l-6-6 6-6" stroke="#2980B9" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-          <span className="font-rounded text-xs font-bold" style={{ color: "#2980B9" }}>Back</span>
-        </button>
+        />
 
         <div className="flex min-h-[44px] items-center rounded-full bg-white/85 px-4 shadow-soft">
           <span className="font-rounded text-sm font-black text-plum" aria-label={`Round ${roundIndex + 1} of ${TOTAL_ROUNDS}`}>
@@ -233,8 +218,7 @@ export function SharkLevel({ roundIndex, onRoundComplete }: SharkLevelProps) {
                 if (el) sharkRefs.current.set(s.upper, el);
                 else sharkRefs.current.delete(s.upper);
               }}
-              className="relative"
-              style={{ width: "clamp(150px, 36vmin, 300px)" }}
+              className="fs-shark relative"
               initial={{ scale: 0.6, opacity: 0, y: 16 }}
               animate={
                 wrongShake === s.upper
@@ -250,8 +234,7 @@ export function SharkLevel({ roundIndex, onRoundComplete }: SharkLevelProps) {
               {/* soft target halo while a fish is being dragged */}
               {drag && !fed && (
                 <div
-                  className="absolute -inset-3 rounded-full"
-                  style={{ background: "radial-gradient(ellipse, rgba(255,255,255,0.35), transparent 70%)" }}
+                  className="fs-halo absolute -inset-3 rounded-full"
                   aria-hidden="true"
                 />
               )}
@@ -278,12 +261,7 @@ export function SharkLevel({ roundIndex, onRoundComplete }: SharkLevelProps) {
               return (
                 <motion.div
                   key={f.lower}
-                  className="touch-none"
-                  style={{
-                    width: fishSize,
-                    cursor: beingDragged ? "grabbing" : "grab",
-                    opacity: beingDragged ? 0.25 : 1,
-                  }}
+                  className={`fs-fish touch-none ${beingDragged ? "cursor-grabbing opacity-25" : "cursor-grab"}`}
                   initial={{ scale: 0, x: -40 }}
                   animate={{ scale: 1, x: 0 }}
                   exit={{ scale: 0, opacity: 0 }}
@@ -295,7 +273,7 @@ export function SharkLevel({ roundIndex, onRoundComplete }: SharkLevelProps) {
                 >
                   {/* white bubble plate — legible over any backdrop decor,
                       and clearly reads as "grab me" */}
-                  <div className="rounded-full bg-white/80 p-2.5 shadow-card" style={{ border: "3px solid rgba(41,128,185,0.35)" }}>
+                  <div className="fs-plate rounded-full bg-white/80 p-2.5 shadow-card">
                     <LetterFish letter={f.lower} colorIndex={pair.indexOf(f) + roundIndex} />
                   </div>
                 </motion.div>
@@ -307,16 +285,11 @@ export function SharkLevel({ roundIndex, onRoundComplete }: SharkLevelProps) {
       {/* Drag ghost — root-relative absolute, never position:fixed */}
       {drag && (
         <div
-          className="pointer-events-none absolute z-40"
-          style={{
-            left: drag.x,
-            top: drag.y,
-            width: fishSize,
-            transform: "translate(-50%, -55%) rotate(-4deg)",
-          }}
+          className="fs-ghost pl-at pointer-events-none absolute z-40"
+          style={cssVars({ "--pl-x": `${drag.x}px`, "--pl-y": `${drag.y}px` })}
           aria-hidden="true"
         >
-          <div className="rounded-full bg-white/80 p-2.5 shadow-card" style={{ border: "3px solid rgba(41,128,185,0.35)" }}>
+          <div className="fs-plate rounded-full bg-white/80 p-2.5 shadow-card">
             <LetterFish
               letter={drag.lower}
               colorIndex={pair.findIndex((p) => p.lower === drag.lower) + roundIndex}
@@ -328,19 +301,9 @@ export function SharkLevel({ roundIndex, onRoundComplete }: SharkLevelProps) {
       {/* ── Round complete — short, auto-advancing celebration ── */}
       <AnimatePresence>
         {celebrating && (
-          <motion.div
-            className="absolute inset-0 z-30 flex flex-col items-center justify-center gap-3 px-6"
-            style={{ background: "rgba(111,199,239,0.55)", backdropFilter: "blur(2px)" }}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-          >
-            <div className="pointer-events-none absolute inset-0" aria-hidden="true">
-              <CelebrationSparkles active width={dims.w} height={dims.h} />
-            </div>
+          <CelebrationOverlay tintClassName="fs-celebrate-tint" size={dims}>
             <motion.h2
-              className="rounded-full bg-white/90 px-8 py-3 font-rounded font-black text-plum shadow-card"
-              style={{ fontSize: "clamp(26px, 6.5vmin, 42px)" }}
+              className="fs-cheer rounded-full bg-white/90 px-8 py-3 font-rounded font-black text-plum shadow-card"
               initial={{ scale: 0.5, y: 12 }}
               animate={{ scale: 1, y: 0 }}
               transition={{ type: "spring", stiffness: 220, damping: 15 }}
@@ -350,7 +313,7 @@ export function SharkLevel({ roundIndex, onRoundComplete }: SharkLevelProps) {
             <p className="font-rounded text-base font-bold text-white drop-shadow">
               Both sharks are fed!
             </p>
-          </motion.div>
+          </CelebrationOverlay>
         )}
       </AnimatePresence>
     </div>

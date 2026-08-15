@@ -3,18 +3,20 @@
 import React from "react";
 import { motion } from "framer-motion";
 
+type ButtonVariant = "primary" | "secondary" | "ghost";
+type ButtonSize = "sm" | "md" | "lg" | "xl";
+
 interface ButtonProps {
   children: React.ReactNode;
   onClick?: () => void;
-  variant?: "primary" | "secondary" | "ghost";
-  size?: "sm" | "md" | "lg" | "xl";
+  variant?: ButtonVariant;
+  size?: ButtonSize;
   disabled?: boolean;
   className?: string;
-  style?: React.CSSProperties;
   "aria-label"?: string;
 }
 
-const variantStyles: Record<string, string> = {
+const variantStyles: Record<ButtonVariant, string> = {
   primary:
     "bg-plum text-white shadow-button active:shadow-button-pressed active:translate-y-1",
   secondary:
@@ -22,7 +24,7 @@ const variantStyles: Record<string, string> = {
   ghost: "bg-white/60 text-plum shadow-soft active:bg-white/80",
 };
 
-const sizeStyles: Record<string, string> = {
+const sizeStyles: Record<ButtonSize, string> = {
   sm: "px-5 py-2 text-base rounded-2xl min-h-[44px] min-w-[44px]",
   md: "px-8 py-3 text-lg rounded-3xl min-h-[52px]",
   lg: "px-10 py-4 text-xl rounded-3xl min-h-[60px]",
@@ -36,7 +38,6 @@ export function Button({
   size = "md",
   disabled = false,
   className = "",
-  style,
   "aria-label": ariaLabel,
 }: ButtonProps) {
   return (
@@ -47,7 +48,6 @@ export function Button({
       onClick={disabled ? undefined : onClick}
       disabled={disabled}
       aria-label={ariaLabel}
-      style={style}
       className={[
         "font-rounded font-bold select-none cursor-pointer transition-colors duration-150",
         "focus:outline-none focus-visible:ring-4 focus-visible:ring-plum/30",

@@ -5,6 +5,9 @@ import { motion } from "framer-motion";
 import { useHuntStore } from "@games/letter-hunt/store/huntStore";
 import { PencilPal } from "@games/letter-hunt/components/PennyArt";
 import { HomeEnvironment } from "@shared/components/animations/HomeEnvironment";
+import { NavPillButton } from "@shared/components/ui/NavPillButton";
+import { ProgressBar } from "@shared/components/ui/ProgressBar";
+import { cssVars } from "@shared/styles/cssVars";
 import { Button } from "@shared/components/ui/Button";
 import { StartOptions } from "@shared/components/ui/StartOptions";
 import { playClickSound } from "@shared/audio/sfx";
@@ -12,7 +15,6 @@ import { playClip } from "@shared/audio/voice";
 
 export const LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 
-const BG = { background: "linear-gradient(160deg, #F0E8FF 0%, #E8F4FF 100%)" };
 
 /** Short splash — Penny + drifting letters, auto-advances (tap to skip). */
 export function HuntSplash() {
@@ -24,8 +26,7 @@ export function HuntSplash() {
 
   return (
     <button
-      className="relative flex h-full w-full flex-col items-center justify-center gap-4 overflow-hidden"
-      style={BG}
+      className="bg-wash-lavender-sky relative flex h-full w-full flex-col items-center justify-center gap-4 overflow-hidden"
       onClick={() => setScreen("home")}
       aria-label="Letter Hunt — tap to start"
     >
@@ -39,8 +40,8 @@ export function HuntSplash() {
       ].map((f) => (
         <motion.span
           key={f.l}
-          className="pointer-events-none absolute font-rounded font-black"
-          style={{ left: f.x, top: f.y, color: f.c, fontSize: "clamp(30px, 6vmin, 52px)" }}
+          className="hunt-drift-glyph pl-at pl-tint pointer-events-none absolute font-rounded font-black"
+          style={cssVars({ "--pl-x": f.x, "--pl-y": f.y, "--pl-color": f.c })}
           animate={{ y: [0, -12, 0], rotate: [-5, 5, -5] }}
           transition={{ duration: 4.5, repeat: Infinity, ease: "easeInOut", delay: f.d }}
           aria-hidden="true"
@@ -49,7 +50,7 @@ export function HuntSplash() {
         </motion.span>
       ))}
       <motion.div
-        style={{ width: "clamp(90px, 20vmin, 150px)" }}
+        className="hunt-penny-splash"
         initial={{ scale: 0.6, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ type: "spring", stiffness: 220, damping: 16 }}
@@ -88,22 +89,18 @@ export function HuntHome({ onExitPortal }: { onExitPortal?: () => void }) {
 
   return (
     <div
-      className="relative flex h-full w-full flex-col overflow-y-auto overflow-x-hidden px-6 py-6"
-      style={{ background: "linear-gradient(180deg, #C8F0D8 0%, #E8F8EF 60%, #C8F0D8 100%)" }}
-    >
+      className="bg-wash-mint relative flex h-full w-full flex-col overflow-y-auto overflow-x-hidden px-6 py-6">
       <HomeEnvironment />
 
       {onExitPortal && (
-        <button
+        <NavPillButton
+          label="Back to Games"
+          ariaLabel="Back to the game portal"
+          tone="plum"
+          surface="soft"
+          pinned
           onClick={() => { playClickSound(); onExitPortal(); }}
-          className="absolute left-4 top-4 z-20 flex min-h-[44px] items-center gap-1.5 rounded-full bg-white/75 px-3.5 py-2 shadow-soft"
-          aria-label="Back to the game portal"
-        >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-            <path d="M15 18l-6-6 6-6" stroke="#7C5CBF" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-          <span className="font-rounded text-xs font-bold text-plum/80">Back to Games</span>
-        </button>
+        />
       )}
 
       {/* m-auto wrapper: the whole selection column sits at the VERTICAL
@@ -119,8 +116,7 @@ export function HuntHome({ onExitPortal }: { onExitPortal?: () => void }) {
       </div>
 
       <motion.div
-        className="relative z-10"
-        style={{ width: "clamp(64px, 12vmin, 96px)" }}
+        className="hunt-penny-home relative z-10"
         animate={{ y: [0, -6, 0] }}
         transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
       >
@@ -129,15 +125,12 @@ export function HuntHome({ onExitPortal }: { onExitPortal?: () => void }) {
 
       {/* soft progress */}
       <div className="relative z-10 w-full max-w-xs">
-        <div className="h-3 w-full overflow-hidden rounded-full bg-white/70">
-          <motion.div
-            className="h-full rounded-full"
-            style={{ background: "linear-gradient(90deg, #A882E8, #74B9FF)" }}
-            initial={false}
-            animate={{ width: `${(completed.length / 26) * 100}%` }}
-            transition={{ type: "spring", stiffness: 120, damping: 20 }}
-          />
-        </div>
+        <ProgressBar
+          value={completed.length / 26}
+          trackClassName="h-3 w-full rounded-full bg-white/70"
+          fillClassName="hunt-progress-fill h-full rounded-full"
+          ariaLabel={`${completed.length} of 26 letters found`}
+        />
         <p className="mt-1 text-center font-rounded text-xs font-bold text-plum/55">
           {completed.length} / 26 letters found
         </p>
@@ -156,8 +149,7 @@ export function HuntHome({ onExitPortal }: { onExitPortal?: () => void }) {
           </span>
         </div>
         <div
-          className="grid gap-1.5 sm:gap-2"
-          style={{ gridTemplateColumns: "repeat(auto-fill, minmax(50px, 1fr))" }}
+          className="pl-symbol-grid gap-1.5 sm:gap-2"
         >
           {LETTERS.map((l, i) => {
             const isDone = completed.includes(l);
@@ -165,18 +157,15 @@ export function HuntHome({ onExitPortal }: { onExitPortal?: () => void }) {
               <motion.button
                 key={l}
                 onClick={() => pick(i)}
-                className="flex aspect-square min-h-[48px] min-w-[48px] items-center justify-center rounded-xl shadow-sm"
-                style={{
-                  background: isDone ? "#7C5CBF" : "white",
-                  border: isDone ? "2.5px solid #7C5CBF" : "2px solid #EDE7FA",
-                }}
+                className={`flex aspect-square min-h-[48px] min-w-[48px] items-center justify-center rounded-xl shadow-sm ${
+                  isDone ? "hunt-tile--done" : "hunt-tile"
+                }`}
                 whileTap={{ scale: 0.9 }}
                 whileHover={{ scale: 1.06 }}
                 aria-label={`Hunt the letter ${l}${isDone ? " (already found)" : ""}`}
               >
                 <span
-                  className="font-rounded font-black"
-                  style={{ color: isDone ? "white" : "#7C5CBF", fontSize: "clamp(16px, 3.2vmin, 22px)" }}
+                  className={`hunt-tile-glyph font-rounded font-black ${isDone ? "text-white" : "text-plum"}`}
                 >
                   {l}
                 </span>

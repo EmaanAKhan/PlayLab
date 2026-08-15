@@ -1,0 +1,171 @@
+/**
+ * utilities.css — cross-game layout primitives.
+ *
+ * Responsibility: viewport-aware rules that cannot be expressed as Tailwind
+ * utilities (orientation media queries, fluid clamp() geometry), the shared
+ * background washes used by more than one game, and the small set of
+ * variable-driven classes that let components stay free of inline styles
+ * while still positioning things at runtime (see shared/styles/cssVars.ts).
+ *
+ * Everything here is used by two or more games. Single-game visuals live in
+ * that game's own stylesheet under games/<game>/styles/.
+ */
+
+/* ─── Responsive tracing-board size ─────────────────────────────────────────
+   The canvas keeps a perfect 1:1 aspect ratio (letters are defined in a square
+   200×200 space) and scales to whatever the current viewport allows:
+   - portrait / tall screens: limited by width, minus room for header + hint
+   - landscape phones: limited by height, using nearly the full viewport
+   - tablets / desktop: grows generously but caps so lines stay proportionate */
+.trace-board {
+  --trace-size: min(80vw, calc(100dvh - 240px), 560px);
+}
+
+/* Phone (and any short) landscape viewport — canvas dominates the screen */
+@media (orientation: landscape) and (max-height: 560px) {
+  .trace-board {
+    --trace-size: min(calc(100dvh - 92px), 48vw);
+  }
+}
+
+/* ─── "Turn your device sideways" prompt ────────────────────────────────────
+   Pure CSS visibility: shown ONLY on portrait phone-sized viewports, hidden
+   the instant the device rotates to landscape. Tablets and desktops (wider or
+   taller viewports) never match this query, so they never see the prompt. */
+.rotate-prompt {
+  display: none;
+}
+@media (orientation: portrait) and (max-width: 767px) {
+  .rotate-prompt {
+    display: flex;
+  }
+}
+
+/* Compact gameplay chrome on short landscape viewports */
+@media (orientation: landscape) and (max-height: 560px) {
+  .hide-on-short {
+    display: none !important;
+  }
+  .compact-on-short {
+    padding-top: 0.5rem !important;
+    padding-bottom: 0.5rem !important;
+  }
+}
+
+/* ─── Shared background washes ──────────────────────────────────────────────
+   The soft full-screen gradients that set each screen's mood. Only the ones
+   used by MORE THAN ONE game (or more than one screen of the tracing suite)
+   live here; a wash unique to one game lives in that game's stylesheet.
+   Values are verbatim from the original screens. */
+
+/** Sky → lavender (Letter Order difficulty menu). */
+.bg-wash-sky-lavender {
+  background: linear-gradient(160deg, #e8f4ff 0%, #f0e8ff 100%);
+}
+
+/** Lavender → sky (mode select, tracing board, Letter Order play, Hunt splash). */
+.bg-wash-lavender-sky {
+  background: linear-gradient(160deg, #f0e8ff 0%, #e8f4ff 100%);
+}
+
+/** Sky → lavender → mint meadow (tracing splash + main menu). */
+.bg-wash-meadow {
+  background: linear-gradient(160deg, #e8f4ff 0%, #f0e8ff 50%, #e8ffe8 100%);
+}
+
+/** Lavender → mint (celebrations: tracing letter + Letter Order finale). */
+.bg-wash-lavender-mint {
+  background: linear-gradient(160deg, #f0e8ff 0%, #e8ffe8 100%);
+}
+
+/** Mint meadow band (Letter Hunt home/level + Jungle Spy level). */
+.bg-wash-mint {
+  background: linear-gradient(180deg, #c8f0d8 0%, #e8f8ef 60%, #c8f0d8 100%);
+}
+
+/* ─── Runtime-positioned elements ───────────────────────────────────────────
+   A drag ghost, a decorative sprite laid out from a data table, or a tile
+   scattered to a shuffled slot cannot have its coordinates known at build
+   time. Rather than let inline styles back in, those components set CSS
+   custom properties through the typed cssVars() helper and opt into one of
+   these classes, so the actual CSS declaration still lives here. */
+
+.pl-at {
+  left: var(--pl-x, auto);
+  top: var(--pl-y, auto);
+}
+
+/** Edge-anchored decorative sprite (left OR right anchor, layered). */
+.pl-pos {
+  left: var(--pl-left, auto);
+  right: var(--pl-right, auto);
+  top: var(--pl-top, auto);
+  width: var(--pl-w, auto);
+  z-index: var(--pl-z, 1);
+}
+
+/** Square box whose edge length is fluid/computed (clamp strings included). */
+.pl-box {
+  width: var(--pl-size);
+  height: var(--pl-size);
+}
+
+/** Width-only variant, for art that derives its height from an aspect ratio. */
+.pl-width {
+  width: var(--pl-size);
+}
+
+/** Glyph whose size tier is chosen per round (I-Spy boards, hunt cards). */
+.pl-glyph {
+  font-size: var(--pl-font-size);
+}
+
+/** Tint applied from a data table (letter colours, per-card themes). */
+.pl-tint {
+  color: var(--pl-color);
+}
+
+/** Fill applied from a data table. */
+.pl-bg {
+  background: var(--pl-bg);
+}
+
+/** Data-driven tile: fill + solid border from a colour table. */
+.pl-swatch {
+  background: var(--pl-bg);
+  border: var(--pl-bw, 2.5px) solid var(--pl-border);
+}
+
+/** Framer-animated element whose rotation pivot is data-driven. */
+.pl-origin {
+  transform-origin: var(--pl-origin);
+}
+
+/** Self-centering absolute element (its own midpoint on the anchor). */
+.pl-center-self {
+  transform: translate(-50%, -50%);
+}
+
+.pl-flip-x {
+  transform: scaleX(-1);
+}
+
+/* ─── Shared composites ─────────────────────────────────────────────────────
+   Patterns repeated across three or more screens. */
+
+/** Alphabet/number shelf: auto-filling square tiles, min tile via --pl-min. */
+.pl-symbol-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(var(--pl-min, 50px), 1fr));
+}
+
+/** The gold burst ring behind a star the moment it is earned. */
+.pl-star-burst {
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 217, 61, 0.55), transparent 70%);
+}
+
+/** Frosted celebration overlay backdrop (blur strength via --pl-blur). */
+.pl-overlay-blur {
+  backdrop-filter: blur(var(--pl-blur, 2px));
+}

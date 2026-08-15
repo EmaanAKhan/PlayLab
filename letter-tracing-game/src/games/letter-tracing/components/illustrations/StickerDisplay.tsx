@@ -2,6 +2,7 @@
 
 import React from "react";
 import { motion } from "framer-motion";
+import { cssVars } from "@shared/styles/cssVars";
 
 type StickerIcon =
   | "flower" | "butterfly" | "tree" | "rainbow" | "bird" | "leaf"
@@ -151,13 +152,13 @@ export function StickerDisplay({ icon, color, size = 80, animate = false, classN
 
   return (
     <motion.div
-      className={`inline-flex items-center justify-center ${className}`}
-      style={{ width: size, height: size }}
+      className={`pl-box inline-flex items-center justify-center ${className}`}
+      style={cssVars({ "--pl-size": `${size}px` })}
       initial={animate ? { scale: 0, rotate: -20 } : false}
       animate={animate ? { scale: 1, rotate: 0 } : undefined}
       transition={{ type: "spring", stiffness: 260, damping: 18, delay: 0.1 }}
     >
-      <div style={{ width: size, height: size }} className="drop-shadow-md">
+      <div className="pl-box drop-shadow-md">
         {content}
       </div>
     </motion.div>

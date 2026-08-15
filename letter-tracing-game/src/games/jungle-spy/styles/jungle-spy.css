@@ -1,0 +1,94 @@
+/**
+ * Jungle Spy — game-specific visual identity.
+ * All values verbatim from the original screens.
+ */
+
+/** Splash + letter grid: pale canopy light. */
+.jsp-bg-canopy {
+  background: linear-gradient(165deg, #e8f8ee 0%, #fff6d6 100%);
+}
+
+/* ── Splash ── */
+
+.jsp-sun {
+  width: clamp(48px, 8vw, 90px);
+}
+.jsp-mascot-lg {
+  width: clamp(52px, 9vmin, 84px);
+}
+.jsp-mascot-sm {
+  width: clamp(40px, 7vmin, 64px);
+}
+/** The ABC / abc case-picker tiles. */
+.jsp-case-btn {
+  width: clamp(110px, 20vmin, 160px);
+  height: clamp(90px, 16vmin, 130px);
+}
+.jsp-case-btn--upper {
+  background: var(--color-jungle-pale);
+  border: 3px solid var(--color-jungle-light);
+}
+.jsp-case-btn--lower {
+  background: var(--color-sunshine);
+  border: 3px solid var(--color-gold-sun);
+}
+.jsp-case-glyph {
+  font-size: clamp(30px, 6vmin, 44px);
+}
+.jsp-case-glyph--upper {
+  color: var(--color-jungle);
+}
+.jsp-case-glyph--lower {
+  color: var(--color-gold-dim);
+}
+
+/* ── Letter grid ── */
+
+.jsp-progress-fill {
+  background: linear-gradient(90deg, #ff8fa3, #ffd93d, #8fd6a8, #74b9ff, #c9a9f5);
+}
+.jsp-tile-glyph {
+  font-size: clamp(19px, 2.8vw, 26px);
+}
+
+/* ── Level ── */
+
+/** Soft medallion keeping the animal the unmistakable centerpiece. */
+.jsp-medallion {
+  width: clamp(140px, 32vmin, 240px);
+  height: clamp(140px, 32vmin, 240px);
+  background: radial-gradient(circle, #ffffff 55%, #eaf9f0 100%);
+  border: 4px solid var(--color-jungle-mist);
+}
+.jsp-medallion-photo {
+  width: 86%;
+  height: 86%;
+}
+.jsp-animal-name {
+  font-size: clamp(13px, 2.6vmin, 17px);
+}
+/** A tappable letter bubble — position + colour arrive per-round via cssVars. */
+.jsp-bubble {
+  transform: translate(-50%, -50%);
+  touch-action: manipulation;
+}
+
+/* ── Win overlay ── */
+
+.jsp-win-tint {
+  background: rgba(232, 248, 238, 0.92);
+}
+.jsp-win-photo {
+  width: clamp(120px, 28vmin, 210px);
+  height: clamp(120px, 28vmin, 210px);
+}
+.jsp-win-heading {
+  font-size: clamp(28px, 7vmin, 44px);
+}
+
+/** The hanging vine on the splash's canopy. */
+.jsp-vine {
+  left: 30%;
+  top: -2%;
+  width: clamp(20px, 3vw, 36px);
+}

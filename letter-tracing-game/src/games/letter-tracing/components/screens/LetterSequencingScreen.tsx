@@ -14,6 +14,7 @@ import { playClip, preloadClips, clipText } from "@shared/audio/voice";
 import { playCorrectSound, playIncorrectSound } from "@shared/audio/sfx";
 import { SceneDecor } from "@shared/components/animations/SceneDecor";
 import { RotateDevicePrompt } from "@shared/components/ui/RotateDevicePrompt";
+import { cssVars, type PlayLabCssVar } from "@shared/styles/cssVars";
 
 interface LetterSequencingScreenProps {
   onHome: () => void;
@@ -76,8 +77,7 @@ function getTileColor(letter: string) {
 function HintHand({ fx, fy, tx, ty }: { fx: number; fy: number; tx: number; ty: number }) {
   return (
     <motion.div
-      className="pointer-events-none absolute z-30"
-      style={{ left: 0, top: 0 }}
+      className="pointer-events-none absolute left-0 top-0 z-30"
       initial={{ x: fx, y: fy, opacity: 0, scale: 1 }}
       animate={{
         x: [fx, fx, tx, tx, tx],
@@ -95,19 +95,9 @@ function HintHand({ fx, fy, tx, ty }: { fx: number; fy: number; tx: number; ty: 
       aria-hidden="true"
     >
       {/* soft touch ripple under the fingertip */}
-      <div
-        className="absolute"
-        style={{
-          left: -16,
-          top: -16,
-          width: 32,
-          height: 32,
-          borderRadius: "50%",
-          background: "radial-gradient(circle, rgba(168,130,232,0.35), transparent 70%)",
-        }}
-      />
+      <div className="lt-hint-halo absolute" />
       {/* the hand, fingertip anchored at (0,0) */}
-      <svg width="44" height="48" viewBox="0 0 44 48" style={{ transform: "translate(-13px, -4px)" }}>
+      <svg width="44" height="48" viewBox="0 0 44 48" className="lt-hint-hand">
         <path
           d="M13 4 Q13 0 16.5 0 Q20 0 20 4 L20 18 Q22 16 25 17 Q28 18 28 21 Q30 19.5 33 21 Q35.5 22.3 35 25 Q38 24.5 39 27 Q40.5 31 38 36 Q35 43 27 45 Q17 47 12 40 Q8 34 7 27 Q6.4 22 10 21.5 Q12 21.3 13 23 Z"
           fill="#FFDFC4"
@@ -352,9 +342,7 @@ export function LetterSequencingScreen({ onHome }: LetterSequencingScreenProps) 
   if (phase === "select-difficulty") {
     return (
       <div
-        className="relative flex h-full w-full flex-col items-center justify-between gap-4 overflow-y-auto overflow-x-hidden px-6 py-6"
-        style={{ background: "linear-gradient(160deg, #E8F4FF 0%, #F0E8FF 100%)" }}
-      >
+        className="bg-wash-sky-lavender relative flex h-full w-full flex-col items-center justify-between gap-4 overflow-y-auto overflow-x-hidden px-6 py-6">
         <div className="flex w-full max-w-md md:max-w-xl items-center">
           <motion.button
             onClick={onHome}
@@ -390,8 +378,8 @@ export function LetterSequencingScreen({ onHome }: LetterSequencingScreenProps) 
               <motion.button
                 key={diff}
                 onClick={() => startGame(diff)}
-                className="w-full rounded-3xl p-4 text-left shadow-lg"
-                style={{ background: labels.color, border: `2.5px solid ${labels.border}` }}
+                className="pl-swatch w-full rounded-3xl p-4 text-left shadow-lg"
+                style={cssVars({ "--pl-bg": labels.color, "--pl-border": labels.border })}
                 initial={{ x: -24, opacity: 0 }}
                 animate={{ x: 0, opacity: 1 }}
                 transition={{ delay: 0.1 + i * 0.1 }}
@@ -400,11 +388,11 @@ export function LetterSequencingScreen({ onHome }: LetterSequencingScreenProps) 
               >
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="font-rounded text-lg font-black" style={{ color: labels.text }}>{labels.title}</p>
-                    <p className="font-rounded text-sm font-semibold" style={{ color: labels.text, opacity: 0.7 }}>{labels.sub}</p>
-                    <p className="mt-1 font-rounded text-xs font-bold" style={{ color: labels.text, opacity: 0.5 }}>e.g. {labels.example}</p>
+                    <p className="pl-tint font-rounded text-lg font-black" style={cssVars({ "--pl-color": labels.text })}>{labels.title}</p>
+                    <p className="pl-tint font-rounded text-sm font-semibold opacity-70" style={cssVars({ "--pl-color": labels.text })}>{labels.sub}</p>
+                    <p className="pl-tint mt-1 font-rounded text-xs font-bold opacity-50" style={cssVars({ "--pl-color": labels.text })}>e.g. {labels.example}</p>
                   </div>
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" style={{ color: labels.text, opacity: 0.6 }}>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" className="pl-tint opacity-60" style={cssVars({ "--pl-color": labels.text })}>
                     <path d="M9 18l6-6-6-6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
                 </div>
@@ -422,9 +410,7 @@ export function LetterSequencingScreen({ onHome }: LetterSequencingScreenProps) 
   if (phase === "success") {
     return (
       <div
-        className="relative flex h-full w-full flex-col items-center justify-center gap-6 overflow-y-auto overflow-x-hidden px-6 py-6"
-        style={{ background: "linear-gradient(160deg, #F0E8FF 0%, #E8FFE8 100%)" }}
-      >
+        className="bg-wash-lavender-mint relative flex h-full w-full flex-col items-center justify-center gap-6 overflow-y-auto overflow-x-hidden px-6 py-6">
         <div className="pointer-events-none fixed inset-0 z-40" aria-hidden="true">
           <CelebrationSparkles active width={dimensions.w} height={dimensions.h} />
         </div>
@@ -458,8 +444,7 @@ export function LetterSequencingScreen({ onHome }: LetterSequencingScreenProps) 
   return (
     <div
       ref={containerRef}
-      className="relative flex h-full w-full flex-col items-center justify-between gap-3 overflow-y-auto overflow-x-hidden px-5 py-4"
-      style={{ background: "linear-gradient(160deg, #F0E8FF 0%, #E8F4FF 100%)", touchAction: "none" }}
+      className="bg-wash-lavender-sky relative flex h-full w-full touch-none flex-col items-center justify-between gap-3 overflow-y-auto overflow-x-hidden px-5 py-4"
       onPointerMove={moveDrag}
       onPointerUp={endDrag}
       onPointerCancel={endDrag}
@@ -511,7 +496,7 @@ export function LetterSequencingScreen({ onHome }: LetterSequencingScreenProps) 
           {tryAgainVisible ? (
             <motion.p
               key="try-again"
-              className="font-rounded text-sm font-bold text-[#FF9EBC]"
+              className="font-rounded text-sm font-bold text-blush-soft"
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.8 }}
@@ -546,25 +531,23 @@ export function LetterSequencingScreen({ onHome }: LetterSequencingScreenProps) 
             <div
               key={i}
               ref={(el) => { slotRefs.current[i] = el; }}
-              className="flex items-center justify-center rounded-2xl border-2 border-dashed transition-colors"
-              style={{
-                width: tileSize,
-                height: tileSize,
-                background: colors && !isBeingDragged ? colors.bg : "white",
-                borderColor: colors && !isBeingDragged ? colors.border : "#DDD5F5",
-              }}
+              className="lt-slot flex items-center justify-center rounded-2xl border-2 border-dashed transition-colors"
+              style={cssVars({
+                "--pl-size": `${tileSize}px`,
+                ...(colors && !isBeingDragged && { "--pl-bg": colors.bg, "--pl-border": colors.border }),
+              } as Record<PlayLabCssVar, string | number>)}
             >
               {slotLetter && !isBeingDragged && (
                 <motion.div
-                  className="flex h-full w-full items-center justify-center rounded-2xl"
-                  style={{ background: colors?.bg, cursor: "grab" }}
+                  className="pl-bg flex h-full w-full cursor-grab items-center justify-center rounded-2xl"
+                  style={cssVars({ "--pl-bg": colors?.bg ?? "white" })}
                   animate={shakeLetter === slotLetter ? { x: [-6, 6, -5, 5, -3, 3, 0] } : { x: 0 }}
                   transition={{ duration: 0.4 }}
                   onPointerDown={(e) => startDrag(slotLetter, -1, i, e)}
                 >
                   <span
-                    className="font-rounded font-black select-none"
-                    style={{ fontSize, color: colors?.text }}
+                    className="pl-glyph pl-tint font-rounded font-black select-none"
+                    style={cssVars({ "--pl-font-size": `${fontSize}px`, "--pl-color": colors?.text ?? "inherit" })}
                   >
                     {slotLetter}
                   </span>
@@ -594,16 +577,14 @@ export function LetterSequencingScreen({ onHome }: LetterSequencingScreenProps) 
                     if (el) cardRefs.current.set(letter, el);
                     else cardRefs.current.delete(letter);
                   }}
-                  className="flex items-center justify-center rounded-2xl shadow-lg"
-                  style={{
-                    width: tileSize,
-                    height: tileSize,
-                    background: colors.bg,
-                    border: `2.5px solid ${colors.border}`,
-                    cursor: isBeingDragged ? "grabbing" : "grab",
-                    opacity: isBeingDragged ? 0.35 : 1,
-                    touchAction: "none",
-                  }}
+                  className={`lt-tile flex touch-none items-center justify-center rounded-2xl shadow-lg ${
+                    isBeingDragged ? "cursor-grabbing opacity-35" : "cursor-grab"
+                  }`}
+                  style={cssVars({
+                    "--pl-size": `${tileSize}px`,
+                    "--pl-bg": colors.bg,
+                    "--pl-border": colors.border,
+                  })}
                   initial={{ scale: 0 }}
                   animate={
                     shakeLetter === letter
@@ -616,8 +597,8 @@ export function LetterSequencingScreen({ onHome }: LetterSequencingScreenProps) 
                   aria-label={`Drag letter ${letter}`}
                 >
                   <span
-                    className="font-rounded font-black select-none"
-                    style={{ fontSize, color: colors.text }}
+                    className="pl-glyph pl-tint font-rounded font-black select-none"
+                    style={cssVars({ "--pl-font-size": `${fontSize}px`, "--pl-color": colors.text })}
                   >
                     {letter}
                   </span>
@@ -648,24 +629,22 @@ export function LetterSequencingScreen({ onHome }: LetterSequencingScreenProps) 
           return (
             <motion.div
               key="ghost"
-              className="pointer-events-none fixed z-50 flex items-center justify-center rounded-2xl shadow-2xl"
-              style={{
-                width: tileSize,
-                height: tileSize,
-                background: colors.bg,
-                border: `2.5px solid ${colors.border}`,
-                left: drag.x - tileSize / 2,
-                top: drag.y - tileSize / 2,
-                rotate: 5,
-              }}
-              initial={{ scale: 1.1, opacity: 0.9 }}
-              animate={{ scale: 1.18, opacity: 0.95 }}
+              className="lt-tile pl-at pointer-events-none fixed z-50 flex items-center justify-center rounded-2xl shadow-2xl"
+              style={cssVars({
+                "--pl-size": `${tileSize}px`,
+                "--pl-bg": colors.bg,
+                "--pl-border": colors.border,
+                "--pl-x": `${drag.x - tileSize / 2}px`,
+                "--pl-y": `${drag.y - tileSize / 2}px`,
+              })}
+              initial={{ scale: 1.1, opacity: 0.9, rotate: 5 }}
+              animate={{ scale: 1.18, opacity: 0.95, rotate: 5 }}
               exit={{ scale: 0.8, opacity: 0 }}
               transition={{ type: "spring", stiffness: 400, damping: 20 }}
             >
               <span
-                className="font-rounded font-black select-none"
-                style={{ fontSize, color: colors.text }}
+                className="pl-glyph pl-tint font-rounded font-black select-none"
+                style={cssVars({ "--pl-font-size": `${fontSize}px`, "--pl-color": colors.text })}
               >
                 {drag.letter}
               </span>

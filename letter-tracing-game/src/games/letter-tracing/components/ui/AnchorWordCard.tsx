@@ -43,31 +43,18 @@ export function AnchorWordCard({ letter, mode }: AnchorWordCardProps) {
   if (!word || (!Art && photoFailed)) return null;
 
   const docked = mode === "docked";
-  const imgSize = docked
-    ? "clamp(110px, 24vmin, 200px)" // stays LARGE when docked
-    : "clamp(140px, 32vmin, 260px)";
 
   return (
-    <div
-      className="pointer-events-none absolute z-20 flex"
-      style={{
-        // hero: centered over the board; docked: hugging the right edge,
-        // overlapping the board's frame slightly (negative right inset)
-        top: docked ? "max(72px, 13%)" : "max(64px, 11%)",
-        left: docked ? "auto" : 12,
-        right: docked ? "clamp(-14px, -1.2vmin, -6px)" : 12,
-        justifyContent: docked ? "flex-end" : "center",
-      }}
-    >
+    // hero: centered over the board; docked: hugging the right edge,
+    // overlapping the board's frame slightly (see letter-tracing.css)
+    <div className={`pointer-events-none absolute z-20 flex ${docked ? "lt-anchor--docked" : "lt-anchor--hero"}`}>
       <AnimatePresence>
         {mode !== "hidden" && (
           <motion.div
             layout
-            className="flex flex-col items-center rounded-3xl bg-white/95 shadow-lg"
-            style={{
-              gap: docked ? 4 : 6,
-              padding: docked ? "10px 12px 8px" : "16px 20px 12px",
-            }}
+            className={`flex flex-col items-center rounded-3xl bg-white/95 shadow-lg ${
+              docked ? "lt-anchor-card--docked" : "lt-anchor-card"
+            }`}
             initial={{ scale: 0.6, opacity: 0, y: 14, rotate: 0 }}
             animate={{
               scale: 1,
@@ -88,8 +75,9 @@ export function AnchorWordCard({ letter, mode }: AnchorWordCardProps) {
           >
             <motion.div
               layout
-              className="flex items-center justify-center overflow-hidden rounded-2xl"
-              style={{ width: imgSize, height: imgSize }}
+              className={`flex items-center justify-center overflow-hidden rounded-2xl ${
+                docked ? "lt-anchor-img--docked" : "lt-anchor-img"
+              }`}
             >
               {!photoFailed ? (
                 // eslint-disable-next-line @next/next/no-img-element
@@ -107,10 +95,11 @@ export function AnchorWordCard({ letter, mode }: AnchorWordCardProps) {
             </motion.div>
             <motion.p
               layout
-              className="font-rounded font-black lowercase text-plum"
-              style={{ fontSize: docked ? "clamp(13px, 2vmin, 16px)" : "clamp(15px, 2.4vmin, 19px)" }}
+              className={`font-rounded font-black lowercase text-plum ${
+                docked ? "lt-anchor-word--docked" : "lt-anchor-word"
+              }`}
             >
-              <span style={{ color: "#8B63D6" }}>{word.charAt(0)}</span>
+              <span className="text-plum-ink">{word.charAt(0)}</span>
               {word.slice(1)}
             </motion.p>
           </motion.div>

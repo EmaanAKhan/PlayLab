@@ -44,16 +44,16 @@ export function MagnetComplete({ onPlayAgain, onExitPortal }: MagnetCompleteProp
 
       <div className="relative z-10 m-auto flex w-full flex-col items-center gap-4">
         <motion.div className="text-center" initial={{ y: -20, opacity: 0 }} animate={{ y: 0, opacity: 1 }}>
-          <h1 className="font-rounded text-4xl font-black md:text-5xl" style={{ color: "#8A5A2E", textShadow: "0 2px 0 rgba(255,255,255,0.6)" }}>
+          <h1 className="mm-heading--finale font-rounded text-4xl font-black md:text-5xl">
             {clipText("cheer-amazing")}
           </h1>
-          <p className="mt-2 font-rounded text-lg font-bold" style={{ color: "#C97B4A" }}>
+          <p className="mt-2 font-rounded text-lg font-bold text-kitchen">
             The whole alphabet is in the soup!
           </p>
         </motion.div>
 
         <motion.div
-          style={{ width: "clamp(140px, 32vmin, 220px)" }}
+          className="mm-chef-finale"
           initial={{ scale: 0.5, y: 24 }}
           animate={{ scale: 1, y: [0, -10, 0] }}
           transition={{ scale: { type: "spring", stiffness: 200, damping: 15 }, y: { duration: 1, repeat: 2, ease: "easeInOut", delay: 0.4 } }}
@@ -71,8 +71,7 @@ export function MagnetComplete({ onPlayAgain, onExitPortal }: MagnetCompleteProp
           {LOWERCASE.map((l, i) => (
             <motion.span
               key={l}
-              className="flex h-8 w-8 items-center justify-center rounded-lg font-rounded text-sm font-black text-white"
-              style={{ background: "#C97B4A" }}
+              className="flex h-8 w-8 items-center justify-center rounded-lg bg-kitchen font-rounded text-sm font-black text-white"
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{ delay: 0.35 + i * 0.03, type: "spring", stiffness: 260, damping: 18 }}

@@ -714,18 +714,12 @@ export function TracingCanvas({
   }, [advanceStroke, checkStrokeDone, completeActiveStroke, onOffPath]);
 
   return (
-    <div className="relative inline-block" style={{ touchAction: "none" }}>
+    <div className="relative inline-block touch-none">
       <canvas
         ref={canvasRef}
         width={CANVAS_SIZE}
         height={CANVAS_SIZE}
-        style={{
-          width: "var(--trace-size, 320px)",
-          height: "var(--trace-size, 320px)",
-          borderRadius: 28,
-          cursor: cursorStage === "trace" ? "crosshair" : "default",
-          display: "block",
-        }}
+        className={`trace-canvas ${cursorStage === "trace" ? "trace-canvas--tracing" : "trace-canvas--idle"}`}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}

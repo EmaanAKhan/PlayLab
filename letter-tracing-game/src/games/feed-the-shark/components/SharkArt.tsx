@@ -33,7 +33,7 @@ export function FriendlyShark({
       {/* dorsal fin + letter card perched on it */}
       <path d="M100 40 L80 76 L120 76 Z" fill={DARK} />
       <rect x="70" y="2" width="60" height="44" rx="9" fill="white" stroke={DARK} strokeWidth="3" />
-      <text x="100" y="26" textAnchor="middle" dominantBaseline="central" fontSize="31" fontWeight="900" fill="#2980B9" style={{ fontFamily: "Nunito, sans-serif" }}>
+      <text x="100" y="26" textAnchor="middle" dominantBaseline="central" fontSize="31" fontWeight="900" fill="#2980B9" fontFamily="Nunito, sans-serif">
         {letter}
       </text>
 
@@ -74,7 +74,7 @@ export function FriendlyShark({
             <path d="M15 0 L26 -8 L26 8 Z" fill="#F2913D" />
             <circle cx="-9" cy="-3" r="3" fill="white" />
             <circle cx="-9.5" cy="-2.6" r="1.5" fill="#3B3B4F" />
-            <text x="2" y="1" textAnchor="middle" dominantBaseline="central" fontSize="14" fontWeight="900" fill="#7A4A12" style={{ fontFamily: "Nunito, sans-serif" }}>
+            <text x="2" y="1" textAnchor="middle" dominantBaseline="central" fontSize="14" fontWeight="900" fill="#7A4A12" fontFamily="Nunito, sans-serif">
               {fedLower}
             </text>
           </g>
@@ -125,7 +125,7 @@ export function LetterFish({ letter, colorIndex = 0 }: { letter: string; colorIn
         x="48" y="38"
         textAnchor="middle" dominantBaseline="central"
         fontSize="34" fontWeight="900" fill={c.text}
-        style={{ fontFamily: "Nunito, sans-serif" }}
+        fontFamily="Nunito, sans-serif"
       >
         {letter}
       </text>

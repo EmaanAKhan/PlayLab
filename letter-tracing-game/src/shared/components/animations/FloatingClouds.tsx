@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { cssVars } from "@shared/styles/cssVars";
 
 interface Cloud {
   id: number;
@@ -45,8 +46,8 @@ export function FloatingClouds() {
       {CLOUDS.map((cloud) => (
         <motion.div
           key={cloud.id}
-          className="absolute"
-          style={{ left: `${cloud.x}%`, top: `${cloud.y}%` }}
+          className="pl-at absolute"
+          style={cssVars({ "--pl-x": `${cloud.x}%`, "--pl-y": `${cloud.y}%` })}
           animate={{ y: [0, -10, 0], x: [0, 6, 0] }}
           transition={{
             duration: cloud.duration,

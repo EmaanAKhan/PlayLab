@@ -1,5 +1,8 @@
 "use client";
 
+import { MAGNET_COLORS } from "@games/magnet-match/constants/letters";
+import { cssVars } from "@shared/styles/cssVars";
+
 /**
  * Magnet Match characters — hand-drawn SVG in the platform's pastel style,
  * matched to the provided references: a cute round-faced boy chef with a
@@ -107,5 +110,61 @@ export function OwlArt() {
       <circle cx="38.5" cy="27.5" r="1.4" fill="white" />
       <path d="M27 36 L30 41 L33 36 Z" fill="#E8863D" />
     </svg>
+  );
+}
+
+/** Jigsaw path shared by pieces and their holes: knob on top, notch in the
+ *  bottom — stacked slots read as an interlocking puzzle column, and a
+ *  colored piece visibly COMPLETES its gray cutout because the silhouettes
+ *  are identical. viewBox includes the knob overhang. */
+const PIECE_PATH =
+  "M14 2 H36 C36 2 38 -11 50 -11 C62 -11 64 2 64 2 H86 Q98 2 98 14 V86 Q98 98 86 98 " +
+  "H64 C64 98 62 87 50 87 C38 87 36 98 36 98 H14 Q2 98 2 86 V14 Q2 2 14 2 Z";
+
+/** A puzzle-piece letter — colored (raised, glossy) or gray (recessed hole). */
+export function PuzzleMagnet({
+  letter,
+  colorIndex,
+  gray = false,
+  size,
+}: {
+  letter: string;
+  colorIndex: number;
+  gray?: boolean;
+  size: string;
+}) {
+  const c = MAGNET_COLORS[colorIndex % MAGNET_COLORS.length];
+  return (
+    <span className="pl-box block" style={cssVars({ "--pl-size": `${size}px` })} aria-hidden="true">
+      <svg
+        viewBox="0 -13 100 113"
+        className={`h-full w-full ${gray ? "" : "mm-piece-shadow"}`}
+      >
+        {gray ? (
+          <>
+            {/* recessed hole: dark fill, dashed edge, soft inner shadow lip */}
+            <path d={PIECE_PATH} fill="rgba(90,90,104,0.18)" />
+            <path d={PIECE_PATH} fill="none" stroke="rgba(120,120,132,0.6)" strokeWidth="3" strokeDasharray="7 6" />
+            <path d="M14 2 H36 C36 2 38 -11 50 -11 C62 -11 64 2 64 2 H86 Q98 2 98 14" fill="none" stroke="rgba(60,60,72,0.25)" strokeWidth="5" strokeLinecap="round" />
+            <text x="50" y="50" textAnchor="middle" dominantBaseline="central" fontSize="48" fontWeight="900" fill="#8A8A96" fontFamily="Nunito, sans-serif">
+              {letter}
+            </text>
+          </>
+        ) : (
+          <>
+            <path d={PIECE_PATH} fill={c.fill} stroke={c.edge} strokeWidth="4" strokeLinejoin="round" />
+            {/* glossy top highlight */}
+            <path d="M14 6 Q50 -2 86 6 Q86 16 50 13 Q14 16 14 6 Z" fill="rgba(255,255,255,0.35)" />
+            {/* letter with a soft press shadow (SVG has no text-shadow) */}
+            <text x="51.5" y="52" textAnchor="middle" dominantBaseline="central" fontSize="48" fontWeight="900" fill="rgba(0,0,0,0.22)" fontFamily="Nunito, sans-serif">
+              {letter}
+            </text>
+            <text x="50" y="50" textAnchor="middle" dominantBaseline="central" fontSize="48" fontWeight="900" fill="white" fontFamily="Nunito, sans-serif">
+              {letter}
+            </text>
+          </>
+        )}
+      </svg>
+    </span>
   );
 }

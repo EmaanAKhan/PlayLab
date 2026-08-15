@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Button } from "@shared/components/ui/Button";
+import { cssVars } from "@shared/styles/cssVars";
 import { StartOptions } from "@shared/components/ui/StartOptions";
 import { HomeEnvironment } from "@shared/components/animations/HomeEnvironment";
 import { LETTER_SYMBOLS, NUMBER_SYMBOLS } from "@games/letter-tracing/constants/symbols";
@@ -79,7 +79,8 @@ function FlowerSvg({ x, y, sway = false }: { x: number; y: number; sway?: boolea
     <motion.g
       animate={{ rotate: [-4, 4, -4] }}
       transition={{ duration: 2.8 + (x % 5) * 0.3, repeat: Infinity, ease: "easeInOut" }}
-      style={{ originX: `${x}px`, originY: `${y + 18}px` }}
+      className="pl-origin"
+      style={cssVars({ "--pl-origin": `${x}px ${y + 18}px` })}
     >
       {inner}
     </motion.g>
@@ -174,16 +175,15 @@ export function HomeScreen({ onContinue, onStartFromA, onSelectLetter, onBack }:
 
   return (
     <div
-      className="relative flex h-full w-full flex-col items-center justify-between gap-4 overflow-y-auto overflow-x-hidden"
-      style={{ background: `linear-gradient(180deg, ${bg1} 0%, ${bg2} 60%, #C8F0D8 100%)` }}
+      className="lt-bg-theme relative flex h-full w-full flex-col items-center justify-between gap-4 overflow-y-auto overflow-x-hidden"
+      style={cssVars({ "--pl-theme-1": bg1, "--pl-theme-2": bg2 })}
     >
       {/* ── Animated nature background ─────────────────────────────────── */}
       <svg
-        className="pointer-events-none absolute inset-0 w-full h-full"
+        className="pointer-events-none absolute inset-0 z-0 h-full w-full"
         viewBox="0 0 420 896"
         preserveAspectRatio="xMidYMax slice"
         aria-hidden="true"
-        style={{ zIndex: 0 }}
       >
         {/* ── Clouds (4 groups, slow drift) ── */}
         <motion.g
@@ -358,19 +358,21 @@ export function HomeScreen({ onContinue, onStartFromA, onSelectLetter, onBack }:
             {["A", "B", "C"].map((l, i) => (
               <motion.div
                 key={l}
-                className="flex items-center justify-center rounded-2xl shadow-lg"
-                style={{
-                  width: 46 + i * 4,
-                  height: 46 + i * 4,
-                  background: ["#DDD5F5", "#C8F0D8", "#FFD6BC"][i],
-                  border: `2.5px solid ${["#A882E8", "#66CC94", "#FFAA80"][i]}`,
-                }}
+                className="pl-box pl-swatch flex items-center justify-center rounded-2xl shadow-lg"
+                style={cssVars({
+                  "--pl-size": `${46 + i * 4}px`,
+                  "--pl-bg": ["#DDD5F5", "#C8F0D8", "#FFD6BC"][i],
+                  "--pl-border": ["#A882E8", "#66CC94", "#FFAA80"][i],
+                })}
                 animate={{ y: [0, -4, 0] }}
                 transition={{ duration: 2.5, delay: i * 0.35, repeat: Infinity, ease: "easeInOut" }}
               >
                 <span
-                  className="font-rounded font-black"
-                  style={{ fontSize: 22 + i * 2, color: ["#7C5CBF", "#3DAA72", "#C06030"][i] }}
+                  className="pl-glyph pl-tint font-rounded font-black"
+                  style={cssVars({
+                    "--pl-font-size": `${22 + i * 2}px`,
+                    "--pl-color": ["#7C5CBF", "#3DAA72", "#C06030"][i],
+                  })}
                 >
                   {l}
                 </span>
@@ -406,19 +408,16 @@ export function HomeScreen({ onContinue, onStartFromA, onSelectLetter, onBack }:
                   <motion.button
                     key={m.id}
                     onClick={() => setPracticeMode(m.id)}
-                    className="flex min-h-[38px] items-center gap-1.5 rounded-full px-4 py-1.5"
-                    style={{
-                      background: selected ? "white" : "transparent",
-                      boxShadow: selected ? "0 2px 8px rgba(124,92,191,0.18)" : "none",
-                    }}
+                    className={`flex min-h-[38px] items-center gap-1.5 rounded-full px-4 py-1.5 ${
+                      selected ? "bg-white shadow-pill" : "bg-transparent"
+                    }`}
                     whileTap={{ scale: 0.94 }}
                     aria-pressed={selected}
                     aria-label={m.id === "free" ? "Free mode — trace each letter once" : "Five star mode — practice five times"}
                   >
                     <span className="text-sm">{m.icon}</span>
                     <span
-                      className="font-rounded text-sm font-black"
-                      style={{ color: selected ? "#7C5CBF" : "#A594C8" }}
+                      className={`font-rounded text-sm font-black ${selected ? "text-plum" : "text-plum-muted"}`}
                     >
                       {m.label}
                     </span>
@@ -439,8 +438,7 @@ export function HomeScreen({ onContinue, onStartFromA, onSelectLetter, onBack }:
 
           {/* Alphabet shelf */}
           <div
-            className="grid gap-1.5 sm:gap-2"
-            style={{ gridTemplateColumns: "repeat(auto-fill, minmax(50px, 1fr))" }}
+            className="pl-symbol-grid gap-1.5 sm:gap-2"
           >
             {allLetters.map((letter, index) => {
               const isDone = currentProgress.completedLetters.includes(letter);
@@ -451,22 +449,17 @@ export function HomeScreen({ onContinue, onStartFromA, onSelectLetter, onBack }:
                 <motion.button
                   key={letter}
                   onClick={() => onSelectLetter(index)}
-                  className="flex aspect-square min-h-[48px] min-w-[48px] items-center justify-center rounded-xl shadow-sm"
-                  style={{
-                    background: isDone ? "#7C5CBF" : isCurrent ? "#DDD5F5" : "white",
-                    border: isCurrent ? "2.5px solid #A882E8" : "2px solid #EDE7FA",
-                  }}
+                  className={`flex aspect-square min-h-[48px] min-w-[48px] items-center justify-center rounded-xl shadow-sm ${
+                    isDone ? "lt-shelf-tile--done" : isCurrent ? "lt-shelf-tile--current" : "lt-shelf-tile"
+                  }`}
                   whileTap={{ scale: 0.9 }}
                   whileHover={{ scale: 1.06 }}
                   aria-label={`Trace the letter ${display}`}
                 >
                   <span
-                    className="font-rounded font-black"
-                    style={{
-                      color: isDone ? "white" : "#7C5CBF",
-                      fontSize: isNumber && display.length > 1 ? "clamp(15px, 2.2vw, 21px)" : "clamp(19px, 2.8vw, 26px)",
-                      lineHeight: 1,
-                    }}
+                    className={`font-rounded font-black leading-none ${isDone ? "text-white" : "text-plum"} ${
+                      isNumber && display.length > 1 ? "lt-shelf-glyph--wide" : "lt-shelf-glyph"
+                    }`}
                   >
                     {display}
                   </span>

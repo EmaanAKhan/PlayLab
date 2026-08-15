@@ -180,8 +180,7 @@ export function Sparkles({
       ref={canvasRef}
       width={width}
       height={height}
-      className={className}
-      style={{ pointerEvents: "none" }}
+      className={`pointer-events-none ${className}`}
       aria-hidden="true"
     />
   );

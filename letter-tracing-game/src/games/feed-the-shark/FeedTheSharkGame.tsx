@@ -1,15 +1,13 @@
 "use client";
 
-import { useEffect, useCallback } from "react";
+import { useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
-import { useScreenHistorySync } from "@shared/hooks/useScreenHistorySync";
-import { RotateDevicePrompt } from "@shared/components/ui/RotateDevicePrompt";
-import { initAudio } from "@shared/audio/sfx";
-import { startMusic, stopMusic } from "@shared/audio/music";
+import { GameStage } from "@shared/components/game/GameStage";
+import { useGameSession } from "@shared/hooks/useGameSession";
 import { PAGE_TRANSITION } from "@shared/constants/transitions";
 import { PORTAL_ROUTE } from "@shared/constants/routes";
-import { useSharkStore } from "@games/feed-the-shark/store/sharkStore";
+import { useSharkStore, type SharkScreen } from "@games/feed-the-shark/store/sharkStore";
 import { TOTAL_ROUNDS } from "@games/feed-the-shark/constants/letters";
 import { SharkSplash } from "@games/feed-the-shark/components/SharkSplash";
 import { SharkLevel } from "@games/feed-the-shark/components/SharkLevel";
@@ -18,29 +16,13 @@ import { SharkComplete } from "@games/feed-the-shark/components/SharkComplete";
 /** Coarse history bucket: splash is "menu", gameplay + completion collapse
  *  into "play" (13 auto-advancing rounds must not stack 13 history entries —
  *  the same grain as the other games). */
-function toBucket(screen: string): "menu" | "play" {
+function toBucket(screen: SharkScreen): "menu" | "play" {
   return screen === "splash" ? "menu" : "play";
 }
 
 export function FeedTheSharkGame() {
   const router = useRouter();
   const { screen, roundIndex, setScreen, nextRound, resetProgress } = useSharkStore();
-
-  useEffect(() => {
-    initAudio();
-    setScreen("splash"); // always enter through the intro, like every game
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // Background music: starts once the child taps past the splash (that tap
-  // unlocks the AudioContext), loops for the whole session, fades out when
-  // the game unmounts. startMusic is a shared singleton — hopping between
-  // games can never stack two tracks.
-  useEffect(() => {
-    if (screen !== "splash") startMusic();
-  }, [screen]);
-  useEffect(() => () => stopMusic(), []);
-
 
   // Back button: from gameplay, retreat to the splash instead of exiting
   // straight to the portal.
@@ -50,7 +32,13 @@ export function FeedTheSharkGame() {
     },
     [setScreen]
   );
-  useScreenHistorySync(toBucket(screen), handlePop);
+
+  useGameSession({
+    screen,
+    step: toBucket(screen),
+    onHistoryPop: handlePop,
+    onEnter: () => setScreen("splash"), // always enter through the intro, like every game
+  });
 
   const hasProgress = roundIndex > 0 && roundIndex < TOTAL_ROUNDS;
 
@@ -66,8 +54,7 @@ export function FeedTheSharkGame() {
   }, [resetProgress, setScreen]);
 
   return (
-    <main className="relative h-full w-full overflow-hidden">
-      <RotateDevicePrompt />
+    <GameStage>
       <AnimatePresence mode="wait">
         {screen === "splash" && (
           <motion.div key="splash" className="absolute inset-0" {...PAGE_TRANSITION}>
@@ -94,6 +81,6 @@ export function FeedTheSharkGame() {
           </motion.div>
         )}
       </AnimatePresence>
-    </main>
+    </GameStage>
   );
 }

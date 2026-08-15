@@ -9,7 +9,11 @@ import { PencilPal, Notebook } from "@games/letter-hunt/components/PennyArt";
 import { HomeEnvironment } from "@shared/components/animations/HomeEnvironment";
 import { shuffle } from "@shared/utils/random";
 import { playCorrectSound, playIncorrectSound, playClickSound } from "@shared/audio/sfx";
-import { CelebrationSparkles } from "@shared/components/animations/Sparkles";
+import { StarRow } from "@shared/components/ui/StarRow";
+import { NavPillButton } from "@shared/components/ui/NavPillButton";
+import { CelebrationOverlay } from "@shared/components/game/CelebrationOverlay";
+import { useElementSize } from "@shared/hooks/useElementSize";
+import { cssVars } from "@shared/styles/cssVars";
 import { playClip, playSequence, preloadClips, clipText, stopVoice } from "@shared/audio/voice";
 
 /** Letters that look too similar to make fair decoys for a given target */
@@ -69,8 +73,7 @@ function HypnoRings({ hue }: { hue: string }) {
   return (
     <motion.svg
       viewBox="0 0 100 100"
-      className="absolute inset-0 h-full w-full"
-      style={{ opacity: 0.4 }}
+      className="absolute inset-0 h-full w-full opacity-40"
       animate={{ rotate: 360 }}
       transition={{ duration: 13, repeat: Infinity, ease: "linear" }}
       aria-hidden="true"
@@ -166,12 +169,7 @@ export function HuntLevel() {
   // so the confetti always spans the true play viewport, immune to any
   // transformed ancestor (which is what causes confetti to bunch to one
   // side: position:fixed breaks inside a transformed parent, this doesn't).
-  const rootRef = useRef<HTMLDivElement>(null);
-  const [dims, setDims] = useState({ w: 360, h: 640 });
-  useEffect(() => {
-    const el = rootRef.current;
-    if (el) setDims({ w: el.offsetWidth, h: el.offsetHeight });
-  }, []);
+  const [rootRef, dims] = useElementSize();
 
   const foundCount = useMemo(() => cards.filter((c) => c.isTarget && c.found).length, [cards]);
 
@@ -237,23 +235,17 @@ export function HuntLevel() {
   return (
     <div
       ref={rootRef}
-      className="relative flex h-full w-full flex-col items-center overflow-hidden px-4 py-4"
-      style={{ background: "linear-gradient(180deg, #C8F0D8 0%, #E8F8EF 60%, #C8F0D8 100%)" }}
-    >
+      className="bg-wash-mint relative flex h-full w-full flex-col items-center overflow-hidden px-4 py-4">
       <HomeEnvironment />
 
       {/* Top bar */}
       <div className="relative z-10 flex w-full max-w-xl items-center justify-between">
-        <button
+        <NavPillButton
+          label="Home"
+          ariaLabel="Back to Letter Hunt home"
+          tone="plum"
           onClick={() => { playClickSound(); stopVoice(); router.back(); }}
-          className="flex min-h-[44px] items-center gap-1.5 rounded-full bg-white/80 px-3.5 py-2 shadow-soft"
-          aria-label="Back to Letter Hunt home"
-        >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-            <path d="M15 18l-6-6 6-6" stroke="#7C5CBF" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-          <span className="font-rounded text-xs font-bold text-plum/80">Home</span>
-        </button>
+        />
 
         {phase === "find" && (
           <div className="flex items-center gap-2 rounded-full bg-white/80 px-4 py-2 shadow-soft">
@@ -266,40 +258,7 @@ export function HuntLevel() {
         {phase !== "intro" ? (
           <div className="flex min-h-[44px] items-center gap-1.5 rounded-full bg-white/80 px-3.5 shadow-soft"
                role="status" aria-label={`${foundCount} of ${TARGET_TOTAL} stars earned`}>
-            {Array.from({ length: TARGET_TOTAL }).map((_, i) => {
-              const filled = i < foundCount;
-              const justFilled = i === foundCount - 1;
-              return (
-                <motion.div
-                  key={i}
-                  className="relative"
-                  initial={false}
-                  animate={justFilled ? { scale: [1, 1.5, 1.05, 1.2, 1] } : { scale: 1 }}
-                  transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-                >
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-                    <path
-                      d="M12 1.5l2.9 6.8 7.4.6-5.6 4.9 1.7 7.2L12 17.1l-6.4 3.9 1.7-7.2-5.6-4.9 7.4-.6L12 1.5z"
-                      fill={filled ? "#FFD93D" : "#E7DFFA"}
-                      stroke={filled ? "#F4A73E" : "#D8CDF2"}
-                      strokeWidth="1"
-                    />
-                  </svg>
-                  {justFilled && (
-                    <motion.div
-                      className="absolute inset-0"
-                      initial={{ opacity: 0.9, scale: 1 }}
-                      animate={{ opacity: 0, scale: 2.4 }}
-                      transition={{ duration: 0.55, ease: "easeOut" }}
-                      style={{
-                        borderRadius: "50%",
-                        background: "radial-gradient(circle, rgba(255,217,61,0.55), transparent 70%)",
-                      }}
-                    />
-                  )}
-                </motion.div>
-              );
-            })}
+            <StarRow earned={foundCount} total={TARGET_TOTAL} />
           </div>
         ) : (
           <div className="w-[84px]" aria-hidden="true" />
@@ -317,7 +276,7 @@ export function HuntLevel() {
             exit={{ opacity: 0, y: -12 }}
           >
             <motion.div
-              style={{ width: "clamp(80px, 18vmin, 140px)" }}
+              className="hunt-penny-intro"
               initial={{ x: -60, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
               transition={{ type: "spring", stiffness: 160, damping: 18 }}
@@ -335,8 +294,7 @@ export function HuntLevel() {
                 <AnimatePresence>
                   {introStep >= 1 && (
                     <motion.span
-                      className="font-rounded font-black text-plum"
-                      style={{ fontSize: "clamp(90px, 24vmin, 190px)", lineHeight: 1 }}
+                      className="hunt-notebook-letter font-rounded font-black leading-none text-plum"
                       initial={{ scale: 0.3, opacity: 0 }}
                       animate={{ scale: [0.3, 1.12, 1], opacity: 1 }}
                       transition={{ duration: 0.5 }}
@@ -377,15 +335,14 @@ export function HuntLevel() {
               <motion.button
                 key={c.id}
                 onClick={() => tapCard(c)}
-                className="absolute flex min-h-[52px] min-w-[52px] items-center justify-center p-2 shadow-card"
-                style={{
-                  left: `clamp(60px, ${c.x}%, calc(100% - 60px))`,
-                  top: `clamp(52px, ${c.y}%, calc(100% - 52px))`,
-                  background: c.style.bg,
-                  border: `3.5px solid ${c.found ? "#66CC94" : c.style.border}`,
-                  borderRadius: c.style.radius,
-                  touchAction: "manipulation",
-                }}
+                className="hunt-card absolute flex min-h-[52px] min-w-[52px] items-center justify-center p-2 shadow-card"
+                style={cssVars({
+                  "--pl-x": `clamp(60px, ${c.x}%, calc(100% - 60px))`,
+                  "--pl-y": `clamp(52px, ${c.y}%, calc(100% - 52px))`,
+                  "--pl-bg": c.style.bg,
+                  "--pl-border": c.found ? "#66CC94" : c.style.border,
+                  "--pl-radius": c.style.radius,
+                })}
                 initial={{ x: "-50%", y: "-50%", scale: 0, opacity: 0, rotate: c.rotate }}
                 animate={
                   shakeId === c.id
@@ -398,23 +355,19 @@ export function HuntLevel() {
               >
                 {/* slow, calm hypnotic ring pattern — clipped to the card shape only,
                     so the sparkle burst below can still fly freely outside it */}
-                <div className="absolute inset-0 overflow-hidden" style={{ borderRadius: c.style.radius }}>
+                <div className="hunt-card-clip absolute inset-0 overflow-hidden">
                   <HypnoRings hue={c.style.border} />
                 </div>
                 {/* soft halo keeps the letter legible over the busy rings */}
                 <span
-                  className="absolute rounded-full bg-white/70"
-                  style={{ width: "72%", height: "72%" }}
+                  className="hunt-card-halo absolute rounded-full bg-white/70"
                   aria-hidden="true"
                 />
                 <span
-                  className="relative font-rounded font-black"
-                  style={{
-                    fontSize: c.fontSize,
-                    lineHeight: 1,
-                    color: c.style.outline ? "transparent" : c.style.color,
-                    WebkitTextStroke: c.style.outline ? `3px ${c.style.color}` : undefined,
-                  }}
+                  className={`pl-glyph relative font-rounded font-black leading-none ${
+                    c.style.outline ? "hunt-glyph--outline" : "pl-tint"
+                  }`}
+                  style={cssVars({ "--pl-font-size": c.fontSize, "--pl-color": c.style.color })}
                 >
                   {c.letter}
                 </span>
@@ -434,19 +387,9 @@ export function HuntLevel() {
       {/* ── Completion: Penny with a star + MATCHING spoken/displayed cheer ── */}
       <AnimatePresence>
         {phase === "done" && (
-          <motion.div
-            className="absolute inset-0 z-30 flex flex-col items-center justify-center gap-4 px-6"
-            style={{ background: "rgba(240,232,255,0.93)", backdropFilter: "blur(3px)" }}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-          >
-            <div className="pointer-events-none absolute inset-0" aria-hidden="true">
-              <CelebrationSparkles active width={dims.w} height={dims.h} />
-            </div>
+          <CelebrationOverlay tintClassName="hunt-done-tint" gapClassName="gap-4" blur="3px" size={dims}>
             <motion.div
-              className="relative"
-              style={{ width: "clamp(100px, 24vmin, 170px)" }}
+              className="hunt-penny-done relative"
               initial={{ scale: 0.5, y: 20 }}
               animate={{ scale: 1, y: [0, -10, 0] }}
               transition={{
@@ -464,7 +407,7 @@ export function HuntLevel() {
               </motion.span>
               <PencilPal />
             </motion.div>
-            <h2 className="font-rounded font-black text-plum" style={{ fontSize: "clamp(28px, 7vmin, 44px)" }}>
+            <h2 className="hunt-done-heading font-rounded font-black text-plum">
               {clipText(cheerId)}
             </h2>
             <p className="font-rounded text-base font-semibold text-plum/60">
@@ -472,8 +415,7 @@ export function HuntLevel() {
             </p>
             <button
               onClick={goNext}
-              className="inline-flex min-h-[52px] items-center gap-2 px-7 font-rounded text-base font-black text-white shadow-lg"
-              style={{ background: "#7C5CBF", borderRadius: 9999 }}
+              className="inline-flex min-h-[52px] items-center gap-2 rounded-full bg-plum px-7 font-rounded text-base font-black text-white shadow-lg"
               aria-label={`Next letter: ${LETTERS[(currentIndex + 1) % 26]}`}
             >
               <span>Next</span>
@@ -481,7 +423,7 @@ export function HuntLevel() {
                 <path d="M9 6l6 6-6 6" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </button>
-          </motion.div>
+          </CelebrationOverlay>
         )}
       </AnimatePresence>
     </div>

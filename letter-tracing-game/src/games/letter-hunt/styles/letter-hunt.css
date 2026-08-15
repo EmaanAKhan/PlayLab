@@ -1,0 +1,92 @@
+/**
+ * Letter Hunt — game-specific visual identity.
+ * All values verbatim from the original screens.
+ */
+
+/* ── Splash / home ── */
+
+.hunt-drift-glyph {
+  font-size: clamp(30px, 6vmin, 52px);
+}
+.hunt-penny-splash {
+  width: clamp(90px, 20vmin, 150px);
+}
+.hunt-penny-home {
+  width: clamp(64px, 12vmin, 96px);
+}
+.hunt-progress-fill {
+  background: linear-gradient(90deg, #a882e8, #74b9ff);
+}
+.hunt-tile {
+  background: white;
+  border: 2px solid var(--color-lavender-line);
+}
+.hunt-tile--done {
+  background: var(--color-plum);
+  border: 2.5px solid var(--color-plum);
+}
+.hunt-tile-glyph {
+  font-size: clamp(16px, 3.2vmin, 22px);
+}
+
+/* ── Penny + notebook ── */
+
+/** Penny's pointing arm pivots at her shoulder. */
+.hunt-arm-origin {
+  transform-origin: 82px 110px;
+}
+.hunt-notebook {
+  width: clamp(170px, 38vmin, 300px);
+  height: clamp(200px, 44vmin, 350px);
+  background: white;
+  border: 3px solid var(--color-paper-edge);
+}
+/** One spiral coil of the notebook binding. */
+.hunt-spiral-coil {
+  border: 2px solid #b8aed0;
+  background: #e8e2f5;
+}
+.hunt-notebook-letter {
+  font-size: clamp(90px, 24vmin, 190px);
+}
+.hunt-penny-intro {
+  width: clamp(80px, 18vmin, 140px);
+}
+
+/* ── Find board ── */
+
+/** A scattered card: position, palette and radius arrive per-round via cssVars. */
+.hunt-card {
+  left: var(--pl-x);
+  top: var(--pl-y);
+  background: var(--pl-bg);
+  border: 3.5px solid var(--pl-border);
+  border-radius: var(--pl-radius);
+  touch-action: manipulation;
+}
+/** Clips the hypnotic rings to the card's own shape. */
+.hunt-card-clip {
+  border-radius: var(--pl-radius);
+}
+/** Soft halo keeping the letter legible over the busy rings. */
+.hunt-card-halo {
+  width: 72%;
+  height: 72%;
+}
+/** Outline-style card treatment: hollow glyph, stroked in the card colour. */
+.hunt-glyph--outline {
+  color: transparent;
+  -webkit-text-stroke: 3px var(--pl-color);
+}
+
+/* ── Completion overlay ── */
+
+.hunt-done-tint {
+  background: rgba(240, 232, 255, 0.93);
+}
+.hunt-penny-done {
+  width: clamp(100px, 24vmin, 170px);
+}
+.hunt-done-heading {
+  font-size: clamp(28px, 7vmin, 44px);
+}

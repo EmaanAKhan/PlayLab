@@ -1,0 +1,31 @@
+/**
+ * portal.css — the homepage's picture-book identity.
+ * Colours reference the paper tokens emitted from shared/styles/tokens.ts.
+ */
+
+/** The desk the book lies on. */
+.portal-desk {
+  background: var(--color-paper-desk);
+}
+
+/** The open page: cream paper, hairline edge, drop shadow + double ink frame. */
+.portal-page {
+  background: var(--color-paper);
+  border: 1px solid var(--color-paper-edge);
+  box-shadow: var(--shadow-page);
+}
+
+/** The short rule under the book heading. */
+.portal-rule {
+  background: var(--color-paper-edge);
+}
+
+/** A game tile — border colour comes from that game's registry entry. */
+.portal-tile {
+  background: white;
+  border: 2.5px solid var(--pl-border);
+}
+
+.portal-tile-glyph {
+  font-size: clamp(44px, 8vw, 64px);
+}

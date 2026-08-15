@@ -3,6 +3,9 @@
 import { motion } from "framer-motion";
 import { useEffect } from "react";
 import { useJungleStore } from "@games/jungle-spy/store/jungleStore";
+import { NavPillButton } from "@shared/components/ui/NavPillButton";
+import { ProgressBar } from "@shared/components/ui/ProgressBar";
+import { cssVars } from "@shared/styles/cssVars";
 import { JUNGLE_ANIMALS } from "@games/jungle-spy/constants/animals";
 import {
   Monkey, Frog, Lion, Elephant, Giraffe, Zebra, Penguin, Koala, Turtle,
@@ -26,8 +29,8 @@ export function JungleBackdrop() {
         <motion.svg
           key={i}
           viewBox="0 0 100 100"
-          className="absolute"
-          style={{ left: l.x, top: l.y, width: l.w, rotate: `${l.r}deg` }}
+          className="pl-at pl-width absolute"
+          style={cssVars({ "--pl-x": l.x, "--pl-y": l.y, "--pl-size": l.w })}
           animate={{ rotate: [l.r, l.r + 3, l.r] }}
           transition={{ duration: l.d, repeat: Infinity, ease: "easeInOut" }}
         >
@@ -38,8 +41,7 @@ export function JungleBackdrop() {
       {/* hanging vine */}
       <motion.svg
         viewBox="0 0 40 160"
-        className="absolute"
-        style={{ left: "30%", top: "-2%", width: "clamp(20px, 3vw, 36px)" }}
+        className="jsp-vine absolute"
         animate={{ rotate: [-2, 2, -2] }}
         transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
       >
@@ -61,29 +63,24 @@ export function JungleSplash({ onExitPortal }: { onExitPortal?: () => void }) {
   };
   return (
     <div
-      className="relative flex h-full w-full flex-col items-center justify-center gap-8 overflow-y-auto overflow-x-hidden px-6 py-8"
-      style={{ background: "linear-gradient(165deg, #E8F8EE 0%, #FFF6D6 100%)" }}
-    >
+      className="jsp-bg-canopy relative flex h-full w-full flex-col items-center justify-center gap-8 overflow-y-auto overflow-x-hidden px-6 py-8">
       <JungleBackdrop />
 
       {onExitPortal && (
-        <button
+        <NavPillButton
+          label="Back to Games"
+          ariaLabel="Back to the game portal"
+          tone="plum"
+          surface="soft"
+          pinned
           onClick={() => { playClickSound(); onExitPortal(); }}
-          className="absolute left-4 top-4 z-20 flex min-h-[44px] items-center gap-1.5 rounded-full bg-white/75 px-3.5 py-2 shadow-soft"
-          aria-label="Back to the game portal"
-        >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-            <path d="M15 18l-6-6 6-6" stroke="#7C5CBF" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-          <span className="font-rounded text-xs font-bold text-plum/80">Back to Games</span>
-        </button>
+        />
       )}
 
       {/* Jungle sun */}
       <motion.svg
         viewBox="0 0 60 60"
-        className="pointer-events-none absolute right-[6%] top-[5%] z-0"
-        style={{ width: "clamp(48px, 8vw, 90px)" }}
+        className="jsp-sun pointer-events-none absolute right-[6%] top-[5%] z-0"
         animate={{ rotate: 360 }}
         transition={{ duration: 60, repeat: Infinity, ease: "linear" }}
         aria-hidden="true"
@@ -106,8 +103,8 @@ export function JungleSplash({ onExitPortal }: { onExitPortal?: () => void }) {
         { x: "84%", y: "40%", w: "clamp(22px, 4vw, 40px)", c: "#C9A9F5", d: 8.5 },
       ].map((b, i) => (
         <motion.svg key={i} viewBox="0 0 40 30"
-          className="pointer-events-none absolute z-0"
-          style={{ left: b.x, top: b.y, width: b.w }}
+          className="pl-at pl-width pointer-events-none absolute z-0"
+          style={cssVars({ "--pl-x": b.x, "--pl-y": b.y, "--pl-size": b.w })}
           animate={{ y: [0, -12, 0], x: [0, i ? -10 : 10, 0], rotate: [-4, 4, -4] }}
           transition={{ duration: b.d, repeat: Infinity, ease: "easeInOut" }}
           aria-hidden="true"
@@ -126,8 +123,8 @@ export function JungleSplash({ onExitPortal }: { onExitPortal?: () => void }) {
         animate={{ y: 0, opacity: 1 }}
       >
         <div className="flex items-end gap-2">
-          <div style={{ width: "clamp(52px, 9vmin, 84px)" }}><Monkey /></div>
-          <div style={{ width: "clamp(40px, 7vmin, 64px)" }}><Frog /></div>
+          <div className="jsp-mascot-lg"><Monkey /></div>
+          <div className="jsp-mascot-sm"><Frog /></div>
         </div>
         <h1 className="text-center font-rounded text-4xl font-black text-plum md:text-5xl">
           Jungle ABC Spy
@@ -147,13 +144,9 @@ export function JungleSplash({ onExitPortal }: { onExitPortal?: () => void }) {
           <motion.button
             key={b.c}
             onClick={() => pick(b.c)}
-            className="flex items-center justify-center rounded-4xl shadow-lg"
-            style={{
-              background: i === 0 ? "#C8F0D8" : "#FFF0B3",
-              border: `3px solid ${i === 0 ? "#66CC94" : "#F2C94C"}`,
-              width: "clamp(110px, 20vmin, 160px)",
-              height: "clamp(90px, 16vmin, 130px)",
-            }}
+            className={`jsp-case-btn flex items-center justify-center rounded-4xl shadow-lg ${
+              i === 0 ? "jsp-case-btn--upper" : "jsp-case-btn--lower"
+            }`}
             initial={{ scale: 0.85, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ delay: 0.15 + i * 0.08 }}
@@ -162,8 +155,9 @@ export function JungleSplash({ onExitPortal }: { onExitPortal?: () => void }) {
             aria-label={b.aria}
           >
             <span
-              className="font-rounded font-black"
-              style={{ color: i === 0 ? "#3DAA72" : "#C08A2D", fontSize: "clamp(30px, 6vmin, 44px)" }}
+              className={`jsp-case-glyph font-rounded font-black ${
+                i === 0 ? "jsp-case-glyph--upper" : "jsp-case-glyph--lower"
+              }`}
             >
               {b.label}
             </span>
@@ -184,7 +178,8 @@ export function JungleSplash({ onExitPortal }: { onExitPortal?: () => void }) {
         ].map(({ A, w, d }, i) => (
           <motion.div
             key={i}
-            style={{ width: w }}
+            className="pl-width"
+            style={cssVars({ "--pl-size": w })}
             initial={{ y: 30, opacity: 0 }}
             animate={{ y: [0, -7, 0], opacity: 1 }}
             transition={{
@@ -225,22 +220,18 @@ export function JungleGrid() {
 
   return (
     <div
-      className="relative flex h-full w-full flex-col items-center gap-4 overflow-y-auto overflow-x-hidden px-5 py-6"
-      style={{ background: "linear-gradient(165deg, #E8F8EE 0%, #FFF6D6 100%)" }}
-    >
+      className="jsp-bg-canopy relative flex h-full w-full flex-col items-center gap-4 overflow-y-auto overflow-x-hidden px-5 py-6">
       <JungleBackdrop />
 
       {/* Back to this game's home (the ABC/abc splash) — pinned top-left */}
-      <button
+      <NavPillButton
+        label="Back"
+        ariaLabel="Back to Jungle Spy home"
+        tone="jungle"
+        surface="soft"
+        pinned
         onClick={() => { playClickSound(); setScreen("splash"); }}
-        className="absolute left-4 top-4 z-20 flex min-h-[44px] items-center gap-1.5 rounded-full bg-white/75 px-3.5 py-2 shadow-soft"
-        aria-label="Back to Jungle Spy home"
-      >
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-          <path d="M15 18l-6-6 6-6" stroke="#3DAA72" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-        <span className="font-rounded text-xs font-bold" style={{ color: "#3DAA72" }}>Back</span>
-      </button>
+      />
 
       {/* Top bar — case toggle now centered on its own, no longer sharing
           the row with the back button */}
@@ -250,12 +241,9 @@ export function JungleGrid() {
             <button
               key={c}
               onClick={() => { playClickSound(); setCase(c); }}
-              className="min-h-[38px] rounded-full px-3.5 font-rounded text-sm font-black"
-              style={{
-                background: letterCase === c ? "white" : "transparent",
-                color: letterCase === c ? "#3DAA72" : "#9AB8A6",
-                boxShadow: letterCase === c ? "0 2px 8px rgba(61,170,114,0.2)" : "none",
-              }}
+              className={`min-h-[38px] rounded-full px-3.5 font-rounded text-sm font-black ${
+                letterCase === c ? "bg-white text-jungle shadow-pill-jungle" : "bg-transparent text-jungle-muted"
+              }`}
               aria-pressed={letterCase === c}
               aria-label={c === "upper" ? "Big letters" : "Small letters"}
             >
@@ -271,24 +259,19 @@ export function JungleGrid() {
           <span className="font-rounded text-sm font-bold text-plum/70">Found animals</span>
           <span className="font-rounded text-sm font-black text-plum">{foundCount} / 26</span>
         </div>
-        <div className="h-4 w-full overflow-hidden rounded-full bg-white/60">
-          <motion.div
-            className="h-full rounded-full"
-            style={{
-              background: "linear-gradient(90deg, #FF8FA3, #FFD93D, #8FD6A8, #74B9FF, #C9A9F5)",
-            }}
-            initial={false}
-            animate={{ width: `${(foundCount / 26) * 100}%` }}
-            transition={{ type: "spring", stiffness: 120, damping: 20 }}
-          />
-        </div>
+        <ProgressBar
+          value={foundCount / 26}
+          trackClassName="h-4 w-full rounded-full bg-white/60"
+          fillClassName="jsp-progress-fill h-full rounded-full"
+          ariaLabel={`${foundCount} of 26 animals found`}
+        />
       </div>
 
       
       {/* Letter tiles */}
       <div
-        className="relative z-10 grid w-full max-w-md gap-2.5 md:max-w-2xl"
-        style={{ gridTemplateColumns: "repeat(auto-fill, minmax(52px, 1fr))" }}
+        className="pl-symbol-grid relative z-10 w-full max-w-md gap-2.5 md:max-w-2xl"
+        style={cssVars({ "--pl-min": "52px" })}
       >
         {JUNGLE_ANIMALS.map((a, i) => {
           const isFound = found.includes(a.letter);
@@ -298,11 +281,11 @@ export function JungleGrid() {
             <motion.button
               key={a.letter}
               onClick={() => openLetter(a.letter)}
-              className="relative flex aspect-square min-h-[48px] items-center justify-center rounded-2xl shadow-sm"
-              style={{
-                background: isFound ? "#FFE79C" : shades[i % 3],
-                border: `2.5px solid ${isFound ? "#F2C94C" : "#8FD6A8"}`,
-              }}
+              className="pl-swatch relative flex aspect-square min-h-[48px] items-center justify-center rounded-2xl shadow-sm"
+              style={cssVars({
+                "--pl-bg": isFound ? "#FFE79C" : shades[i % 3],
+                "--pl-border": isFound ? "#F2C94C" : "#8FD6A8",
+              })}
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{ delay: 0.02 * i, type: "spring", stiffness: 300, damping: 20 }}
@@ -310,8 +293,7 @@ export function JungleGrid() {
               aria-label={`${a.letter} — find the ${a.name}${isFound ? " (found)" : ""}`}
             >
               <span
-                className="font-rounded font-black"
-                style={{ color: isFound ? "#C08A2D" : "#3DAA72", fontSize: "clamp(19px, 2.8vw, 26px)" }}
+                className={`jsp-tile-glyph font-rounded font-black ${isFound ? "text-gold-dim" : "text-jungle"}`}
               >
                 {display}
               </span>

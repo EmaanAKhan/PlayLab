@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { GAMES } from "@games/registry";
+import { cssVars } from "@shared/styles/cssVars";
 
 /**
  * Game Portal — styled as a simple, calm picture-book page: cream paper, a
@@ -12,17 +13,10 @@ import { GAMES } from "@games/registry";
 export default function PortalHome() {
   return (
     <div
-      className="flex h-full w-full items-center justify-center overflow-y-auto overflow-x-hidden px-4 py-6"
-      style={{ background: "#EFE7D8" }}
-    >
+      className="portal-desk flex h-full w-full items-center justify-center overflow-y-auto overflow-x-hidden px-4 py-6">
       {/* The page */}
       <motion.div
-        className="relative flex w-full max-w-2xl flex-col items-center gap-8 rounded-2xl px-6 py-10 shadow-xl md:px-12"
-        style={{
-          background: "#FDF9F0",
-          border: "1px solid #E3D9C6",
-          boxShadow: "0 12px 40px rgba(90,72,50,0.18), inset 0 0 0 10px #FDF9F0, inset 0 0 0 11px #EADFC9",
-        }}
+        className="portal-page relative flex w-full max-w-2xl flex-col items-center gap-8 rounded-2xl px-6 py-10 md:px-12"
         initial={{ y: 14, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.5 }}
@@ -32,7 +26,7 @@ export default function PortalHome() {
           <h1 className="text-center font-rounded text-4xl font-black text-plum md:text-5xl">
             Little Learners
           </h1>
-          <div className="mt-1 h-1 w-24 rounded-full" style={{ background: "#E3D9C6" }} aria-hidden="true" />
+          <div className="portal-rule mt-1 h-1 w-24 rounded-full" aria-hidden="true" />
           <p className="mt-1 font-rounded text-sm font-semibold text-plum/45">
             Pick a game
           </p>
@@ -49,18 +43,15 @@ export default function PortalHome() {
             >
               <Link href={game.route} aria-label={`Play ${game.title} — ${game.description}`}>
                 <motion.div
-                  className="flex flex-col items-center gap-2 rounded-2xl px-6 py-8"
-                  style={{
-                    background: "white",
-                    border: `2.5px solid ${game.colors.border}`,
-                  }}
+                  className="portal-tile flex flex-col items-center gap-2 rounded-2xl px-6 py-8"
+                  style={cssVars({ "--pl-border": game.colors.border })}
                   whileTap={{ scale: 0.96 }}
                   whileHover={{ scale: 1.03 }}
                 >
-                  <span className="leading-none" style={{ fontSize: "clamp(44px, 8vw, 64px)" }} aria-hidden="true">
+                  <span className="portal-tile-glyph leading-none" aria-hidden="true">
                     {game.glyph}
                   </span>
-                  <span className="font-rounded text-2xl font-black" style={{ color: game.colors.text }}>
+                  <span className="pl-tint font-rounded text-2xl font-black" style={cssVars({ "--pl-color": game.colors.text })}>
                     {game.title}
                   </span>
                   <span className="text-center font-rounded text-sm font-semibold text-plum/45">

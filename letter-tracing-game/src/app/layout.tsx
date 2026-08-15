@@ -30,7 +30,7 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
       </head>
-      <body className="h-full overflow-hidden bg-[#F0E8FF] font-rounded antialiased">
+      <body className="h-full overflow-hidden bg-lavender-mist font-rounded antialiased">
         {/* Game container — fills the entire viewport on every device */}
         <main className="relative h-full w-full overflow-hidden bg-white">
           {children}

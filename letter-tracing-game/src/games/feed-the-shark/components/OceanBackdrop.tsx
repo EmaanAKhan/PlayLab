@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { cssVars } from "@shared/styles/cssVars";
 
 /**
  * The underwater world. Everything here is STATIC decoration — coral, sea
@@ -109,14 +110,8 @@ export function BubbleStream() {
       {bubbles.map((b, i) => (
         <motion.span
           key={i}
-          className="absolute rounded-full"
-          style={{
-            left: b.x,
-            width: b.size,
-            height: b.size,
-            background: "rgba(255,255,255,0.5)",
-            boxShadow: "inset -1px -1px 0 rgba(255,255,255,0.8)",
-          }}
+          className="fs-bubble pl-at pl-box absolute rounded-full"
+          style={cssVars({ "--pl-x": b.x, "--pl-size": `${b.size}px` })}
           initial={{ top: "105%" }}
           animate={{ top: "-6%", x: [0, 6, -4, 0] }}
           transition={{
@@ -143,20 +138,13 @@ export function OceanBackdrop() {
   return (
     <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
       {/* soft light rays from the surface */}
-      <div
-        className="absolute inset-x-0 top-0 h-1/2"
-        style={{
-          background:
-            "linear-gradient(175deg, rgba(255,255,255,0.22) 0%, rgba(255,255,255,0) 45%)",
-        }}
-      />
+      <div className="fs-rays absolute inset-x-0 top-0 h-1/2" />
 
       {/* Layer 1 — sand, stretched to any width */}
       <svg
         viewBox="0 0 420 60"
         preserveAspectRatio="none"
-        className="absolute bottom-0 left-0 w-full"
-        style={{ height: "clamp(44px, 8vh, 76px)" }}
+        className="fs-sand absolute bottom-0 left-0 w-full"
       >
         <path d="M0 14 Q105 2 210 12 Q315 20 420 8 L420 60 L0 60 Z" fill="#F2E3BC" />
         <path d="M0 30 Q140 22 280 30 Q360 34 420 28 L420 60 L0 60 Z" fill="#E8D5A5" opacity="0.8" />
@@ -166,12 +154,7 @@ export function OceanBackdrop() {
       <svg
         viewBox="0 0 420 110"
         preserveAspectRatio="xMidYMax meet"
-        className="absolute left-1/2 -translate-x-1/2"
-        style={{
-          bottom: "clamp(6px, 1.5vh, 16px)",
-          width: "min(100%, 1100px)",
-          height: "clamp(64px, 15vh, 120px)",
-        }}
+        className="fs-seabed absolute left-1/2 -translate-x-1/2"
       >
         {/* rocks */}
         <ellipse cx="60" cy="86" rx="24" ry="13" fill="#B9C4CE" />

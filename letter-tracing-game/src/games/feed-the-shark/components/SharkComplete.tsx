@@ -39,8 +39,7 @@ export function SharkComplete({ onPlayAgain, onExitPortal }: SharkCompleteProps)
   return (
     <div
       ref={containerRef}
-      className="relative flex h-full w-full flex-col overflow-y-auto overflow-x-hidden px-6 py-6"
-      style={{ background: "linear-gradient(180deg, #6FC7EF 0%, #3FA7DC 55%, #2E8FC4 100%)" }}
+      className="fs-bg relative flex h-full w-full flex-col overflow-y-auto overflow-x-hidden px-6 py-6"
     >
       <OceanBackdrop />
       <BubbleStream />
@@ -67,8 +66,7 @@ export function SharkComplete({ onPlayAgain, onExitPortal }: SharkCompleteProps)
 
       {/* A very happy, very full shark */}
       <motion.div
-        className="relative z-10"
-        style={{ width: "clamp(190px, 42vmin, 320px)" }}
+        className="fs-shark-finale relative z-10"
         initial={{ scale: 0.5, y: 24 }}
         animate={{ scale: 1, y: [0, -12, 0] }}
         transition={{
@@ -89,8 +87,7 @@ export function SharkComplete({ onPlayAgain, onExitPortal }: SharkCompleteProps)
         {LETTERS.map((l, i) => (
           <motion.span
             key={l.upper}
-            className="flex h-8 w-8 items-center justify-center rounded-lg font-rounded text-xs font-black text-white"
-            style={{ background: "#2980B9" }}
+            className="flex h-8 w-8 items-center justify-center rounded-lg bg-ocean font-rounded text-xs font-black text-white"
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ delay: 0.35 + i * 0.03, type: "spring", stiffness: 260, damping: 18 }}

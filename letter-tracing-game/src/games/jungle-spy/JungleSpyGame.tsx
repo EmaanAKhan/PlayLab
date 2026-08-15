@@ -1,43 +1,25 @@
 "use client";
 
-import { useEffect, useCallback } from "react";
+import { useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { useScreenHistorySync } from "@shared/hooks/useScreenHistorySync";
 import { AnimatePresence, motion } from "framer-motion";
-import { useJungleStore } from "@games/jungle-spy/store/jungleStore";
-import { JungleSplash, JungleGrid } from "@games/jungle-spy/components/JungleScreens";
-import { JungleLevel } from "@games/jungle-spy/components/JungleLevel";
-import { RotateDevicePrompt } from "@shared/components/ui/RotateDevicePrompt";
-import { initAudio } from "@shared/audio/sfx";
-import { startMusic, stopMusic } from "@shared/audio/music";
+import { GameStage } from "@shared/components/game/GameStage";
+import { useGameSession } from "@shared/hooks/useGameSession";
 import { PAGE_TRANSITION } from "@shared/constants/transitions";
 import { PORTAL_ROUTE } from "@shared/constants/routes";
+import { useJungleStore, type JungleScreen } from "@games/jungle-spy/store/jungleStore";
+import { JungleSplash, JungleGrid } from "@games/jungle-spy/components/JungleScreens";
+import { JungleLevel } from "@games/jungle-spy/components/JungleLevel";
 
-function toBucket(screen: string): "menu" | "play" {
+/** Coarse history bucket: gameplay is its own step; splash/grid collapse into
+ *  "menu" so browsing letters never spams history. */
+function toBucket(screen: JungleScreen): "menu" | "play" {
   return screen === "level" ? "play" : "menu";
 }
 
 export function JungleSpyGame() {
   const router = useRouter();
   const { screen, setScreen } = useJungleStore();
-
-  // Shared audio: settings-driven volume + voice pre-load
-  useEffect(() => {
-    initAudio();
-    // Always land on the splash when entering the game fresh
-    setScreen("splash");
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // Background music: starts once the child taps past the splash (that tap
-  // unlocks the AudioContext), loops for the whole session, fades out when
-  // the game unmounts. startMusic is a shared singleton — hopping between
-  // games can never stack two tracks.
-  useEffect(() => {
-    if (screen !== "splash") startMusic();
-  }, [screen]);
-  useEffect(() => () => stopMusic(), []);
-
 
   // Back button: from "level" (play), returns to "grid" (letter/case select).
   const handlePop = useCallback(
@@ -46,11 +28,17 @@ export function JungleSpyGame() {
     },
     [setScreen]
   );
-  useScreenHistorySync(toBucket(screen), handlePop);
+
+  useGameSession({
+    screen,
+    step: toBucket(screen),
+    onHistoryPop: handlePop,
+    // Always land on the splash when entering the game fresh
+    onEnter: () => setScreen("splash"),
+  });
 
   return (
-    <main className="relative h-full w-full overflow-hidden">
-      <RotateDevicePrompt />
+    <GameStage>
       <AnimatePresence mode="wait">
         {screen === "splash" && (
           <motion.div key="splash" className="absolute inset-0" {...PAGE_TRANSITION}>
@@ -68,6 +56,6 @@ export function JungleSpyGame() {
           </motion.div>
         )}
       </AnimatePresence>
-    </main>
+    </GameStage>
   );
 }

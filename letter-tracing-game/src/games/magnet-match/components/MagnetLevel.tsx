@@ -3,12 +3,17 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { CelebrationSparkles } from "@shared/components/animations/Sparkles";
-import { playClickSound, playStarPop } from "@shared/audio/sfx";
+import { NavPillButton } from "@shared/components/ui/NavPillButton";
+import { ProgressBar } from "@shared/components/ui/ProgressBar";
+import { CelebrationOverlay } from "@shared/components/game/CelebrationOverlay";
+import { useElementSize } from "@shared/hooks/useElementSize";
+import { useScheduler } from "@shared/hooks/useScheduler";
+import { cssVars } from "@shared/styles/cssVars";
+import { playClickSound, playStarPop, playIncorrectSound, playChime } from "@shared/audio/sfx";
 import { playClip, playSequence, preloadClips, clipText, stopVoice } from "@shared/audio/voice";
 import { shuffle } from "@shared/utils/random";
-import { GROUPS, TOTAL_GROUPS, LOWERCASE, MAGNET_COLORS } from "@games/magnet-match/constants/letters";
-import { SoupPot, ChefArt, OwlArt } from "@games/magnet-match/components/MagnetArt";
+import { GROUPS, TOTAL_GROUPS, LOWERCASE } from "@games/magnet-match/constants/letters";
+import { SoupPot, ChefArt, OwlArt, PuzzleMagnet as Magnet } from "@games/magnet-match/components/MagnetArt";
 import { KitchenBackdrop } from "@games/magnet-match/components/KitchenBackdrop";
 
 interface MagnetLevelProps {
@@ -27,28 +32,6 @@ interface DragState {
   y: number;
 }
 
-/** A physical-looking alphabet magnet (colored) or its gray target twin. */
-function Magnet({ letter, colorIndex, gray = false, size }: { letter: string; colorIndex: number; gray?: boolean; size: string }) {
-  const c = MAGNET_COLORS[colorIndex % MAGNET_COLORS.length];
-  return (
-    <span
-      className="flex items-center justify-center rounded-2xl font-rounded font-black leading-none"
-      style={{
-        width: size,
-        height: size,
-        fontSize: `calc(${size} * 0.62)`,
-        color: gray ? "#8A8A96" : "white",
-        background: gray ? "rgba(120,120,132,0.22)" : c.fill,
-        border: gray ? "3px dashed rgba(120,120,132,0.5)" : `3px solid ${c.edge}`,
-        boxShadow: gray ? "none" : "0 4px 0 rgba(0,0,0,0.14), inset 0 2px 0 rgba(255,255,255,0.35)",
-        textShadow: gray ? "none" : "0 2px 0 rgba(0,0,0,0.18)",
-      }}
-    >
-      {letter}
-    </span>
-  );
-}
-
 export function MagnetLevel({ groupIndex, onGroupComplete }: MagnetLevelProps) {
   const router = useRouter();
   const group = GROUPS[groupIndex];
@@ -59,31 +42,24 @@ export function MagnetLevel({ groupIndex, onGroupComplete }: MagnetLevelProps) {
   // group via key, so a fresh order every time)
   const tray = useMemo(() => shuffle([...group]), [group]);
   const [drag, setDrag] = useState<DragState | null>(null);
+  /** a correctly-dropped magnet mid-flight from the drop point to its slot */
+  const [flying, setFlying] = useState<{ letter: string; fx: number; fy: number; tx: number; ty: number } | null>(null);
+  /** slot currently under the dragged magnet — glows as a "drop here" cue */
+  const [hoverSlot, setHoverSlot] = useState<string | null>(null);
+  /** slot that just received a wrong magnet — shakes gently */
+  const [wrongSlot, setWrongSlot] = useState<string | null>(null);
+  /** slot that just got filled — shows the landing ring/sparkle burst */
+  const [burstSlot, setBurstSlot] = useState<string | null>(null);
   const [celebrating, setCelebrating] = useState(false);
   const [chefHappy, setChefHappy] = useState(false);
   const [owlHop, setOwlHop] = useState(false);
 
-  const rootRef = useRef<HTMLDivElement>(null);
+  const [rootRef, dims] = useElementSize();
   const targetRefs = useRef<Map<string, HTMLDivElement>>(new Map());
-  const [dims, setDims] = useState({ w: 360, h: 640 });
 
   // every timer tracked + cleared on unmount — no stale advances/audio
-  const timersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
-  const schedule = useCallback((fn: () => void, ms: number) => {
-    timersRef.current.push(setTimeout(fn, ms));
-  }, []);
-  useEffect(() => {
-    return () => {
-      timersRef.current.forEach(clearTimeout);
-      timersRef.current = [];
-      stopVoice();
-    };
-  }, []);
-
-  useEffect(() => {
-    const el = rootRef.current;
-    if (el) setDims({ w: el.offsetWidth, h: el.offsetHeight });
-  }, []);
+  const schedule = useScheduler();
+  useEffect(() => () => stopVoice(), []);
 
   // Group intro narration: full instruction on the very first group, then
   // just the group's letter names — always ending with the letters so the
@@ -104,16 +80,17 @@ export function MagnetLevel({ groupIndex, onGroupComplete }: MagnetLevelProps) {
   const toRoot = useCallback((cx: number, cy: number) => {
     const r = rootRef.current?.getBoundingClientRect();
     return { x: cx - (r?.left ?? 0), y: cy - (r?.top ?? 0) };
-  }, []);
+  }, [rootRef]);
 
   const startDrag = useCallback(
     (e: React.PointerEvent<HTMLElement>, letter: string) => {
-      if (celebrating || drag || matched.includes(letter)) return;
+      if (celebrating || drag || flying || matched.includes(letter)) return;
       e.currentTarget.setPointerCapture(e.pointerId);
+      playClickSound(); // soft pickup
       const p = toRoot(e.clientX, e.clientY);
       setDrag({ letter, x: p.x, y: p.y });
     },
-    [celebrating, drag, matched, toRoot]
+    [celebrating, drag, flying, matched, toRoot]
   );
 
   const moveDrag = useCallback(
@@ -121,8 +98,48 @@ export function MagnetLevel({ groupIndex, onGroupComplete }: MagnetLevelProps) {
       if (!drag) return;
       const p = toRoot(e.clientX, e.clientY);
       setDrag({ ...drag, x: p.x, y: p.y });
+      // anticipation cue: which unmatched slot is under the magnet right now?
+      let over: string | null = null;
+      let best = Infinity;
+      for (const [l, el] of targetRefs.current) {
+        if (matched.includes(l)) continue;
+        const r = el.getBoundingClientRect();
+        const inside =
+          e.clientX >= r.left - DROP_SLOP_PX && e.clientX <= r.right + DROP_SLOP_PX &&
+          e.clientY >= r.top - DROP_SLOP_PX && e.clientY <= r.bottom + DROP_SLOP_PX;
+        if (!inside) continue;
+        const d = Math.hypot(e.clientX - (r.left + r.width / 2), e.clientY - (r.top + r.height / 2));
+        if (d < best) { best = d; over = l; }
+      }
+      if (over !== hoverSlot) setHoverSlot(over);
     },
-    [drag, toRoot]
+    [drag, toRoot, matched, hoverSlot]
+  );
+
+  /** the flight has landed — NOW the plop, the cheer, and the state flip,
+   *  so the audio is synced to the visual landing instead of the release */
+  const land = useCallback(
+    (letter: string) => {
+      setFlying(null);
+      playStarPop();
+      void playSequence(["cheer-yoo-hoo", `letter-${letter}`], 150);
+      setBurstSlot(letter);
+      schedule(() => setBurstSlot(null), 650);
+      const now = [...matched, letter];
+      setMatched(now);
+      setChefHappy(true);
+      schedule(() => setChefHappy(false), 900);
+      if (now.length >= group.length) {
+        schedule(() => {
+          setCelebrating(true);
+          setOwlHop(true);
+          playChime(); // soft ding as the alphabet progress advances
+          void playSequence(["magnet-excellent", "magnet-soup"], 250);
+        }, 700);
+        schedule(onGroupComplete, 700 + GROUP_DONE_MS);
+      }
+    },
+    [matched, group, onGroupComplete, schedule]
   );
 
   const endDrag = useCallback(
@@ -147,30 +164,45 @@ export function MagnetLevel({ groupIndex, onGroupComplete }: MagnetLevelProps) {
 
       if (!hit) return; // dropped on open counter — magnet just returns
 
+      setHoverSlot(null);
       if (hit === letter) {
-        // CORRECT: soft plop → "Yoo hoo!" → letter name (spec's layering,
-        // sequenced so the voices never overlap)
-        playStarPop();
-        void playSequence(["cheer-yoo-hoo", `letter-${letter}`], 150);
-        const now = [...matched, letter];
-        setMatched(now);
-        setChefHappy(true);
-        schedule(() => setChefHappy(false), 900);
-        if (now.length >= group.length) {
-          schedule(() => {
-            setCelebrating(true);
-            setOwlHop(true);
-            void playSequence(["magnet-excellent", "magnet-soup"], 250);
-          }, 700);
-          schedule(onGroupComplete, 700 + GROUP_DONE_MS);
+        // CORRECT: the magnet FLIES from the drop point into its slot; the
+        // plop/cheer fire on landing (see land()), synced to the visual snap
+        const el = targetRefs.current.get(letter);
+        const root = rootRef.current?.getBoundingClientRect();
+        if (el && root) {
+          const r = el.getBoundingClientRect();
+          const p = toRoot(e.clientX, e.clientY);
+          setFlying({
+            letter,
+            fx: p.x,
+            fy: p.y,
+            tx: r.left + r.width / 2 - root.left,
+            ty: r.top + r.height / 2 - root.top,
+          });
+        } else {
+          land(letter); // refs unavailable (shouldn't happen) — land instantly
         }
+      } else {
+        // WRONG: gentle two-note "oops" + a soft shake on the slot that was
+        // tried, then the magnet simply returns. Never harsh.
+        playIncorrectSound();
+        setWrongSlot(hit);
+        schedule(() => setWrongSlot(null), 500);
       }
-      // WRONG: no buzzer, no message — the magnet simply returns (spec 13)
     },
-    [drag, matched, group, onGroupComplete, schedule]
+    [drag, toRoot, land, schedule, rootRef]
   );
 
   const magnetSize = "clamp(58px, 12vmin, 96px)";
+  // Slots are a literal clamp equal to exactly 20% of the pot's own clamp
+  // above (200/38vmin/310 * 0.2 = 40/7.6vmin/62) — scaling a clamp() by a
+  // constant scales it identically at every viewport size, not just the
+  // endpoints, so this is mathematically tied to the pot at every size
+  // without a live CSS var reference (that reference is what broke last
+  // time: it silently pointed at a variable that was never defined). If the
+  // pot's clamp above ever changes, multiply all three numbers by 0.2 again.
+  const slotSize = "clamp(40px, 7.6vmin, 62px)";
   const lettersDone = Math.min(groupIndex * 3, 26);
 
   return (
@@ -185,28 +217,21 @@ export function MagnetLevel({ groupIndex, onGroupComplete }: MagnetLevelProps) {
 
       {/* ── top bar: back · alphabet progress · owl ── */}
       <div className="relative z-10 flex w-full max-w-2xl items-center gap-2">
-        <button
+        <NavPillButton
+          label="Back"
+          ariaLabel="Back to the start screen"
+          tone="kitchen"
+          surface="strong"
           onClick={() => { playClickSound(); stopVoice(); router.back(); }}
-          className="flex min-h-[44px] items-center gap-1.5 rounded-full bg-white/85 px-3.5 py-2 shadow-soft"
-          aria-label="Back to the start screen"
-        >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-            <path d="M15 18l-6-6 6-6" stroke="#C97B4A" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-          <span className="font-rounded text-xs font-bold" style={{ color: "#C97B4A" }}>Back</span>
-        </button>
+        />
 
         {/* alphabet-wide progress — never resets between groups */}
         <div className="min-w-0 flex-1" role="status" aria-label={`${lettersDone} of 26 letters in the soup`}>
-          <div className="h-3.5 w-full overflow-hidden rounded-full bg-white/70 shadow-soft">
-            <motion.div
-              className="h-full rounded-full"
-              style={{ background: "linear-gradient(90deg, #F2B84D, #E88A5D)" }}
-              initial={false}
-              animate={{ width: `${(lettersDone / LOWERCASE.length) * 100}%` }}
-              transition={{ type: "spring", stiffness: 120, damping: 20 }}
-            />
-          </div>
+          <ProgressBar
+            value={lettersDone / LOWERCASE.length}
+            trackClassName="h-3.5 w-full rounded-full bg-white/70 shadow-soft"
+            fillClassName="mm-progress-fill h-full rounded-full"
+          />
         </div>
 
         <motion.div
@@ -220,49 +245,97 @@ export function MagnetLevel({ groupIndex, onGroupComplete }: MagnetLevelProps) {
       </div>
 
       {/* instruction — same text as the spoken clip */}
-      <p className="relative z-10 mt-1.5 max-w-xl rounded-full bg-white/85 px-4 py-1.5 text-center font-rounded text-xs font-bold shadow-soft md:text-sm" style={{ color: "#8A5A2E" }}>
+      <p className="relative z-10 mt-1.5 max-w-xl rounded-full bg-white/85 px-4 py-1.5 text-center font-rounded text-xs font-bold text-kitchen-ink shadow-soft md:text-sm">
         {clipText("magnet-intro")}
       </p>
 
-      {/* ── main play area: pot (left) · magnet tray (right) · chef (corner) ── */}
-      <div className="relative z-10 flex w-full max-w-3xl flex-1 items-center justify-center gap-[4vw]">
+      {/* ── main play area: chef standing beside the white cooking-station
+             card; the card holds the pot + magnet tray (the reference's
+             FULL KITCHEN → WHITE CARD → POT+LETTERS hierarchy) ── */}
+      <div className="relative z-10 flex w-full max-w-3xl flex-1 items-center justify-center gap-[1.5vw] py-[2vh]">
+        {/* the chef, on the counter beside the station — gentle idle
+            breathing, bigger bounce on a correct match */}
+        <motion.div
+          className="mm-chef-level hidden shrink-0 sm:block"
+          animate={chefHappy ? { y: [0, -10, 0] } : { y: [0, -3, 0] }}
+          transition={chefHappy ? { duration: 0.5 } : { duration: 4, repeat: Infinity, ease: "easeInOut" }}
+          aria-hidden="true"
+        >
+          <ChefArt happy={chefHappy} />
+        </motion.div>
+
+        {/* the white cooking-station card */}
+        <div
+          className="mm-station relative flex items-center gap-[2.5vw] rounded-[2rem] bg-white/95 px-[2.2vw] py-[2.5vmin] shadow-card"
+        >
         {/* the pot with its gray targets */}
-        <div className="relative" style={{ width: "clamp(220px, 46vmin, 380px)" }}>
-          <div style={{ aspectRatio: "260/240" }}>
+        <div className="mm-pot relative">
+          {/* living soup: two tiny bubbles + a steam wisp over the rim */}
+          <motion.span className="absolute left-[38%] top-[6%] z-10 h-2 w-2 rounded-full bg-white/70" initial={{ y: 0, opacity: 0 }} animate={{ y: -16, opacity: [0, 0.8, 0] }} transition={{ duration: 3.2, repeat: Infinity, ease: "easeOut" }} aria-hidden="true" />
+          <motion.span className="absolute left-[58%] top-[8%] z-10 h-1.5 w-1.5 rounded-full bg-white/70" initial={{ y: 0, opacity: 0 }} animate={{ y: -12, opacity: [0, 0.7, 0] }} transition={{ duration: 2.6, repeat: Infinity, ease: "easeOut", delay: 1.2 }} aria-hidden="true" />
+          <div className="mm-pot-art">
             <SoupPot />
           </div>
           {/* target slots — staggered inside the pot like the reference */}
-          <div className="absolute inset-x-0 top-[24%] flex flex-col items-center gap-[4%]">
+          <div className="absolute inset-x-0 top-[14%] flex flex-col items-center gap-[2.5%]">
             {group.map((l, i) => {
               const isMatched = matched.includes(l);
               return (
-                <div
+                <motion.div
                   key={l}
                   ref={(el) => {
                     if (el) targetRefs.current.set(l, el);
                     else targetRefs.current.delete(l);
                   }}
-                  className="relative"
-                  style={{ marginLeft: `${(i % 2 === 0 ? -1 : 1) * 14}%` }}
+                  className="mm-slot relative"
+                  style={cssVars({ "--pl-ml": `${(i % 2 === 0 ? -1 : 1) * 14}%` })}
+                  animate={wrongSlot === l ? { x: [-6, 6, -4, 4, 0] } : { x: 0 }}
+                  transition={{ duration: 0.45 }}
                   role="img"
                   aria-label={isMatched ? `${l} — matched!` : `gray target letter ${l}`}
                 >
-                  {/* halo while dragging, on unmatched targets */}
+                  {/* halo while dragging; brighter + swollen when the magnet
+                      is hovering right over this slot */}
                   {drag && !isMatched && (
-                    <div className="absolute -inset-2 rounded-3xl" style={{ background: "radial-gradient(ellipse, rgba(255,255,255,0.5), transparent 70%)" }} aria-hidden="true" />
+                    <motion.div
+                      className="mm-slot-halo absolute -inset-2 rounded-3xl"
+                      animate={{ opacity: hoverSlot === l ? 1 : 0.5, scale: hoverSlot === l ? 1.12 : 1 }}
+                      transition={{ duration: 0.15 }}
+                      aria-hidden="true"
+                    />
+                  )}
+                  {/* landing burst: expanding ring + four sparkle dots */}
+                  {burstSlot === l && (
+                    <div className="pointer-events-none absolute inset-0" aria-hidden="true">
+                      <motion.div
+                        className="mm-burst-ring absolute inset-0 rounded-2xl"
+                        initial={{ opacity: 0.8, scale: 1 }}
+                        animate={{ opacity: 0, scale: 1.9 }}
+                        transition={{ duration: 0.55, ease: "easeOut" }}
+                      />
+                      {[[-1, -1], [1, -1], [-1, 1], [1, 1]].map(([dx, dy], k) => (
+                        <motion.span
+                          key={k}
+                          className="absolute left-1/2 top-1/2 h-2 w-2 rounded-full bg-kitchen-amber"
+                          initial={{ x: 0, y: 0, opacity: 1, scale: 1 }}
+                          animate={{ x: dx * 34, y: dy * 30, opacity: 0, scale: 0.4 }}
+                          transition={{ duration: 0.5, ease: "easeOut" }}
+                        />
+                      ))}
+                    </div>
                   )}
                   <AnimatePresence mode="wait" initial={false}>
                     {isMatched ? (
                       <motion.div key="filled" initial={{ scale: 1.35 }} animate={{ scale: 1 }} transition={{ type: "spring", stiffness: 300, damping: 16 }}>
-                        <Magnet letter={l} colorIndex={group.indexOf(l)} size={magnetSize} />
+                        <Magnet letter={l} colorIndex={group.indexOf(l)} size={slotSize} />
                       </motion.div>
                     ) : (
                       <motion.div key="gray" exit={{ opacity: 0 }}>
-                        <Magnet letter={l} colorIndex={0} gray size={magnetSize} />
+                        <Magnet letter={l} colorIndex={0} gray size={slotSize} />
                       </motion.div>
                     )}
                   </AnimatePresence>
-                </div>
+                </motion.div>
               );
             })}
           </div>
@@ -277,8 +350,7 @@ export function MagnetLevel({ groupIndex, onGroupComplete }: MagnetLevelProps) {
               <AnimatePresence key={l} mode="popLayout">
                 {!gone && (
                   <motion.div
-                    className="touch-none"
-                    style={{ cursor: beingDragged ? "grabbing" : "grab", opacity: beingDragged ? 0.25 : 1 }}
+                    className={`touch-none ${beingDragged ? "cursor-grabbing opacity-25" : "cursor-grab"}`}
                     initial={{ scale: 0, x: 30 }}
                     animate={{ scale: 1, x: 0 }}
                     exit={{ scale: 0, opacity: 0 }}
@@ -295,24 +367,33 @@ export function MagnetLevel({ groupIndex, onGroupComplete }: MagnetLevelProps) {
             );
           })}
         </div>
+        </div>
       </div>
 
-      {/* chef in the corner, reacting to matches — never over the letters */}
-      <motion.div
-        className="pointer-events-none absolute bottom-1 right-1 z-10 hidden sm:block"
-        style={{ width: "clamp(90px, 20vmin, 160px)" }}
-        animate={chefHappy ? { y: [0, -8, 0] } : { y: 0 }}
-        transition={{ duration: 0.5 }}
-        aria-hidden="true"
-      >
-        <ChefArt happy={chefHappy} />
-      </motion.div>
+      {/* correct-drop flight: the magnet arcs from the drop point into its
+          slot, shrinking from hand-size to slot-size, then land() fires */}
+      {flying && (
+        <motion.div
+          className="pointer-events-none absolute z-40"
+          initial={{ left: flying.fx, top: flying.fy }}
+          animate={{ left: flying.tx, top: flying.ty }}
+          transition={{ duration: 0.28, ease: [0.2, 0.8, 0.3, 1] }}
+          onAnimationComplete={() => land(flying.letter)}
+          aria-hidden="true"
+        >
+          <div className="pl-center-self">
+            <motion.div initial={{ scale: 1.25, rotate: -4 }} animate={{ scale: 1, rotate: 0 }} transition={{ duration: 0.28 }}>
+              <Magnet letter={flying.letter} colorIndex={group.indexOf(flying.letter)} size={slotSize} />
+            </motion.div>
+          </div>
+        </motion.div>
+      )}
 
       {/* drag ghost — root-relative absolute (never position:fixed) */}
       {drag && (
         <div
-          className="pointer-events-none absolute z-40"
-          style={{ left: drag.x, top: drag.y, transform: "translate(-50%, -60%) scale(1.12) rotate(-3deg)" }}
+          className="mm-ghost pl-at pointer-events-none absolute z-40"
+          style={cssVars({ "--pl-x": `${drag.x}px`, "--pl-y": `${drag.y}px` })}
           aria-hidden="true"
         >
           <Magnet letter={drag.letter} colorIndex={group.indexOf(drag.letter)} size={magnetSize} />
@@ -322,29 +403,19 @@ export function MagnetLevel({ groupIndex, onGroupComplete }: MagnetLevelProps) {
       {/* ── group complete — auto-advancing celebration ── */}
       <AnimatePresence>
         {celebrating && (
-          <motion.div
-            className="absolute inset-0 z-30 flex flex-col items-center justify-center gap-3 px-6"
-            style={{ background: "rgba(251,231,162,0.6)", backdropFilter: "blur(2px)" }}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-          >
-            <div className="pointer-events-none absolute inset-0" aria-hidden="true">
-              <CelebrationSparkles active width={dims.w} height={dims.h} />
-            </div>
+          <CelebrationOverlay tintClassName="mm-celebrate-tint" size={dims}>
             <motion.h2
-              className="rounded-full bg-white/95 px-8 py-3 font-rounded font-black shadow-card"
-              style={{ fontSize: "clamp(26px, 6.5vmin, 42px)", color: "#C97B4A" }}
+              className="mm-cheer rounded-full bg-white/95 px-8 py-3 font-rounded font-black shadow-card"
               initial={{ scale: 0.5, y: 12 }}
               animate={{ scale: 1, y: 0 }}
               transition={{ type: "spring", stiffness: 220, damping: 15 }}
             >
               {clipText("magnet-excellent")}
             </motion.h2>
-            <p className="font-rounded text-base font-bold" style={{ color: "#8A5A2E" }}>
+            <p className="font-rounded text-base font-bold text-kitchen-ink">
               {clipText("magnet-soup")} {groupIndex + 1} / {TOTAL_GROUPS}
             </p>
-          </motion.div>
+          </CelebrationOverlay>
         )}
       </AnimatePresence>
     </div>

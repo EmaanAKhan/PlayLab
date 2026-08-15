@@ -1,0 +1,114 @@
+/**
+ * Magnet Match — game-specific visual identity (the kitchen).
+ * All values verbatim from the original screens. The kitchen backdrop's flame
+ * and steam positions are tied to the fixtures SVG geometry — the calc()
+ * expressions mirror that SVG's own centring math, so they stay aligned at
+ * every viewport width.
+ */
+
+/* ── Kitchen stage ── */
+
+.mm-wall {
+  background: linear-gradient(180deg, #fbe7a2 0%, #f7d97e 100%);
+}
+.mm-backsplash {
+  bottom: clamp(64px, 16vh, 140px);
+  height: clamp(40px, 10vh, 84px);
+}
+.mm-fixtures {
+  bottom: clamp(64px, 16vh, 140px);
+  width: min(100%, 1800px);
+  height: clamp(140px, 36vh, 340px);
+}
+.mm-flame {
+  left: calc(50% - min(50%, 900px) + min(100%, 1800px) * 0.395);
+  bottom: clamp(150px, 37vh, 320px);
+  width: 10px;
+  height: 14px;
+  background: radial-gradient(ellipse at bottom, #f2b84d, #e8863d);
+  filter: blur(1px);
+}
+.mm-steam {
+  left: calc(50% - min(50%, 900px) + min(100%, 1800px) * 0.4);
+  bottom: clamp(190px, 44vh, 380px);
+  width: 13px;
+  height: 13px;
+  background: rgba(255, 255, 255, 0.5);
+  filter: blur(3px);
+}
+.mm-counter {
+  height: clamp(64px, 16vh, 140px);
+}
+
+/* ── Headings / copy ── */
+
+.mm-heading {
+  color: var(--color-kitchen-ink);
+  text-shadow: 0 2px 0 rgba(255, 255, 255, 0.7);
+}
+.mm-heading--finale {
+  color: var(--color-kitchen-ink);
+  text-shadow: 0 2px 0 rgba(255, 255, 255, 0.6);
+}
+
+/* ── Characters & station ── */
+
+.mm-chef-splash {
+  width: clamp(96px, 22vmin, 180px);
+}
+.mm-chef-level {
+  width: clamp(120px, 20vmin, 190px);
+}
+.mm-chef-finale {
+  width: clamp(140px, 32vmin, 220px);
+}
+/** The white cooking-station card the pot + tray live on. */
+.mm-station {
+  border: 3px solid rgba(201, 123, 74, 0.25);
+}
+.mm-pot-splash {
+  width: clamp(120px, 26vmin, 200px);
+  aspect-ratio: 260 / 240;
+}
+.mm-pot {
+  width: clamp(200px, 38vmin, 310px);
+}
+.mm-pot-art {
+  aspect-ratio: 260 / 240;
+}
+/** The glossy magnet piece's lifted drop shadow (SVG filter). */
+.mm-piece-shadow {
+  filter: drop-shadow(0 4px 0 rgba(0, 0, 0, 0.16));
+}
+
+/* ── Gameplay feedback ── */
+
+.mm-progress-fill {
+  background: linear-gradient(90deg, #f2b84d, #e88a5d);
+}
+/** A gray target slot, staggered inside the pot (offset via cssVars). */
+.mm-slot {
+  margin-left: var(--pl-ml);
+}
+/** "Drop here" halo behind an open slot while a magnet is dragged. */
+.mm-slot-halo {
+  background: radial-gradient(ellipse, rgba(242, 184, 77, 0.65), transparent 70%);
+}
+/** Landing burst ring around a just-filled slot. */
+.mm-burst-ring {
+  border: 3px solid var(--color-kitchen-amber);
+}
+/** The dragged magnet, floating above the finger. */
+.mm-ghost {
+  transform: translate(-50%, -60%) scale(1.12) rotate(-3deg);
+}
+
+/* ── Group-complete overlay ── */
+
+.mm-celebrate-tint {
+  background: rgba(251, 231, 162, 0.6);
+}
+.mm-cheer {
+  font-size: clamp(26px, 6.5vmin, 42px);
+  color: var(--color-kitchen);
+}

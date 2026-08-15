@@ -7,6 +7,7 @@ import { playClickSound } from "@shared/audio/sfx";
 import { playClip, preloadClips, stopVoice } from "@shared/audio/voice";
 import { FriendlyShark, LetterFish } from "@games/feed-the-shark/components/SharkArt";
 import { OceanBackdrop, BubbleStream } from "@games/feed-the-shark/components/OceanBackdrop";
+import { NavPillButton } from "@shared/components/ui/NavPillButton";
 import { useSharkStore } from "@games/feed-the-shark/store/sharkStore";
 
 interface SharkSplashProps {
@@ -31,23 +32,19 @@ export function SharkSplash({ onStart, onExitPortal, hasProgress }: SharkSplashP
 
   return (
     <div
-      className="relative flex h-full w-full flex-col overflow-y-auto overflow-x-hidden px-6 py-6"
-      style={{ background: "linear-gradient(180deg, #6FC7EF 0%, #3FA7DC 55%, #2E8FC4 100%)" }}
+      className="fs-bg relative flex h-full w-full flex-col overflow-y-auto overflow-x-hidden px-6 py-6"
     >
       <OceanBackdrop />
       <BubbleStream />
 
       {onExitPortal && (
-        <button
+        <NavPillButton
+          label="Back to Games"
+          ariaLabel="Back to the game portal"
+          tone="ocean"
+          pinned
           onClick={() => { playClickSound(); onExitPortal(); }}
-          className="absolute left-4 top-4 z-20 flex min-h-[44px] items-center gap-1.5 rounded-full bg-white/80 px-3.5 py-2 shadow-soft"
-          aria-label="Back to the game portal"
-        >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-            <path d="M15 18l-6-6 6-6" stroke="#2980B9" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-          <span className="font-rounded text-xs font-bold" style={{ color: "#2980B9" }}>Back to Games</span>
-        </button>
+        />
       )}
 
       {/* m-auto (not justify-center on the root): when the content is taller
@@ -63,7 +60,7 @@ export function SharkSplash({ onStart, onExitPortal, hasProgress }: SharkSplashP
         <h1 className="font-rounded text-3xl font-black text-white drop-shadow-md md:text-5xl">
           Letters A–Z
         </h1>
-        <h2 className="font-rounded text-2xl font-black md:text-4xl" style={{ color: "#FFE79C", textShadow: "0 2px 6px rgba(0,60,100,0.3)" }}>
+        <h2 className="fs-subtitle font-rounded text-2xl font-black md:text-4xl">
           Feed the Shark
         </h2>
         <p className="mt-1 rounded-full bg-white/80 px-4 py-1 font-rounded text-xs font-bold text-plum/70 md:text-sm">
@@ -78,12 +75,12 @@ export function SharkSplash({ onStart, onExitPortal, hasProgress }: SharkSplashP
         animate={{ scale: 1, opacity: 1 }}
         transition={{ type: "spring", stiffness: 180, damping: 16 }}
       >
-        <div style={{ width: "clamp(150px, 40vmin, 300px)" }}>
+        <div className="fs-shark-splash">
           <FriendlyShark letter="C" />
         </div>
         <div className="flex flex-col gap-2">
           <motion.div
-            style={{ width: "clamp(56px, 12vmin, 92px)" }}
+            className="fs-fish-chip"
             initial={{ x: 24, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
             transition={{ delay: 0.3 }}
@@ -91,7 +88,7 @@ export function SharkSplash({ onStart, onExitPortal, hasProgress }: SharkSplashP
             <div className="rounded-full bg-white/75 p-1.5 shadow-soft"><LetterFish letter="b" colorIndex={1} /></div>
           </motion.div>
           <motion.div
-            style={{ width: "clamp(56px, 12vmin, 92px)" }}
+            className="fs-fish-chip"
             initial={{ x: 24, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
             transition={{ delay: 0.45 }}
@@ -119,11 +116,9 @@ export function SharkSplash({ onStart, onExitPortal, hasProgress }: SharkSplashP
             <button
               key={m.id}
               onClick={() => { playClickSound(); setMode(m.id); }}
-              className="min-h-[40px] rounded-full px-4 font-rounded text-sm font-black"
-              style={{
-                background: selected ? "#2980B9" : "transparent",
-                color: selected ? "white" : "#2980B9",
-              }}
+              className={`min-h-[40px] rounded-full px-4 font-rounded text-sm font-black ${
+                selected ? "bg-ocean text-white" : "bg-transparent text-ocean"
+              }`}
               aria-pressed={selected}
               aria-label={m.aria}
             >

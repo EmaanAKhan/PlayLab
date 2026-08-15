@@ -10,7 +10,7 @@ import { motion } from "framer-motion";
  */
 export function PencilPal({ pointing = false, w = "100%" }: { pointing?: boolean; w?: string | number }) {
   return (
-    <svg viewBox="0 0 120 190" width={w} style={{ display: "block" }} aria-hidden="true">
+    <svg viewBox="0 0 120 190" width={w} className="block" aria-hidden="true">
       {/* eraser hat */}
       <path d="M38 26 Q38 8 60 8 Q82 8 82 26 L82 40 L38 40 Z" fill="#FF9EBC" />
       <rect x="36" y="38" width="48" height="10" rx="5" fill="#F2C94C" />
@@ -39,7 +39,7 @@ export function PencilPal({ pointing = false, w = "100%" }: { pointing?: boolean
           <motion.g
             animate={{ rotate: [0, -6, 0] }}
             transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
-            style={{ originX: "82px", originY: "110px" }}
+            className="hunt-arm-origin"
           >
             <path d="M82 110 Q104 100 114 84" stroke="#E8B33D" strokeWidth="8" fill="none" strokeLinecap="round" />
             <circle cx="115" cy="82" r="6.5" fill="#FFD93D" />
@@ -59,15 +59,7 @@ export function PencilPal({ pointing = false, w = "100%" }: { pointing?: boolean
 export function Notebook({ children }: { children?: React.ReactNode }) {
   return (
     <div className="relative">
-      <div
-        className="flex items-center justify-center rounded-3xl shadow-card"
-        style={{
-          width: "clamp(170px, 38vmin, 300px)",
-          height: "clamp(200px, 44vmin, 350px)",
-          background: "white",
-          border: "3px solid #E3D9C6",
-        }}
-      >
+      <div className="hunt-notebook flex items-center justify-center rounded-3xl shadow-card">
         {/* faint ruled lines */}
         <svg className="absolute inset-0 h-full w-full" aria-hidden="true">
           {[0.3, 0.45, 0.6, 0.75].map((f) => (
@@ -79,7 +71,7 @@ export function Notebook({ children }: { children?: React.ReactNode }) {
       {/* spiral binding */}
       <div className="absolute -top-2 left-0 right-0 flex justify-center gap-3" aria-hidden="true">
         {Array.from({ length: 7 }).map((_, i) => (
-          <div key={i} className="h-4 w-2 rounded-full border-2 border-[#B8AED0] bg-[#E8E2F5]" />
+          <div key={i} className="hunt-spiral-coil h-4 w-2 rounded-full" />
         ))}
       </div>
     </div>

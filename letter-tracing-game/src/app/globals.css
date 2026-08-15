@@ -1,111 +1,32 @@
+/**
+ * globals.css — the single stylesheet entry point.
+ *
+ * It composes the styling layers in a deliberate order and contains no rules
+ * of its own, so there is exactly one place to look to see how the app is
+ * styled and where any given rule lives:
+ *
+ *   1. the web font
+ *   2. shared/styles/base.css        document reset + touch behaviour
+ *   3. shared/styles/utilities.css   cross-game layout primitives
+ *   4. games/<game>/styles/*.css     that game's own visual identity
+ *   5. Tailwind                      the design system from tokens.ts
+ *
+ * Design tokens themselves are NOT here: they are emitted onto :root by the
+ * Tailwind base plugin straight from src/shared/styles/tokens.ts, so CSS
+ * var(--color-…) references and Tailwind utilities can never disagree.
+ */
 @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap');
+
+@import '../shared/styles/base.css';
+@import '../shared/styles/utilities.css';
+
+@import '../games/letter-tracing/styles/letter-tracing.css';
+@import '../games/jungle-spy/styles/jungle-spy.css';
+@import '../games/letter-hunt/styles/letter-hunt.css';
+@import '../games/magnet-match/styles/magnet-match.css';
+@import '../games/feed-the-shark/styles/feed-the-shark.css';
+@import '../app/portal.css';
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-*, *::before, *::after {
-  box-sizing: border-box;
-}
-
-html, body {
-  margin: 0;
-  padding: 0;
-  height: 100%;
-  overflow: hidden;
-  -webkit-tap-highlight-color: transparent;
-  -webkit-touch-callout: none;
-  user-select: none;
-}
-
-/* App Router root elements */
-body > div,
-body > div > div {
-  height: 100%;
-}
-
-.font-rounded {
-  font-family: 'Nunito', 'Varela Round', 'Arial Rounded MT Bold', sans-serif;
-}
-
-/* Prevent text selection and default scroll during tracing */
-canvas {
-  -webkit-user-select: none;
-  user-select: none;
-  touch-action: none;
-}
-
-/* Remove default tap highlight on mobile */
-button, a {
-  -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
-}
-
-/* Thin scrollbar for any overflow-y-auto containers */
-::-webkit-scrollbar {
-  width: 4px;
-}
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-::-webkit-scrollbar-thumb {
-  background: #A882E8;
-  border-radius: 99px;
-}
-
-/* ─── Responsive tracing-board size ─────────────────────────────────────────
-   The canvas keeps a perfect 1:1 aspect ratio (letters are defined in a square
-   200×200 space) and scales to whatever the current viewport allows:
-   - portrait / tall screens: limited by width, minus room for header + hint
-   - landscape phones: limited by height, using nearly the full viewport
-   - tablets / desktop: grows generously but caps so lines stay proportionate */
-.trace-board {
-  --trace-size: min(80vw, calc(100dvh - 240px), 560px);
-}
-
-/* Phone (and any short) landscape viewport — canvas dominates the screen */
-@media (orientation: landscape) and (max-height: 560px) {
-  .trace-board {
-    --trace-size: min(calc(100dvh - 92px), 48vw);
-  }
-}
-
-/* ─── "Turn your device sideways" prompt ────────────────────────────────────
-   Pure CSS visibility: shown ONLY on portrait phone-sized viewports, hidden
-   the instant the device rotates to landscape. Tablets and desktops (wider or
-   taller viewports) never match this query, so they never see the prompt. */
-.rotate-prompt {
-  display: none;
-}
-@media (orientation: portrait) and (max-width: 767px) {
-  .rotate-prompt {
-    display: flex;
-  }
-}
-
-/* ─── Reduced motion ─────────────────────────────────────────────────────────
-   Baseline safety net for anyone with prefers-reduced-motion enabled: caps
-   CSS-driven animation/transition duration app-wide. NOTE — this does NOT
-   reach the Framer Motion tweens used throughout every screen (those are
-   JS-driven, not CSS), so infinite decorative loops (bobbing animals,
-   drifting clouds, rotating rings) still play at full motion. Fully honoring
-   this setting would mean wiring framer-motion's useReducedMotion() through
-   each animated component — flagged as a follow-up, not done here. */
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
-  }
-}
-
-/* Compact gameplay chrome on short landscape viewports */
-@media (orientation: landscape) and (max-height: 560px) {
-  .hide-on-short {
-    display: none !important;
-  }
-  .compact-on-short {
-    padding-top: 0.5rem !important;
-    padding-bottom: 0.5rem !important;
-  }
-}

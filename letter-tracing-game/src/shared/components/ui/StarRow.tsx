@@ -41,14 +41,10 @@ export function StarRow({
             </svg>
             {justFilled && (
               <motion.div
-                className="absolute inset-0"
+                className="pl-star-burst absolute inset-0"
                 initial={{ opacity: 0.9, scale: 1 }}
                 animate={{ opacity: 0, scale: 2.4 }}
                 transition={{ duration: 0.55, ease: "easeOut" }}
-                style={{
-                  borderRadius: "50%",
-                  background: "radial-gradient(circle, rgba(255,217,61,0.55), transparent 70%)",
-                }}
               />
             )}
           </motion.div>

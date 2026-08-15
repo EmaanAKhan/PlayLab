@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { motion } from "framer-motion";
 import { FloatingClouds } from "@shared/components/animations/FloatingClouds";
+import { cssVars } from "@shared/styles/cssVars";
 
 interface SplashScreenProps {
   onComplete: () => void;
@@ -19,8 +20,7 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
     // tappable for the same reason: a child who already knows the app
     // shouldn't be forced through an unskippable multi-second intro every time.
     <button
-      className="relative flex h-full w-full flex-col items-center justify-center overflow-hidden"
-      style={{ background: "linear-gradient(160deg, #E8F4FF 0%, #F0E8FF 50%, #E8FFE8 100%)" }}
+      className="bg-wash-meadow relative flex h-full w-full flex-col items-center justify-center overflow-hidden"
       onClick={onComplete}
       aria-label="Letter Tracing — tap to start"
     >
@@ -31,13 +31,12 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
         {Array.from({ length: 16 }).map((_, i) => (
           <motion.div
             key={i}
-            className="absolute rounded-full bg-plum/10"
-            style={{
-              width: 6 + (i % 3) * 4,
-              height: 6 + (i % 3) * 4,
-              left: `${(i * 67 + 12) % 90}%`,
-              top: `${(i * 53 + 8) % 90}%`,
-            }}
+            className="pl-at pl-box absolute rounded-full bg-plum/10"
+            style={cssVars({
+              "--pl-size": `${6 + (i % 3) * 4}px`,
+              "--pl-x": `${(i * 67 + 12) % 90}%`,
+              "--pl-y": `${(i * 53 + 8) % 90}%`,
+            })}
             animate={{ y: [0, -8, 0], opacity: [0.3, 0.7, 0.3] }}
             transition={{ duration: 3 + (i % 4), delay: i * 0.2, repeat: Infinity, ease: "easeInOut" }}
           />
@@ -56,16 +55,17 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
           {["A", "B", "C"].map((letter, i) => (
             <motion.div
               key={letter}
-              className="flex h-16 w-14 items-center justify-center rounded-2xl shadow-card"
-              style={{
-                background: ["#DDD5F5", "#FFD6BC", "#C8F0D8"][i],
-                border: `3px solid ${["#A882E8", "#FFAA80", "#66CC94"][i]}`,
-              }}
+              className="pl-swatch flex h-16 w-14 items-center justify-center rounded-2xl shadow-card"
+              style={cssVars({
+                "--pl-bg": ["#DDD5F5", "#FFD6BC", "#C8F0D8"][i],
+                "--pl-border": ["#A882E8", "#FFAA80", "#66CC94"][i],
+                "--pl-bw": "3px",
+              })}
               initial={{ y: 30, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.2 + i * 0.12, type: "spring", stiffness: 260, damping: 18 }}
             >
-              <span className="font-rounded text-3xl font-black" style={{ color: ["#7C5CBF", "#E07040", "#3DAA72"][i] }}>
+              <span className="pl-tint font-rounded text-3xl font-black" style={cssVars({ "--pl-color": ["#7C5CBF", "#E07040", "#3DAA72"][i] })}>
                 {letter}
               </span>
             </motion.div>

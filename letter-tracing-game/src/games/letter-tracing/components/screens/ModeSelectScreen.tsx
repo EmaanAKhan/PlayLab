@@ -24,9 +24,7 @@ function StarIcon({ filled, size = 22 }: { filled: boolean; size?: number }) {
 export function ModeSelectScreen({ onSelect }: ModeSelectScreenProps) {
   return (
     <div
-      className="relative flex h-full w-full flex-col items-center justify-center gap-6 overflow-y-auto overflow-x-hidden px-6 py-6"
-      style={{ background: "linear-gradient(160deg, #F0E8FF 0%, #E8F4FF 100%)" }}
-    >
+      className="bg-wash-lavender-sky relative flex h-full w-full flex-col items-center justify-center gap-6 overflow-y-auto overflow-x-hidden px-6 py-6">
       <SceneDecor variant="minimal" />
 
       <motion.h2
@@ -42,8 +40,7 @@ export function ModeSelectScreen({ onSelect }: ModeSelectScreenProps) {
         {/* FREE MODE */}
         <motion.button
           onClick={() => onSelect("free")}
-          className="flex flex-1 flex-col items-center gap-3 rounded-4xl bg-white/80 p-6 shadow-lg"
-          style={{ border: "3px solid #66CC94", minHeight: 150 }}
+          className="lt-mode-card lt-mode-card--free flex flex-1 flex-col items-center gap-3 rounded-4xl bg-white/80 p-6 shadow-lg"
           initial={{ y: 24, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.1, duration: 0.4 }}
@@ -65,8 +62,7 @@ export function ModeSelectScreen({ onSelect }: ModeSelectScreenProps) {
         {/* 5 STAR MODE */}
         <motion.button
           onClick={() => onSelect("five-star")}
-          className="flex flex-1 flex-col items-center gap-3 rounded-4xl bg-white/80 p-6 shadow-lg"
-          style={{ border: "3px solid #A882E8", minHeight: 150 }}
+          className="lt-mode-card lt-mode-card--star flex flex-1 flex-col items-center gap-3 rounded-4xl bg-white/80 p-6 shadow-lg"
           initial={{ y: 24, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.2, duration: 0.4 }}

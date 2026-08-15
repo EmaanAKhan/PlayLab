@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { cssVars, type PlayLabCssVar } from "@shared/styles/cssVars";
 
 /**
  * HomeEnvironment — a handcrafted pastel garden layer for the HOME screen.
@@ -21,7 +22,7 @@ import { motion } from "framer-motion";
 
 function BigBird({ body = "#74B9FF", belly = "#EAF6FF", flip = false }: { body?: string; belly?: string; flip?: boolean }) {
   return (
-    <svg viewBox="0 0 120 100" width="100%" height="100%" style={{ transform: flip ? "scaleX(-1)" : undefined }}>
+    <svg viewBox="0 0 120 100" width="100%" height="100%" className={flip ? "pl-flip-x" : undefined}>
       {/* tail feathers */}
       <path d="M18 52 Q2 42 6 30 Q16 40 24 44 Z" fill={body} opacity="0.75" />
       <path d="M18 58 Q0 58 2 46 Q14 52 24 52 Z" fill={body} opacity="0.6" />
@@ -157,14 +158,14 @@ export function HomeEnvironment() {
       {ITEMS.map((item, i) => (
         <motion.div
           key={i}
-          className="absolute"
-          style={{
-            left: item.x,
-            right: item.r,
-            top: item.y,
-            width: item.w,
-            zIndex: item.z ?? 1,
-          }}
+          className="pl-pos absolute"
+          style={cssVars({
+            ...(item.x !== undefined && { "--pl-left": item.x }),
+            ...(item.r !== undefined && { "--pl-right": item.r }),
+            "--pl-top": item.y,
+            "--pl-w": item.w,
+            "--pl-z": item.z ?? 1,
+          } as Record<PlayLabCssVar, string | number>)}
           animate={
             item.duration > 0
               ? {

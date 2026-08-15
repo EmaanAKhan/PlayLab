@@ -3,15 +3,18 @@
 A Next.js (App Router) + TypeScript letter/number tracing game for children
 aged 3–7, designed autism-friendly: calm, predictable, forgiving, and never
 punishing. No backend — all state is local (zustand + localStorage), all
-audio is generated (Web Speech + synthesized tones), all art is inline SVG.
+audio is pre-generated narration clips + synthesized tones, all art is inline SVG.
 
 ## Portal architecture
 
 The project is a MULTI-GAME PORTAL. The homepage (`/`) renders game cards
 from `src/games/registry.ts`; each game lives at `/games/<id>` with all of
 its code isolated in `src/games/<id>/`. Cross-game functionality lives in
-`src/shared/` — audio (playCorrectSound(), sayPraise(), the speech engine
-with its sticky single voice), reusable UI (Button, RotateDevicePrompt),
+`src/shared/` — audio (playCorrectSound(), playClip() and the narration
+manifest), the design-token/stylesheet layer, reusable UI (Button,
+NavPillButton, ProgressBar, StarRow, RotateDevicePrompt), shared game
+shells (GameStage, CelebrationOverlay), shared hooks (useGameSession,
+useElementSize, useScheduler),
 decorative environments, the portal settings store (sound on/off, volume,
 persisted), and utilities (shuffle). Adding a game = create its folder, add
 its route page, add one registry entry.
@@ -29,8 +32,16 @@ src/
                         playIncorrectSound, playClickSound, playChime,
                         playStarPop, playFanfare, playCelebrationSound;
                         initAudio wires the settings store to Howler),
-                        speech.ts (sticky voice engine), phrases.ts
-    components/ui       Button, RotateDevicePrompt
+                        voice.ts (clip playback + clipText), music.ts,
+                        manifest.json (THE source of truth for narration)
+    styles/             tokens.ts (THE colour/shadow/radius source of truth),
+                        base.css, utilities.css, cssVars.ts (typed
+                        CSS-variable bridge for runtime-only values)
+    components/ui       Button, NavPillButton, ProgressBar, StarRow,
+                        RotateDevicePrompt, StartOptions
+    components/game     GameStage (screen shell), CelebrationOverlay
+    hooks/              useGameSession (audio + music + history lifecycle),
+                        useElementSize, useScheduler, useScreenHistorySync
     components/animations  Sparkles, SceneDecor, HomeEnvironment, clouds
     stores/settingsStore.ts  portal-level sound/volume (persisted)
     utils/random.ts     shuffle
@@ -96,9 +107,10 @@ All engine tuning lives in `tracing/constants.ts` — one file to adjust feel.
 
 ## Audio
 
-- `utils/speech.ts` selects ONE voice per session (en-GB female natural
-  preferred, sticky, never speaks before the voice list loads) and provides
-  race-safe `speak`/`speakParts`.
+- `shared/audio/voice.ts` plays pre-generated narration clips through Howler
+  and exposes `clipText(id)`, so on-screen text and the spoken phrase can
+  never drift apart. `manifest.json` is the single source of truth; clips are
+  generated with `npm run generate-audio:free` (edge-tts).
 - `useAudio` owns WHAT is said and WHEN: the letter intro is
   name → sound → anchor word ("b … buh … ball"), with `onWord` firing as the
   word starts so `AnchorWordCard` can show its picture in sync. Anchor words
@@ -123,3 +135,33 @@ All engine tuning lives in `tracing/constants.ts` — one file to adjust feel.
   static-touch, reverse traces and pause/resume across letters and numbers.
 - `npm run build` must be run in an environment with npm registry access
   (Next.js downloads its SWC binary on first build).
+
+
+## Styling architecture
+
+There are no inline style objects in this codebase. The rule is:
+
+1. **`shared/styles/tokens.ts`** is the single source of truth for every
+   colour, shadow and radius used for UI chrome. `tailwind.config.ts` imports
+   it twice: once to build the semantic Tailwind scale (`bg-plum`,
+   `text-jungle`, `shadow-board`), and once through a base plugin that emits
+   the same values as `:root` CSS custom properties, so hand-written CSS uses
+   `var(--color-…)` and can never drift from the utilities.
+2. **Tailwind utilities** express layout and any value that is known at build
+   time. Arbitrary values (`bg-[#F0E8FF]`) are not used — if a colour is worth
+   using it is worth naming in tokens.
+3. **Component classes** live in a stylesheet next to the code they belong to:
+   `shared/styles/utilities.css` for cross-game primitives, `app/portal.css`
+   for the homepage, and `games/<game>/styles/<game>.css` for that game's own
+   identity. They are composed in `app/globals.css`.
+4. **`shared/styles/cssVars.ts`** is the only sanctioned bridge for values
+   that genuinely cannot exist until runtime — a drag ghost's coordinates, a
+   scattered card's position, a per-round tint. The component sets typed
+   `--pl-*` custom properties; the actual CSS declaration still lives in a
+   stylesheet class (`.pl-at`, `.pl-swatch`, `.hunt-card`…). The helper's key
+   type is `--pl-${string}`, so an untyped inline style cannot slip back in.
+
+Illustration SVGs keep their own local, named art palettes. A shark's belly
+colour is art direction, not a design token; hoisting those into the token
+file would make the system meaningless. They are named constants, never
+magic hexes scattered through JSX.

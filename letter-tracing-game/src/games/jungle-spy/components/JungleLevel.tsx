@@ -7,8 +7,10 @@ import { useJungleStore } from "@games/jungle-spy/store/jungleStore";
 import { animalFor, JUNGLE_ANIMALS, animalPhotoPath } from "@games/jungle-spy/constants/animals";
 import { ANIMAL_ART } from "@shared/components/illustrations/AnimalArt";
 import { AnimalDisplay } from "@games/jungle-spy/components/AnimalDisplay";
+import { CelebrationOverlay } from "@shared/components/game/CelebrationOverlay";
+import { useElementSize } from "@shared/hooks/useElementSize";
+import { cssVars } from "@shared/styles/cssVars";
 import { JungleBackdrop } from "@games/jungle-spy/components/JungleScreens";
-import { CelebrationSparkles } from "@shared/components/animations/Sparkles";
 import { shuffle } from "@shared/utils/random";
 import {
   playCorrectSound,
@@ -117,12 +119,7 @@ export function JungleLevel() {
   // position:fixed, which breaks (confetti bunches to one side) inside any
   // transformed Framer Motion ancestor. This matches the tracing game's
   // reliable CelebrationScreen pattern.
-  const rootRef = useRef<HTMLDivElement>(null);
-  const [dims, setDims] = useState({ w: 360, h: 640 });
-  useEffect(() => {
-    const el = rootRef.current;
-    if (el) setDims({ w: el.offsetWidth, h: el.offsetHeight });
-  }, []);
+  const [rootRef, dims] = useElementSize();
 
   const targetsLeft = useMemo(
     () => bubbles.filter((b) => b.isTarget && !b.popped).length,
@@ -195,9 +192,7 @@ export function JungleLevel() {
   return (
     <div
       ref={rootRef}
-      className="relative flex h-full w-full flex-col items-center overflow-hidden px-4 py-3"
-      style={{ background: "linear-gradient(180deg, #C8F0D8 0%, #E8F8EF 60%, #C8F0D8 100%)" }}
-    >
+      className="bg-wash-mint relative flex h-full w-full flex-col items-center overflow-hidden px-4 py-3">
       <JungleBackdrop />
 
       {/* Top bar */}
@@ -210,12 +205,12 @@ export function JungleLevel() {
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
             <path d="M15 18l-6-6 6-6" stroke="#3DAA72" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
-          <span className="font-rounded text-xs font-bold" style={{ color: "#3DAA72" }}>Letters</span>
+          <span className="font-rounded text-xs font-bold text-jungle">Letters</span>
         </button>
 
         <div className="flex items-center gap-2 rounded-full bg-white/80 px-4 py-2 shadow-soft">
           <span className="font-rounded text-sm font-bold text-plum/70">I spy the letter</span>
-          <span className="font-rounded text-2xl font-black" style={{ color: "#3DAA72" }}>{display}</span>
+          <span className="font-rounded text-2xl font-black text-jungle">{display}</span>
         </div>
 
         {/* spacer balances the back button so the title stays centered */}
@@ -246,21 +241,14 @@ export function JungleLevel() {
         >
           {/* soft medallion keeps the animal the unmistakable centerpiece */}
           <div
-            className="flex items-center justify-center rounded-full shadow-lg"
-            style={{
-              width: "clamp(140px, 32vmin, 240px)",
-              height: "clamp(140px, 32vmin, 240px)",
-              background: "radial-gradient(circle, #FFFFFF 55%, #EAF9F0 100%)",
-              border: "4px solid #A8E3BC",
-            }}
+            className="jsp-medallion flex items-center justify-center rounded-full shadow-lg"
           >
-            <div className="flex items-center justify-center overflow-hidden rounded-full" style={{ width: "86%", height: "86%" }}>
+            <div className="jsp-medallion-photo flex items-center justify-center overflow-hidden rounded-full">
               <AnimalDisplay art={animal.art} />
             </div>
           </div>
           <p
-            className="mt-1.5 rounded-full bg-white/85 px-3 py-0.5 text-center font-rounded font-black text-plum/80 shadow-soft"
-            style={{ fontSize: "clamp(13px, 2.6vmin, 17px)" }}
+            className="jsp-animal-name mt-1.5 rounded-full bg-white/85 px-3 py-0.5 text-center font-rounded font-black text-plum/80 shadow-soft"
           >
             {animal.name}
           </p>
@@ -275,13 +263,8 @@ export function JungleLevel() {
                 <motion.button
                   key={`${round}-${b.id}`}
                   onClick={() => tapBubble(b)}
-                  className="absolute flex min-h-[48px] min-w-[48px] items-center justify-center p-1.5"
-                  style={{
-                    left: `${b.x}%`,
-                    top: `${b.y}%`,
-                    transform: "translate(-50%, -50%)",
-                    touchAction: "manipulation",
-                  }}
+                  className="jsp-bubble pl-at absolute flex min-h-[48px] min-w-[48px] items-center justify-center p-1.5"
+                  style={cssVars({ "--pl-x": `${b.x}%`, "--pl-y": `${b.y}%` })}
                   initial={{ scale: 0, opacity: 0 }}
                   animate={
                     shakeId === b.id
@@ -293,8 +276,8 @@ export function JungleLevel() {
                   aria-label={`Letter ${b.letter}`}
                 >
                   <span
-                    className="font-rounded font-black drop-shadow-sm"
-                    style={{ color: b.color, fontSize: LETTER_FONT[b.size], lineHeight: 1 }}
+                    className="pl-glyph pl-tint font-rounded font-black leading-none drop-shadow-sm"
+                    style={cssVars({ "--pl-color": b.color, "--pl-font-size": LETTER_FONT[b.size] })}
                   >
                     {b.letter}
                   </span>
@@ -307,19 +290,9 @@ export function JungleLevel() {
       {/* Win overlay */}
       <AnimatePresence>
         {won && (
-          <motion.div
-            className="absolute inset-0 z-30 flex flex-col items-center justify-center gap-4 px-6"
-            style={{ background: "rgba(232, 248, 238, 0.92)", backdropFilter: "blur(3px)" }}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-          >
-            <div className="pointer-events-none absolute inset-0" aria-hidden="true">
-              <CelebrationSparkles active width={dims.w} height={dims.h} />
-            </div>
+          <CelebrationOverlay tintClassName="jsp-win-tint" gapClassName="gap-4" blur="3px" size={dims}>
             <motion.div
-              className="overflow-hidden rounded-full"
-              style={{ width: "clamp(120px, 28vmin, 210px)", height: "clamp(120px, 28vmin, 210px)" }}
+              className="jsp-win-photo overflow-hidden rounded-full"
               initial={{ scale: 0.5, y: 20 }}
               animate={{ scale: 1, y: [0, -14, 0] }}
               transition={{
@@ -329,7 +302,7 @@ export function JungleLevel() {
             >
               <AnimalDisplay art={animal.art} />
             </motion.div>
-            <h2 className="font-rounded font-black text-plum" style={{ fontSize: "clamp(28px, 7vmin, 44px)" }}>
+            <h2 className="jsp-win-heading font-rounded font-black text-plum">
               {clipText("cheer-great-job")}
             </h2>
             <p className="font-rounded text-base font-semibold text-plum/60">
@@ -345,14 +318,13 @@ export function JungleLevel() {
               </button>
               <button
                 onClick={goNext}
-              className="min-h-[52px] rounded-full bg-white px-6 font-rounded text-base font-black text-white shadow-lg"
-                style={{ background: "#3DAA72"}}
+                className="min-h-[52px] rounded-full bg-jungle px-6 font-rounded text-base font-black text-white shadow-lg"
                 aria-label="Go to the next letter"
               >
                 <span>Next</span>
               </button>
             </div>
-          </motion.div>
+          </CelebrationOverlay>
         )}
       </AnimatePresence>
     </div>

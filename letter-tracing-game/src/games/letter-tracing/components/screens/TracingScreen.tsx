@@ -4,6 +4,8 @@ import { useState, useCallback, useEffect, useRef } from "react";
 import { motion, useAnimate, AnimatePresence } from "framer-motion";
 import { TracingCanvas, type TracingPhase } from "@games/letter-tracing/components/tracing/TracingCanvas";
 import { CelebrationSparkles } from "@shared/components/animations/Sparkles";
+import { StarRow } from "@shared/components/ui/StarRow";
+import { ProgressBar } from "@shared/components/ui/ProgressBar";
 import { RotateDevicePrompt } from "@shared/components/ui/RotateDevicePrompt";
 import { AnchorWordCard, type AnchorMode } from "@games/letter-tracing/components/ui/AnchorWordCard";
 import { useAudio } from "@games/letter-tracing/hooks/useAudio";
@@ -20,47 +22,6 @@ interface TracingScreenProps {
 const STAR_COUNT = 5;
 
 // ─── Five-star mastery row ────────────────────────────────────────────────────
-function StarRow({ stars }: { stars: number }) {
-  return (
-    <div className="flex items-center gap-1.5" aria-label={`${stars} of ${STAR_COUNT} stars earned`}>
-      {Array.from({ length: STAR_COUNT }).map((_, i) => {
-        const filled = i < stars;
-        const justFilled = i === stars - 1;
-        return (
-          <motion.div
-            key={i}
-            className="relative"
-            initial={false}
-            animate={justFilled ? { scale: [1, 1.5, 1.05, 1.2, 1] } : { scale: 1 }}
-            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-          >
-            <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
-              <path
-                d="M12 1.5l2.9 6.8 7.4.6-5.6 4.9 1.7 7.2L12 17.1l-6.4 3.9 1.7-7.2-5.6-4.9 7.4-.6L12 1.5z"
-                fill={filled ? "#FFD93D" : "#E7DFFA"}
-                stroke={filled ? "#F4A73E" : "#D8CDF2"}
-                strokeWidth="1"
-              />
-            </svg>
-            {justFilled && (
-              <motion.div
-                className="absolute inset-0"
-                initial={{ opacity: 0.9, scale: 1 }}
-                animate={{ opacity: 0, scale: 2.4 }}
-                transition={{ duration: 0.55, ease: "easeOut" }}
-                style={{
-                  borderRadius: "50%",
-                  background: "radial-gradient(circle, rgba(255,217,61,0.55), transparent 70%)",
-                }}
-              />
-            )}
-          </motion.div>
-        );
-      })}
-    </div>
-  );
-}
-
 export function TracingScreen({ letter, mode, onComplete, onHome }: TracingScreenProps) {
   const starTarget = mode === "five-star" ? STAR_COUNT : 1;
   const [progress, setProgress] = useState(0);
@@ -235,9 +196,7 @@ export function TracingScreen({ letter, mode, onComplete, onHome }: TracingScree
   return (
     <div
       ref={containerRef}
-      className="compact-on-short relative flex h-full w-full flex-col items-center overflow-hidden px-4 py-4 sm:px-6 sm:py-6"
-      style={{ background: "linear-gradient(160deg, #F0E8FF 0%, #E8F4FF 100%)" }}
-    >
+      className="bg-wash-lavender-sky compact-on-short relative flex h-full w-full flex-col items-center overflow-hidden px-4 py-4 sm:px-6 sm:py-6">
 
       {/* Portrait-phone orientation prompt (CSS-only visibility) */}
       <RotateDevicePrompt />
@@ -322,23 +281,22 @@ export function TracingScreen({ letter, mode, onComplete, onHome }: TracingScree
             {/* Five-star mastery row — one star per COMPLETE letter trace */}
             {mode === "five-star" && (
               <div className="rounded-full bg-white/70 px-3.5 py-2 shadow-soft">
-                <StarRow stars={stars} />
+                <StarRow earned={stars} total={STAR_COUNT} size={26} />
               </div>
             )}
           </div>
         </div>
 
         {/* Letter progress bar — hidden on short landscape phones to give the board room */}
-        <div className="hide-on-short mt-3 h-2.5 w-full overflow-hidden rounded-full bg-lavender/60">
-          <motion.div
-            className="h-full rounded-full"
-            style={{
-              background: progress >= 0.99 ? "#66CC94" : progress >= 0.4 ? "#A882E8" : "#DDD5F5",
-            }}
-            animate={{ width: `${progress * 100}%` }}
-            transition={{ duration: 0.2 }}
-          />
-        </div>
+        <ProgressBar
+          value={progress}
+          trackClassName="hide-on-short mt-3 h-2.5 w-full rounded-full bg-lavender/60"
+          fillClassName={`h-full rounded-full ${
+            progress >= 0.99 ? "bg-jade-light" : progress >= 0.4 ? "bg-plum-light" : "bg-lavender"
+          }`}
+          transition={{ duration: 0.2 }}
+          ariaLabel="How much of the letter is traced"
+        />
       </motion.div>
 
       {/* Tracing board — sized by the .trace-board CSS variable so it fills
@@ -346,11 +304,10 @@ export function TracingScreen({ letter, mode, onComplete, onHome }: TracingScree
       <div className="relative z-10 flex w-full flex-1 items-center justify-center">
         <motion.div
           ref={canvasScope}
-          className="trace-board"
+          className="trace-board rounded-board shadow-board"
           initial={{ scale: 0.92, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ delay: 0.1, duration: 0.4 }}
-          style={{ boxShadow: "0 10px 36px rgba(124,92,191,0.16)", borderRadius: 28 }}
         >
           <TracingCanvas
             key={`${letter.letter}-${attempt}`}

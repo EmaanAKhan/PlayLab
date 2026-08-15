@@ -1,0 +1,77 @@
+/**
+ * base.css — document-level rules only.
+ *
+ * Responsibility: the reset, the touch/selection behaviour every game relies
+ * on, and the scrollbar treatment. Nothing here is component- or game-specific.
+ */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  user-select: none;
+}
+
+/* App Router root elements */
+body > div,
+body > div > div {
+  height: 100%;
+}
+
+.font-rounded {
+  font-family: "Nunito", "Varela Round", "Arial Rounded MT Bold", sans-serif;
+}
+
+/* Prevent text selection and default scroll during tracing */
+canvas {
+  -webkit-user-select: none;
+  user-select: none;
+  touch-action: none;
+}
+
+/* Remove default tap highlight on mobile */
+button,
+a {
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+}
+
+/* Thin scrollbar for any overflow-y-auto containers */
+::-webkit-scrollbar {
+  width: 4px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-plum-light);
+  border-radius: 99px;
+}
+
+/* ─── Reduced motion ─────────────────────────────────────────────────────────
+   Baseline safety net for anyone with prefers-reduced-motion enabled: caps
+   CSS-driven animation/transition duration app-wide. NOTE — this does NOT
+   reach the Framer Motion tweens used throughout every screen (those are
+   JS-driven, not CSS), so infinite decorative loops (bobbing animals,
+   drifting clouds, rotating rings) still play at full motion. Fully honoring
+   this setting would mean wiring framer-motion's useReducedMotion() through
+   each animated component — flagged as a follow-up, not done here. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

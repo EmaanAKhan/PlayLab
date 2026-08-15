@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { HomeEnvironment } from "@shared/components/animations/HomeEnvironment";
 import type { Module } from "@games/letter-tracing/types";
+import { cssVars } from "@shared/styles/cssVars";
 
 interface MainMenuScreenProps {
   onSelectModule: (module: Module) => void;
@@ -49,9 +50,7 @@ const MODULES = [
 export function MainMenuScreen({ onSelectModule, onExitPortal }: MainMenuScreenProps) {
   return (
     <div
-      className="relative flex h-full w-full flex-col items-center justify-between gap-4 overflow-y-auto overflow-x-hidden px-5 py-6"
-      style={{ background: "linear-gradient(160deg, #E8F4FF 0%, #F0E8FF 50%, #E8FFE8 100%)" }}
-    >
+      className="bg-wash-meadow relative flex h-full w-full flex-col items-center justify-between gap-4 overflow-y-auto overflow-x-hidden px-5 py-6">
       {/* Garden environment: birds & butterflies in the outer bands */}
       <HomeEnvironment />
 
@@ -85,15 +84,13 @@ export function MainMenuScreen({ onSelectModule, onExitPortal }: MainMenuScreenP
         ].map((dot, i) => (
           <motion.div
             key={i}
-            className="absolute rounded-full"
-            style={{
-              width: dot.size,
-              height: dot.size,
-              left: dot.x,
-              top: dot.y,
-              background: dot.color,
-              opacity: 0.5,
-            }}
+            className="pl-at pl-box pl-bg absolute rounded-full opacity-50"
+            style={cssVars({
+              "--pl-size": `${dot.size}px`,
+              "--pl-x": dot.x,
+              "--pl-y": dot.y,
+              "--pl-bg": dot.color,
+            })}
             animate={{ y: [0, -12, 0], opacity: [0.4, 0.65, 0.4] }}
             transition={{
               duration: 4 + i * 0.6,
@@ -117,19 +114,22 @@ export function MainMenuScreen({ onSelectModule, onExitPortal }: MainMenuScreenP
           {["A", "B", "C"].map((letter, i) => (
             <motion.div
               key={letter}
-              className="flex items-center justify-center rounded-2xl shadow-lg"
-              style={{
-                width: 52 + i * 4,
-                height: 52 + i * 4,
-                background: ["#DDD5F5", "#C8F0D8", "#FFD6BC"][i],
-                border: `3px solid ${["#A882E8", "#66CC94", "#FFAA80"][i]}`,
-              }}
+              className="pl-box pl-swatch flex items-center justify-center rounded-2xl shadow-lg"
+              style={cssVars({
+                "--pl-size": `${52 + i * 4}px`,
+                "--pl-bg": ["#DDD5F5", "#C8F0D8", "#FFD6BC"][i],
+                "--pl-border": ["#A882E8", "#66CC94", "#FFAA80"][i],
+                "--pl-bw": "3px",
+              })}
               animate={{ y: [0, -5, 0] }}
               transition={{ duration: 2.5, delay: i * 0.3, repeat: Infinity, ease: "easeInOut" }}
             >
               <span
-                className="font-rounded font-black"
-                style={{ fontSize: 28 + i * 2, color: ["#7C5CBF", "#3DAA72", "#C06030"][i] }}
+                className="pl-glyph pl-tint font-rounded font-black"
+                style={cssVars({
+                  "--pl-font-size": `${28 + i * 2}px`,
+                  "--pl-color": ["#7C5CBF", "#3DAA72", "#C06030"][i],
+                })}
               >
                 {letter}
               </span>
@@ -152,12 +152,8 @@ export function MainMenuScreen({ onSelectModule, onExitPortal }: MainMenuScreenP
           <motion.button
             key={mod.id}
             onClick={() => onSelectModule(mod.id)}
-            className="flex items-center justify-center rounded-4xl shadow-lg"
-            style={{
-              background: mod.bg,
-              border: `3px solid ${mod.border}`,
-              minHeight: "clamp(96px, 16vh, 150px)",
-            }}
+            className="lt-module-card pl-swatch flex items-center justify-center rounded-4xl shadow-lg"
+            style={cssVars({ "--pl-bg": mod.bg, "--pl-border": mod.border, "--pl-bw": "3px" })}
             initial={{ scale: 0.85, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ delay: 0.15 + i * 0.08, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
@@ -166,12 +162,10 @@ export function MainMenuScreen({ onSelectModule, onExitPortal }: MainMenuScreenP
             aria-label={mod.aria}
           >
             <span
-              className="font-rounded font-black leading-none"
-              style={{
-                color: mod.text,
-                fontSize: mod.glyph.length > 4 ? "clamp(20px, 4.2vw, 30px)" : "clamp(30px, 6vw, 44px)",
-                whiteSpace: "nowrap",
-              }}
+              className={`pl-tint whitespace-nowrap font-rounded font-black leading-none ${
+                mod.glyph.length > 4 ? "lt-module-glyph--long" : "lt-module-glyph"
+              }`}
+              style={cssVars({ "--pl-color": mod.text })}
             >
               {mod.glyph}
             </span>

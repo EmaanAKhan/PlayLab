@@ -1,0 +1,81 @@
+/**
+ * Feed the Shark — game-specific visual identity (the underwater world).
+ * All values verbatim from the original screens.
+ */
+
+/** The water column every screen swims in. */
+.fs-bg {
+  background: linear-gradient(180deg, #6fc7ef 0%, #3fa7dc 55%, #2e8fc4 100%);
+}
+
+/* ── Backdrop layers ── */
+
+/** Soft light rays from the surface. */
+.fs-rays {
+  background: linear-gradient(175deg, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0) 45%);
+}
+/** The sand strip, stretched edge-to-edge. */
+.fs-sand {
+  height: clamp(44px, 8vh, 76px);
+}
+/** The decoration layer: true proportions, height-capped, centered. */
+.fs-seabed {
+  bottom: clamp(6px, 1.5vh, 16px);
+  width: min(100%, 1100px);
+  height: clamp(64px, 15vh, 120px);
+}
+/** One rising bubble (position/size via cssVars). */
+.fs-bubble {
+  background: rgba(255, 255, 255, 0.5);
+  box-shadow: inset -1px -1px 0 rgba(255, 255, 255, 0.8);
+}
+
+/* ── Splash ── */
+
+.fs-subtitle {
+  color: var(--color-gold-pale);
+  text-shadow: 0 2px 6px rgba(0, 60, 100, 0.3);
+}
+.fs-shark-splash {
+  width: clamp(150px, 40vmin, 300px);
+}
+.fs-fish-chip {
+  width: clamp(56px, 12vmin, 92px);
+}
+
+/* ── Level ── */
+
+.fs-shark {
+  width: clamp(150px, 36vmin, 300px);
+}
+/** Soft target halo behind an unfed shark while a fish is dragged. */
+.fs-halo {
+  background: radial-gradient(ellipse, rgba(255, 255, 255, 0.35), transparent 70%);
+}
+.fs-fish {
+  width: clamp(84px, 18vmin, 132px);
+}
+/** The white bubble plate a fish sits on — legible over any backdrop decor. */
+.fs-plate {
+  border: 3px solid rgba(41, 128, 185, 0.35);
+}
+/** The dragged fish, floating above the finger. */
+.fs-ghost {
+  width: clamp(84px, 18vmin, 132px);
+  transform: translate(-50%, -55%) rotate(-4deg);
+}
+
+/* ── Round-complete overlay ── */
+
+.fs-celebrate-tint {
+  background: rgba(111, 199, 239, 0.55);
+}
+.fs-cheer {
+  font-size: clamp(26px, 6.5vmin, 42px);
+}
+
+/* ── Finale ── */
+
+.fs-shark-finale {
+  width: clamp(190px, 42vmin, 320px);
+}

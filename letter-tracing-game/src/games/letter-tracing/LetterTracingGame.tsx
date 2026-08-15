@@ -2,14 +2,15 @@
 
 import { useRouter } from "next/navigation";
 
-import { useCallback, useEffect } from "react";
+import { useCallback } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { useScreenHistorySync } from "@shared/hooks/useScreenHistorySync";
-import { startMusic, stopMusic } from "@shared/audio/music";
+import { GameStage } from "@shared/components/game/GameStage";
+import { useGameSession } from "@shared/hooks/useGameSession";
 import { PAGE_TRANSITION } from "@shared/constants/transitions";
 import { PORTAL_ROUTE } from "@shared/constants/routes";
 
 import { useGameStore } from "@games/letter-tracing/store/gameStore";
+import type { GameScreen } from "@games/letter-tracing/types";
 import { LETTER_DATA } from "@games/letter-tracing/constants/letterData";
 import { LOWERCASE_LETTER_DATA } from "@games/letter-tracing/constants/lowercaseLetterData";
 import { NUMBER_DATA } from "@games/letter-tracing/constants/numberData";
@@ -32,7 +33,7 @@ import { LetterSequencingScreen } from "@games/letter-tracing/components/screens
  *            collapsed together deliberately — a 26-letter session would
  *            otherwise leave 26+ stacked history entries)
  */
-function toBucket(screen: string): "entry" | "menu" | "mode" | "play" {
+function toBucket(screen: GameScreen): "entry" | "menu" | "mode" | "play" {
   if (screen === "splash") return "entry";
   if (screen === "main-menu" || screen === "home") return "menu";
   if (screen === "mode-select") return "mode";
@@ -56,16 +57,6 @@ export function LetterTracingGame() {
     resetLowercaseProgress,
     resetNumbersProgress,
   } = useGameStore();
-
-
-  // Background music: starts once the child taps past the splash (that tap
-  // unlocks the AudioContext), loops for the whole session, fades out when
-  // the game unmounts. startMusic is a shared singleton — hopping between
-  // games can never stack two tracks.
-  useEffect(() => {
-    if (screen !== "splash") startMusic();
-  }, [screen]);
-  useEffect(() => () => stopMusic(), []);
 
   const { numbersProgress } = useGameStore();
   const currentProgress =
@@ -92,7 +83,7 @@ export function LetterTracingGame() {
     },
     [setScreen]
   );
-  useScreenHistorySync(toBucket(screen), handlePop);
+  useGameSession({ screen, step: toBucket(screen), onHistoryPop: handlePop });
 
   const handleSplashComplete = useCallback(() => {
     setScreen("main-menu");
@@ -207,7 +198,9 @@ export function LetterTracingGame() {
   }
 
   return (
-    <div className="relative h-full w-full overflow-hidden">
+    // The orientation hint mounts inside the tracing/sequencing screens (where
+    // the extra width matters), not at the stage level like the other games.
+    <GameStage withRotatePrompt={false}>
       <AnimatePresence mode="wait">
         {screen === "splash" && (
           <motion.div key="splash" className="absolute inset-0" {...PAGE_TRANSITION}>
@@ -272,6 +265,6 @@ export function LetterTracingGame() {
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
+    </GameStage>
   );
 }

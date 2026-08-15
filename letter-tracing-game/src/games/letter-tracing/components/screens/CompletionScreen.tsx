@@ -53,9 +53,7 @@ export function CompletionScreen({ onPlayAgain }: CompletionScreenProps) {
   return (
     <div
       ref={containerRef}
-      className="relative flex h-full w-full flex-col items-center overflow-y-auto overflow-x-hidden"
-      style={{ background: "linear-gradient(160deg, #F0E8FF 0%, #E8FFE8 50%, #E8F4FF 100%)" }}
-    >
+      className="lt-bg-completion relative flex h-full w-full flex-col items-center overflow-y-auto overflow-x-hidden">
       <CelebrationSparkles active width={dimensions.w} height={dimensions.h} />
 
       {/* overflow-y-auto handles short landscape viewports without clipping */}

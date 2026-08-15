@@ -1,5 +1,15 @@
 import type { Config } from "tailwindcss";
+import plugin from "tailwindcss/plugin";
+import { colors, motion, radii, shadows, toCssVariables } from "./src/shared/styles/tokens";
 
+/**
+ * Tailwind is the delivery mechanism for the design system defined in
+ * src/shared/styles/tokens.ts — it never defines values of its own.
+ *
+ * The same token module also feeds a base plugin that emits every token as a
+ * CSS custom property, so hand-written CSS (globals.css, the per-game style
+ * sheets) and utility classes are guaranteed to agree.
+ */
 const config: Config = {
   content: [
     // MUST cover everywhere Tailwind classes are actually written. Note:
@@ -17,50 +27,11 @@ const config: Config = {
       fontFamily: {
         rounded: ["Nunito", "Varela Round", "Arial Rounded MT Bold", "sans-serif"],
       },
-      colors: {
-        sky: {
-          pastel: "#D4EEFF",
-        },
-        peach: {
-          DEFAULT: "#FFD6BC",
-          soft: "#FFEADE",
-        },
-        mint: {
-          DEFAULT: "#C8F0D8",
-          soft: "#E5F7ED",
-        },
-        lavender: {
-          DEFAULT: "#DDD5F5",
-          soft: "#EEE9FF",
-        },
-        sunshine: {
-          DEFAULT: "#FFF0B3",
-          soft: "#FFFADD",
-        },
-        coral: {
-          DEFAULT: "#FF8B6A",
-          light: "#FFBDA8",
-        },
-        plum: {
-          DEFAULT: "#7C5CBF",
-          light: "#A882E8",
-        },
-        jade: {
-          DEFAULT: "#3DAA72",
-          light: "#66CC94",
-        },
-      },
-      borderRadius: {
-        "2xl": "1rem",
-        "3xl": "1.5rem",
-        "4xl": "2rem",
-        "5xl": "3rem",
-      },
-      boxShadow: {
-        soft: "0 4px 20px rgba(0,0,0,0.08)",
-        card: "0 8px 32px rgba(0,0,0,0.1)",
-        button: "0 6px 0 rgba(0,0,0,0.12)",
-        "button-pressed": "0 2px 0 rgba(0,0,0,0.12)",
+      colors,
+      borderRadius: radii,
+      boxShadow: shadows,
+      transitionTimingFunction: {
+        settle: motion.easeSettle,
       },
       animation: {
         "float-slow": "float 6s ease-in-out infinite",
@@ -85,7 +56,11 @@ const config: Config = {
       },
     },
   },
-  plugins: [],
+  plugins: [
+    plugin(({ addBase }) => {
+      addBase({ ":root": toCssVariables() });
+    }),
+  ],
 };
 
 export default config;
