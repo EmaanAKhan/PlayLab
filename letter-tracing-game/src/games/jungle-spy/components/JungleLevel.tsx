@@ -57,63 +57,114 @@ const FONT_TIERS = [0.115, 0.096, 0.08, 0.065] as const;
 const FONT_MIN = 30;
 const FONT_MAX = 104;
 
+/** Worst-case glyph metrics for this face at font-weight 900. A capital W or
+ *  M is ~0.90em wide — measuring by an average letter is what lets a WW pair
+ *  touch. Tap floor is the button's own min-w/min-h (48px) plus its padding,
+ *  so the invisible hit areas cannot overlap either: two letters far enough
+ *  apart to look separate but with overlapping buttons means a tap lands on
+ *  whichever happens to be on top, which reads as a broken game. */
+const GLYPH_W = 0.9;
+const GLYPH_H = 0.8;
+const TAP_MIN = 52;
+
 function letterFontPx(tier: number, play: PlayArea): number {
   const base = Math.min(play.w, play.h);
   return Math.round(Math.min(FONT_MAX, Math.max(FONT_MIN, FONT_TIERS[tier] * base)));
 }
 
-/** How many letters a board holds: one per ~11,000px² of usable area (the
- *  play area minus the animal), bounded below so a small screen is still a
- *  real puzzle, and above by the decoy pool — 25 other letters exist, so 28
- *  is the most we can place without repeating one twice. */
-function bubbleCount(play: PlayArea): number {
-  const keepW = play.keep.right - play.keep.left;
-  const keepH = play.keep.bottom - play.keep.top;
-  const usable = play.w * play.h - Math.max(0, keepW) * Math.max(0, keepH);
-  return Math.max(14, Math.min(28, Math.round(usable / 11000)));
+/** Half-width / half-height of everything a letter occupies, in px. */
+function letterHalfBox(tier: number, play: PlayArea): { hw: number; hh: number } {
+  const f = letterFontPx(tier, play);
+  return { hw: Math.max(f * GLYPH_W, TAP_MIN) / 2, hh: Math.max(f * GLYPH_H, TAP_MIN) / 2 };
 }
 
-/** Scatter `count` points across the WHOLE play area (percent coordinates).
+/** How many letters a board holds — derived from the actual area the letters
+ *  occupy rather than a magic constant, so the answer stays right when the
+ *  sizes change. 2.15x the mean letter box leaves room for the gaps between
+ *  them. Capped at 28: only 25 other letters exist, so past that a decoy
+ *  would have to appear twice. */
+function bubbleCount(play: PlayArea): number {
+  let boxSum = 0;
+  for (let t = 0; t < 4; t++) {
+    const { hw, hh } = letterHalfBox(t, play);
+    boxSum += 4 * hw * hh;
+  }
+  const meanBox = boxSum / 4;
+  const keepW = Math.max(0, play.keep.right - play.keep.left);
+  const keepH = Math.max(0, play.keep.bottom - play.keep.top);
+  const usable = play.w * play.h - keepW * keepH;
+  return Math.max(12, Math.min(28, Math.floor(usable / (meanBox * 2.15))));
+}
+
+/** Place one letter of each given size tier, scattered across the WHOLE play
+ *  area, and return percent coordinates (index-aligned with `tiers`).
  *
- *  Rejection sampling with two constraints, both measured in px:
- *    1. nothing lands on the animal — a target hidden behind the picture is
- *       unfindable, so the animal's real measured box is a keep-out;
- *    2. nothing lands within a letter's width of another letter.
- *  Spacing eases off in steps if a board proves hard to fill, so this always
- *  terminates and always places every letter.
+ *  Overlap is impossible BY CONSTRUCTION, not by luck:
+ *
+ *  - Every candidate is tested as a RECTANGLE against every rectangle already
+ *    placed, using each letter's own worst-case size. A single global minimum
+ *    distance cannot do this job, because the letters are four different
+ *    sizes: a gap that separates two small letters lets two large ones touch.
+ *  - The extra breathing room between letters relaxes towards zero if a board
+ *    is hard to fill, but NEVER below zero — touching is not a fallback.
+ *  - A letter that still cannot be placed is DROPPED rather than overlapped.
+ *    Placement runs targets first, then largest first (both because targets
+ *    must never be the ones dropped, and because placing big shapes before
+ *    small ones is what makes tight packing succeed), so anything dropped is
+ *    always a decoy and the board is simply a little sparser.
+ *  - Letters are kept a whole half-box inside the edges, and clear of the
+ *    animal's measured box, so nothing is clipped or hidden.
  *
  *  Coordinates are rounded to 2dp — they end up in inline custom properties,
  *  and full float precision is a needless hydration risk. */
-function scatterSlots(count: number, play: PlayArea): [number, number][] {
-  const letter = letterFontPx(0, play);
-  const baseGap = letter * 1.05;
-  const pad = letter * 0.55; // keep whole glyphs inside the edges
-  const margin = letter * 0.6; // clearance around the animal
-  const keep = {
-    left: play.keep.left - margin,
-    right: play.keep.right + margin,
-    top: play.keep.top - margin,
-    bottom: play.keep.bottom + margin,
-  };
+function scatterSlots(
+  tiers: readonly number[],
+  priority: readonly number[],
+  play: PlayArea
+): ([number, number] | null)[] {
+  const out: ([number, number] | null)[] = tiers.map(() => null);
+  const placed: { x: number; y: number; hw: number; hh: number }[] = [];
+  const breathBase = letterFontPx(0, play) * 0.5;
 
-  const pts: [number, number][] = [];
-  const spanX = Math.max(1, play.w - pad * 2);
-  const spanY = Math.max(1, play.h - pad * 2);
+  for (const i of priority) {
+    const { hw, hh } = letterHalfBox(tiers[i], play);
+    const spanX = Math.max(1, play.w - hw * 2);
+    const spanY = Math.max(1, play.h - hh * 2);
+    let done = false;
 
-  for (let relax = 0; relax < 9 && pts.length < count; relax++) {
-    const gap = Math.max(baseGap * 0.55, baseGap * (1 - relax * 0.09));
-    for (let tries = 0; tries < 700 && pts.length < count; tries++) {
-      const x = pad + Math.random() * spanX;
-      const y = pad + Math.random() * spanY;
-      if (x > keep.left && x < keep.right && y > keep.top && y < keep.bottom) continue;
-      if (pts.some(([px, py]) => Math.hypot(px - x, py - y) < gap)) continue;
-      pts.push([
-        Number(((x / play.w) * 100).toFixed(2)),
-        Number(((y / play.h) * 100).toFixed(2)),
-      ]);
+    for (let relax = 0; relax < 7 && !done; relax++) {
+      const breath = breathBase * (1 - relax / 6); // → 0, never negative
+      for (let tries = 0; tries < 400 && !done; tries++) {
+        const x = hw + Math.random() * spanX;
+        const y = hh + Math.random() * spanY;
+        // clear of the animal (its own box, plus a little air)
+        const air = breath * 0.3;
+        if (
+          x + hw > play.keep.left - air &&
+          x - hw < play.keep.right + air &&
+          y + hh > play.keep.top - air &&
+          y - hh < play.keep.bottom + air
+        ) {
+          continue;
+        }
+        // clear of every letter already placed
+        if (
+          placed.some(
+            (p) => Math.abs(p.x - x) < p.hw + hw + breath && Math.abs(p.y - y) < p.hh + hh + breath
+          )
+        ) {
+          continue;
+        }
+        placed.push({ x, y, hw, hh });
+        out[i] = [
+          Number(((x / play.w) * 100).toFixed(2)),
+          Number(((y / play.h) * 100).toFixed(2)),
+        ];
+        done = true;
+      }
     }
   }
-  return pts;
+  return out;
 }
 
 interface Bubble {
@@ -148,19 +199,35 @@ function buildBubbles(target: string, letterCase: "upper" | "lower", play: PlayA
     ...Array.from({ length: TARGET_COUNT }, () => ({ letter: target, isTarget: true })),
     ...decoys.map((l) => ({ letter: l, isTarget: false })),
   ]);
-  const slots = scatterSlots(letters.length, play);
   // Sizes cycle big→medium→small so every board mixes clearly different
-  // bubble sizes without any becoming a tiny target
-  return letters.map((l, i) => ({
-    id: i,
-    letter: letterCase === "lower" ? l.letter.toLowerCase() : l.letter,
-    isTarget: l.isTarget,
-    x: slots[i][0],
-    y: slots[i][1],
-    popped: false,
-    size: (i % 4) as 0 | 1 | 2 | 3,
-    color: LETTER_COLORS[i % LETTER_COLORS.length],
-  }));
+  // letter sizes without any becoming a tiny target. Tiers are assigned to the
+  // ALREADY SHUFFLED list, so a target is never predictably large or small.
+  const tiers = letters.map((_, i) => (i % 4) as 0 | 1 | 2 | 3);
+  // Targets first (they must never be the ones dropped), then largest first
+  // (big shapes placed before small ones is what makes tight packing work).
+  const priority = letters
+    .map((_, i) => i)
+    .sort((a, b) => {
+      // targets first, then biggest first — NOT reversed afterwards: reversing
+      // would put the decoys first and let a TARGET be the letter dropped
+      const byTarget = Number(letters[b].isTarget) - Number(letters[a].isTarget);
+      return byTarget !== 0 ? byTarget : letterFontPx(tiers[b], play) - letterFontPx(tiers[a], play);
+    });
+  const slots = scatterSlots(tiers, priority, play);
+
+  return letters
+    .map((l, i) => ({
+      id: i,
+      letter: letterCase === "lower" ? l.letter.toLowerCase() : l.letter,
+      isTarget: l.isTarget,
+      slot: slots[i],
+      popped: false,
+      size: tiers[i],
+      color: LETTER_COLORS[i % LETTER_COLORS.length],
+    }))
+    // a letter with nowhere to go is left OUT rather than stacked on another
+    .filter((b) => b.slot !== null)
+    .map(({ slot, ...b }) => ({ ...b, x: slot![0], y: slot![1] }));
 }
 
 /** Re-scatter the letters already on the board into a changed play area —
@@ -168,9 +235,18 @@ function buildBubbles(target: string, letterCase: "upper" | "lower", play: PlayA
  *  letter already found, is preserved: only the positions change, so a child
  *  mid-puzzle never loses progress to a layout change. */
 function respread(bubbles: Bubble[], play: PlayArea): Bubble[] {
-  const slots = scatterSlots(bubbles.length, play);
-  if (slots.length < bubbles.length) return bubbles; // keep what works
-  return bubbles.map((b, i) => ({ ...b, x: slots[i][0], y: slots[i][1] }));
+  const tiers = bubbles.map((b) => b.size);
+  const priority = bubbles
+    .map((_, i) => i)
+    .sort((a, b) => {
+      const byTarget = Number(bubbles[b].isTarget) - Number(bubbles[a].isTarget);
+      return byTarget !== 0 ? byTarget : letterFontPx(tiers[b], play) - letterFontPx(tiers[a], play);
+    });
+  const slots = scatterSlots(tiers, priority, play);
+  // If the new shape cannot hold every letter, keep the old positions rather
+  // than silently dropping letters mid-puzzle.
+  if (slots.some((sl) => sl === null)) return bubbles;
+  return bubbles.map((b, i) => ({ ...b, x: slots[i]![0], y: slots[i]![1] }));
 }
 
 export function JungleLevel() {
