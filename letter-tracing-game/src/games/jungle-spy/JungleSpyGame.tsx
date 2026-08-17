@@ -10,11 +10,14 @@ import { PORTAL_ROUTE } from "@shared/constants/routes";
 import { useJungleStore, type JungleScreen } from "@games/jungle-spy/store/jungleStore";
 import { JungleSplash, JungleGrid } from "@games/jungle-spy/components/JungleScreens";
 import { JungleLevel } from "@games/jungle-spy/components/JungleLevel";
+import { JungleComplete } from "@games/jungle-spy/components/JungleComplete";
 
 /** Coarse history bucket: gameplay is its own step; splash/grid collapse into
  *  "menu" so browsing letters never spams history. */
 function toBucket(screen: JungleScreen): "menu" | "play" {
-  return screen === "level" ? "play" : "menu";
+  // the finale sits with gameplay: back from it returns to the letter board,
+  // not out of the game
+  return screen === "level" || screen === "complete" ? "play" : "menu";
 }
 
 export function JungleSpyGame() {
@@ -53,6 +56,11 @@ export function JungleSpyGame() {
         {screen === "level" && (
           <motion.div key="level" className="absolute inset-0" {...PAGE_TRANSITION}>
             <JungleLevel />
+          </motion.div>
+        )}
+        {screen === "complete" && (
+          <motion.div key="complete" className="absolute inset-0" {...PAGE_TRANSITION}>
+            <JungleComplete onExitPortal={() => router.push(PORTAL_ROUTE)} />
           </motion.div>
         )}
       </AnimatePresence>

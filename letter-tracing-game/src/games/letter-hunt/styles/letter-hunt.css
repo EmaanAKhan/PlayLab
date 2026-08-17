@@ -90,3 +90,12 @@
 .hunt-done-heading {
   font-size: clamp(28px, 7vmin, 44px);
 }
+
+/* ── Finale ── */
+
+.hunt-finale-heading {
+  font-size: clamp(30px, 7.5vmin, 52px);
+}
+.hunt-finale-mascot {
+  width: clamp(80px, 18vmin, 140px);
+}

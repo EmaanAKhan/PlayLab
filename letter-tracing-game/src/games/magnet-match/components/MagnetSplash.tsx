@@ -77,7 +77,7 @@ export function MagnetSplash({ groupIndex, onStart, onStartFromA, onExitPortal }
             </div>
             <div className="flex gap-2" aria-hidden="true">
               {["a", "b", "c"].map((l, i) => (
-                <PuzzleMagnet key={l} letter={l} colorIndex={i} size="var(--mm-slot, 46px)" />
+                <PuzzleMagnet key={l} letter={l} colorIndex={i} size="calc(var(--mm-slot, 46px) * 0.8)" />
               ))}
             </div>
           </div>

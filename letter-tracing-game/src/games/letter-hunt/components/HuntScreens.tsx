@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { motion } from "framer-motion";
-import { useHuntStore } from "@games/letter-hunt/store/huntStore";
+import { useHuntStore, completedFor } from "@games/letter-hunt/store/huntStore";
 import { PencilPal } from "@games/letter-hunt/components/PennyArt";
 import { HomeEnvironment } from "@shared/components/animations/HomeEnvironment";
 import { NavPillButton } from "@shared/components/ui/NavPillButton";
@@ -72,7 +72,11 @@ export function HuntSplash() {
 /** Home — title, Penny, Continue/Start buttons, the letter list right here
  *  (no separate "choose a letter" page to navigate to). */
 export function HuntHome({ onExitPortal }: { onExitPortal?: () => void }) {
-  const { currentIndex, completed, setIndex, setScreen } = useHuntStore();
+  const store = useHuntStore();
+  const { currentIndex, letterCase, setIndex, setScreen, setCase } = store;
+  // BIG letters and little letters are separate runs with separate finales
+  const completed = completedFor(store, letterCase);
+  const cased = (l: string) => (letterCase === "lower" ? l.toLowerCase() : l);
 
   const startFromA = () => {
     playClickSound();
@@ -85,7 +89,8 @@ export function HuntHome({ onExitPortal }: { onExitPortal?: () => void }) {
     setScreen("level");
   };
 
-  const hasProgress = currentIndex > 0 || completed.length > 0;
+  const runComplete = completed.length >= 26;
+  const hasProgress = (currentIndex > 0 || completed.length > 0) && !runComplete;
 
   return (
     <div
@@ -122,6 +127,28 @@ export function HuntHome({ onExitPortal }: { onExitPortal?: () => void }) {
       >
         <PencilPal />
       </motion.div>
+
+      {/* BIG letters / little letters — the same picker Jungle Spy uses, so
+          switching case works the same way in both alphabet games */}
+      <div
+        className="relative z-10 flex items-center gap-1 rounded-full bg-white/70 p-1 shadow-soft"
+        role="group"
+        aria-label="Letter style"
+      >
+        {(["upper", "lower"] as const).map((c) => (
+          <button
+            key={c}
+            onClick={() => { playClickSound(); setCase(c); }}
+            className={`min-h-[40px] rounded-full px-4 font-rounded text-sm font-black ${
+              letterCase === c ? "bg-white text-plum shadow-pill" : "bg-transparent text-plum-muted"
+            }`}
+            aria-pressed={letterCase === c}
+            aria-label={c === "upper" ? "Big letters" : "Little letters"}
+          >
+            {c === "upper" ? "ABC" : "abc"}
+          </button>
+        ))}
+      </div>
 
       {/* soft progress */}
       <div className="relative z-10 w-full max-w-xs">
@@ -167,7 +194,7 @@ export function HuntHome({ onExitPortal }: { onExitPortal?: () => void }) {
                 <span
                   className={`hunt-tile-glyph font-rounded font-black ${isDone ? "text-white" : "text-plum"}`}
                 >
-                  {l}
+                  {cased(l)}
                 </span>
               </motion.button>
             );
@@ -177,9 +204,13 @@ export function HuntHome({ onExitPortal }: { onExitPortal?: () => void }) {
 
       {/* Unified start flow — beneath the grid, same shared control as the other games */}
       <StartOptions
-        hasProgress={hasProgress}
-        onContinue={() => { setScreen("level"); }}
-        continueLabel={`Continue · ${LETTERS[currentIndex]}`}
+        hasProgress={hasProgress || runComplete}
+        onContinue={
+          runComplete
+            ? () => { playClickSound(); setScreen("complete"); }
+            : () => { setScreen("level"); }
+        }
+        continueLabel={runComplete ? "See my alphabet!" : `Continue · ${cased(LETTERS[currentIndex])}`}
         onStartFromA={startFromA}
       />
       </div>

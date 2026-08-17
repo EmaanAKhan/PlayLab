@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { useHuntStore } from "@games/letter-hunt/store/huntStore";
+import { useHuntStore, completedFor } from "@games/letter-hunt/store/huntStore";
 import { LETTERS } from "@games/letter-hunt/components/HuntScreens";
 import { PencilPal, Notebook } from "@games/letter-hunt/components/PennyArt";
 import { HomeEnvironment } from "@shared/components/animations/HomeEnvironment";
@@ -153,8 +153,15 @@ function MiniBurst() {
 
 export function HuntLevel() {
   const router = useRouter();
-  const { currentIndex, setIndex, markCompleted } = useHuntStore();
-  const target = LETTERS[currentIndex];
+  const store = useHuntStore();
+  const { currentIndex, letterCase, setIndex, markCompleted, setScreen } = store;
+  const target = LETTERS[currentIndex]; // canonical uppercase — audio, data, keys
+  /** How the letter is DRAWN: the child hunts BIG or little letters. */
+  const shown = letterCase === "lower" ? target.toLowerCase() : target;
+  const completed = completedFor(store, letterCase);
+  /** Nothing left to hunt in this case's run once this letter is banked. */
+  const runComplete =
+    completed.length >= 26 || (completed.length === 25 && !completed.includes(target));
 
   const [phase, setPhase] = useState<Phase>("intro");
   const [introStep, setIntroStep] = useState(0); // 0 settle · 1 letter shown · 2 prompt
@@ -229,8 +236,17 @@ export function HuntLevel() {
   const goNext = useCallback(() => {
     playClickSound();
     stopVoice();
-    setIndex((currentIndex + 1) % 26);
-  }, [currentIndex, setIndex]);
+    // End of the run? The finale, rather than silently wrapping back to A and
+    // starting the whole alphabet over without saying so.
+    if (runComplete) {
+      setScreen("complete");
+      return;
+    }
+    // Move to the next letter STILL TO HUNT, not merely the next in sequence
+    const order = Array.from({ length: 26 }, (_, k) => (currentIndex + 1 + k) % 26);
+    const next = order.find((i) => !completed.includes(LETTERS[i])) ?? order[0];
+    setIndex(next);
+  }, [currentIndex, setIndex, runComplete, setScreen, completed]);
 
   return (
     <div
@@ -250,7 +266,7 @@ export function HuntLevel() {
         {phase === "find" && (
           <div className="flex items-center gap-2 rounded-full bg-white/80 px-4 py-2 shadow-soft">
             <span className="font-rounded text-sm font-bold text-plum/70">Find</span>
-            <span className="font-rounded text-2xl font-black text-plum">{target}</span>
+            <span className="font-rounded text-2xl font-black text-plum">{shown}</span>
           </div>
         )}
 
@@ -299,7 +315,7 @@ export function HuntLevel() {
                       animate={{ scale: [0.3, 1.12, 1], opacity: 1 }}
                       transition={{ duration: 0.5 }}
                     >
-                      {target}
+                      {shown}
                     </motion.span>
                   )}
                 </AnimatePresence>
@@ -350,7 +366,7 @@ export function HuntLevel() {
                     : { x: "-50%", y: "-50%", scale: c.found ? [1, 1.12, 1] : 1, opacity: 1, rotate: c.rotate }
                 }
                 transition={{ type: "spring", stiffness: 260, damping: 20 }}
-                aria-label={`Letter ${c.letter}${c.found ? " — found!" : ""}`}
+                aria-label={`Letter ${letterCase === "lower" ? c.letter.toLowerCase() : c.letter}${c.found ? " — found!" : ""}`}
                 disabled={c.found}
               >
                 {/* slow, calm hypnotic ring pattern — clipped to the card shape only,
@@ -369,7 +385,7 @@ export function HuntLevel() {
                   }`}
                   style={cssVars({ "--pl-font-size": c.fontSize, "--pl-color": c.style.color })}
                 >
-                  {c.letter}
+                  {letterCase === "lower" ? c.letter.toLowerCase() : c.letter}
                 </span>
                 {/* small local sparkle on found — never screen-covering */}
                 {c.found && <MiniBurst />}
@@ -411,14 +427,14 @@ export function HuntLevel() {
               {clipText(cheerId)}
             </h2>
             <p className="font-rounded text-base font-semibold text-plum/60">
-              You found every {target}!
+              You found every {shown}!
             </p>
             <button
               onClick={goNext}
               className="inline-flex min-h-[52px] items-center gap-2 rounded-full bg-plum px-7 font-rounded text-base font-black text-white shadow-lg"
-              aria-label={`Next letter: ${LETTERS[(currentIndex + 1) % 26]}`}
+              aria-label={runComplete ? "See your finished alphabet" : "Next letter"}
             >
-              <span>Next</span>
+              <span>{runComplete ? "Finish!" : "Next"}</span>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                 <path d="M9 6l6 6-6 6" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
               </svg>

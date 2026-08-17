@@ -19,11 +19,17 @@
    The pot is bounded on BOTH axes: min() against 40vh means a short
    landscape phone shrinks the pot instead of pushing the tray off-screen. */
 .mm-stage {
-  --mm-pot: clamp(150px, min(34vmin, 40vh), 300px);
+  /* Bounded by HEIGHT first (72vh) and width second (42vw), because what
+     actually limits this screen is the tray: three stacked magnets plus their
+     gaps are taller than the pot itself, so the station's height — not the
+     pot's — is what has to fit the viewport. The old 34vmin was the real
+     culprit behind a tiny pot: on any landscape screen vmin IS the height, so
+     the pot was sized off the short axis and then only a third of it used. */
+  --mm-pot: clamp(210px, min(72vh, 42vw), 600px);
   /* a tray magnet — the drag target, never below a 48px finger */
-  --mm-magnet: calc(var(--mm-pot, 240px) * 0.32);
+  --mm-magnet: calc(var(--mm-pot, 240px) * 0.28);
   /* a gray target letter sitting in the soup */
-  --mm-slot: calc(var(--mm-pot, 240px) * 0.19);
+  --mm-slot: calc(var(--mm-pot, 240px) * 0.2);
 }
 
 /* ── Kitchen stage ── */
@@ -83,7 +89,7 @@
 /* ── Characters & station ── */
 
 .mm-chef-splash {
-  width: clamp(96px, 22vmin, 180px);
+  width: calc(var(--mm-pot, 240px) * 0.4);
 }
 .mm-chef-level {
   width: calc(var(--mm-pot, 240px) * 0.62);
@@ -98,25 +104,30 @@
 /** Station padding + inner gap scale with the pot, so the card hugs its
     contents identically at every size (vw/vmin padding did not). */
 .mm-station--level {
-  gap: calc(var(--mm-pot, 240px) * 0.08);
-  padding: calc(var(--mm-pot, 240px) * 0.06) calc(var(--mm-pot, 240px) * 0.07);
+  gap: calc(var(--mm-pot, 240px) * 0.05);
+  padding: calc(var(--mm-pot, 240px) * 0.05);
 }
 .mm-pot-splash {
-  width: clamp(120px, 26vmin, 200px);
+  width: calc(var(--mm-pot, 240px) * 0.5);
   aspect-ratio: 260 / 240;
 }
 .mm-pot {
   width: var(--mm-pot, 240px);
 }
 
-/** The play row: chef | station. */
+/** The play row: chef | station. The cap is wide enough for the largest pot
+    plus the chef and tray beside it (~2.1x the pot); it used to be max-w-3xl
+    (768px), which capped the pot at roughly 345px however big the screen was. */
 .mm-play-row {
   gap: calc(var(--mm-pot, 240px) * 0.06);
+  max-width: 1440px;
 }
 
-/** The tray column beside the pot. */
+/** The tray column beside the pot. Tighter gaps than the magnets are wide:
+    this column is the tallest thing on the screen, so every percent here buys
+    the pot more room. */
 .mm-tray {
-  gap: calc(var(--mm-pot, 240px) * 0.08);
+  gap: calc(var(--mm-pot, 240px) * 0.05);
 }
 
 /** The three gray targets, stacked in the soup.
@@ -127,7 +138,7 @@
     height — it silently computed to zero and the letters touched. */
 .mm-slot-column {
   top: calc(var(--mm-pot, 240px) * 0.21);
-  gap: calc(var(--mm-pot, 240px) * 0.035);
+  gap: calc(var(--mm-pot, 240px) * 0.025);
 }
 .mm-pot-art {
   aspect-ratio: 260 / 240;

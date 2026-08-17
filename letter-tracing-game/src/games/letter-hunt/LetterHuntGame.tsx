@@ -10,13 +10,15 @@ import { PORTAL_ROUTE } from "@shared/constants/routes";
 import { useHuntStore, type HuntScreen } from "@games/letter-hunt/store/huntStore";
 import { HuntSplash, HuntHome } from "@games/letter-hunt/components/HuntScreens";
 import { HuntLevel } from "@games/letter-hunt/components/HuntLevel";
+import { HuntComplete } from "@games/letter-hunt/components/HuntComplete";
 
 /** Coarse history bucket for this game's screen graph. "level" (gameplay)
  *  is its own step; splash/home collapse into "menu" so switching letters
  *  from the home shelf never spams history — only entering/leaving actual
  *  play does. */
 function toBucket(screen: HuntScreen): "menu" | "play" {
-  return screen === "level" ? "play" : "menu";
+  // the finale sits with gameplay: back from it returns home, not out of the game
+  return screen === "level" || screen === "complete" ? "play" : "menu";
 }
 
 export function LetterHuntGame() {
@@ -57,6 +59,11 @@ export function LetterHuntGame() {
         {screen === "level" && (
           <motion.div key="level" className="absolute inset-0" {...PAGE_TRANSITION}>
             <HuntLevel />
+          </motion.div>
+        )}
+        {screen === "complete" && (
+          <motion.div key="complete" className="absolute inset-0" {...PAGE_TRANSITION}>
+            <HuntComplete onExitPortal={() => router.push(PORTAL_ROUTE)} />
           </motion.div>
         )}
       </AnimatePresence>

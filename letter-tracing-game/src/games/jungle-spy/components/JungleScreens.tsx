@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import { useEffect } from "react";
-import { useJungleStore } from "@games/jungle-spy/store/jungleStore";
+import { useJungleStore, foundFor } from "@games/jungle-spy/store/jungleStore";
 import { NavPillButton } from "@shared/components/ui/NavPillButton";
 import { ProgressBar } from "@shared/components/ui/ProgressBar";
 import { cssVars } from "@shared/styles/cssVars";
@@ -197,7 +197,10 @@ export function JungleSplash({ onExitPortal }: { onExitPortal?: () => void }) {
 
 /** Alphabet grid on leafy tiles + rainbow progress */
 export function JungleGrid() {
-  const { letterCase, found, setLetter, setScreen, setCase } = useJungleStore();
+  const store = useJungleStore();
+  const { letterCase, setLetter, setScreen, setCase } = store;
+  // progress is per case: switching BIG ↔ little switches to that run's board
+  const found = foundFor(store, letterCase);
   const foundCount = found.length;
 
   // Same narrator, same clip as the tracing home: "Pick a letter!"
@@ -216,7 +219,8 @@ export function JungleGrid() {
   // the first animal not yet found, or start over from A.
   const ALPHA = JUNGLE_ANIMALS.map((a) => a.letter);
   const nextUnfound = ALPHA.find((l) => !found.includes(l)) ?? "A";
-  const hasProgress = found.length > 0 && found.length < ALPHA.length;
+  const runComplete = found.length >= ALPHA.length;
+  const hasProgress = found.length > 0 && !runComplete;
 
   return (
     <div
@@ -305,9 +309,13 @@ export function JungleGrid() {
 
       {/* Unified start flow — beneath the grid, matching the other games */}
       <StartOptions
-        hasProgress={hasProgress}
-        onContinue={() => openLetter(nextUnfound)}
-        continueLabel={`Continue · ${nextUnfound}`}
+        hasProgress={hasProgress || runComplete}
+        onContinue={
+          runComplete
+            ? () => { playClickSound(); setScreen("complete"); }
+            : () => openLetter(nextUnfound)
+        }
+        continueLabel={runComplete ? "See my alphabet!" : `Continue · ${nextUnfound}`}
         onStartFromA={() => openLetter("A")}
       />
     </div>

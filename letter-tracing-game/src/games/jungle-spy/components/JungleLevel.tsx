@@ -3,7 +3,7 @@ import { StarRow } from "@shared/components/ui/StarRow";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { useJungleStore } from "@games/jungle-spy/store/jungleStore";
+import { useJungleStore, foundFor } from "@games/jungle-spy/store/jungleStore";
 import { animalFor, JUNGLE_ANIMALS, animalPhotoPath } from "@games/jungle-spy/constants/animals";
 import { ANIMAL_ART } from "@shared/components/illustrations/AnimalArt";
 import { AnimalDisplay } from "@games/jungle-spy/components/AnimalDisplay";
@@ -251,7 +251,13 @@ function respread(bubbles: Bubble[], play: PlayArea): Bubble[] {
 
 export function JungleLevel() {
   const router = useRouter();
-  const { currentLetter, letterCase, markFound, setLetter } = useJungleStore();
+  const store = useJungleStore();
+  const { currentLetter, letterCase, markFound, setLetter, setScreen } = store;
+  const found = foundFor(store, letterCase);
+  /** The letter just won is the 26th of this case's run — nothing left to find. */
+  const runComplete =
+    found.length >= JUNGLE_ANIMALS.length ||
+    (found.length === JUNGLE_ANIMALS.length - 1 && !found.includes(currentLetter));
   const animal = animalFor(currentLetter);
   const Art = ANIMAL_ART[animal.art];
   const display = letterCase === "lower" ? currentLetter.toLowerCase() : currentLetter;
@@ -374,12 +380,20 @@ export function JungleLevel() {
 
   const goNext = useCallback(() => {
     stopVoice(); // never let the cheer keep talking into the next level
+    // Last animal of this run? Go to the finale rather than wrapping round to A
+    // and quietly starting the whole alphabet again.
+    if (runComplete) {
+      setScreen("complete");
+      return;
+    }
     void playClip("instr-next");
     const idx = JUNGLE_ANIMALS.findIndex((a) => a.letter === currentLetter);
-    const next = JUNGLE_ANIMALS[(idx + 1) % JUNGLE_ANIMALS.length];
+    // skip straight to the next animal still to find, not just the next letter
+    const order = JUNGLE_ANIMALS.map((_, k) => JUNGLE_ANIMALS[(idx + 1 + k) % JUNGLE_ANIMALS.length]);
+    const next = order.find((a) => !found.includes(a.letter)) ?? order[0];
     setRound((r) => r + 1); // fresh keys — the win overlay and board fully reset
     setLetter(next.letter);
-  }, [currentLetter, setLetter]);
+  }, [currentLetter, setLetter, runComplete, setScreen, found]);
 
   const playAgain = useCallback(() => {
     void playClip("instr-again");
@@ -524,7 +538,7 @@ export function JungleLevel() {
                 className="min-h-[52px] rounded-full bg-jungle px-6 font-rounded text-base font-black text-white shadow-lg"
                 aria-label="Go to the next letter"
               >
-                <span>Next</span>
+                <span>{runComplete ? "Finish!" : "Next"}</span>
               </button>
             </div>
           </CelebrationOverlay>

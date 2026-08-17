@@ -276,14 +276,14 @@ export function MagnetLevel({ groupIndex, onGroupComplete }: MagnetLevelProps) {
       </div>
 
       {/* instruction — same text as the spoken clip */}
-      <p className="relative z-10 mt-1.5 max-w-xl rounded-full bg-white/85 px-4 py-1.5 text-center font-rounded text-xs font-bold text-kitchen-ink shadow-soft md:text-sm">
+      <p className="hide-on-short relative z-10 mt-1.5 max-w-xl rounded-full bg-white/85 px-4 py-1.5 text-center font-rounded text-xs font-bold text-kitchen-ink shadow-soft md:text-sm">
         {clipText("magnet-intro")}
       </p>
 
       {/* ── main play area: chef standing beside the white cooking-station
              card; the card holds the pot + magnet tray (the reference's
              FULL KITCHEN → WHITE CARD → POT+LETTERS hierarchy) ── */}
-      <div className="mm-play-row relative z-10 flex w-full max-w-3xl flex-1 items-center justify-center py-[2vh]">
+      <div className="mm-play-row relative z-10 flex w-full flex-1 items-center justify-center py-[2vh]">
         {/* the chef, on the counter beside the station — gentle idle
             breathing, bigger bounce on a correct match */}
         <motion.div

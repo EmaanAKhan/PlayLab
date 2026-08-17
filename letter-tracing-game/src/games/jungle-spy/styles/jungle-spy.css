@@ -120,3 +120,12 @@
   top: -2%;
   width: clamp(20px, 3vw, 36px);
 }
+
+/* ── Finale ── */
+
+.jsp-finale-heading {
+  font-size: clamp(30px, 7.5vmin, 52px);
+}
+.jsp-finale-mascot {
+  width: clamp(88px, 20vmin, 150px);
+}
