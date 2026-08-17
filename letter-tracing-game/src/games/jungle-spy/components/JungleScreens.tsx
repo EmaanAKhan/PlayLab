@@ -267,12 +267,8 @@ export function JungleGrid() {
         />
       </div>
 
-      
       {/* Letter tiles */}
-      <div
-        className="pl-symbol-grid relative z-10 w-full max-w-md gap-2.5 md:max-w-2xl"
-        style={cssVars({ "--pl-min": "52px" })}
-      >
+      <div className="jsp-letter-grid relative z-10 w-full max-w-md gap-2.5 md:max-w-2xl">
         {JUNGLE_ANIMALS.map((a, i) => {
           const isFound = found.includes(a.letter);
           const display = letterCase === "lower" ? a.letter.toLowerCase() : a.letter;
@@ -281,7 +277,7 @@ export function JungleGrid() {
             <motion.button
               key={a.letter}
               onClick={() => openLetter(a.letter)}
-              className="pl-swatch relative flex aspect-square min-h-[48px] items-center justify-center rounded-2xl shadow-sm"
+              className="jsp-letter-tile pl-swatch relative flex aspect-square items-center justify-center rounded-2xl shadow-sm"
               style={cssVars({
                 "--pl-bg": isFound ? "#FFE79C" : shades[i % 3],
                 "--pl-border": isFound ? "#F2C94C" : "#8FD6A8",

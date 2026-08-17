@@ -1,0 +1,155 @@
+/**
+ * Letter Tracing — game-specific visual identity.
+ * Shared washes (bg-wash-*) live in shared/styles/utilities.css; everything
+ * here is unique to this game. All values verbatim from the original screens.
+ */
+
+/* ── Screen washes unique to this game ── */
+
+/** Completion screen: lavender → mint → sky. */
+.lt-bg-completion {
+  background: linear-gradient(160deg, #f0e8ff 0%, #e8ffe8 50%, #e8f4ff 100%);
+}
+
+/** Home shelf: reward-theme colours (set per progress) over the mint base. */
+.lt-bg-theme {
+  background: linear-gradient(180deg, var(--pl-theme-1) 0%, var(--pl-theme-2) 60%, #c8f0d8 100%);
+}
+
+/* ── Tracing board ── */
+
+/** The canvas itself — square, fluid via --trace-size (see .trace-board). */
+.trace-canvas {
+  width: var(--trace-size, 320px);
+  height: var(--trace-size, 320px);
+  border-radius: var(--radius-board);
+  display: block;
+}
+.trace-canvas--tracing {
+  cursor: crosshair;
+}
+.trace-canvas--idle {
+  cursor: default;
+}
+
+/* ── Mode select cards ── */
+
+.lt-mode-card {
+  min-height: 150px;
+}
+.lt-mode-card--free {
+  border: 3px solid var(--color-jade-light);
+}
+.lt-mode-card--star {
+  border: 3px solid var(--color-plum-light);
+}
+
+/* ── Main menu module cards ── */
+
+.lt-module-card {
+  min-height: clamp(96px, 16vh, 150px);
+}
+.lt-module-glyph {
+  font-size: clamp(30px, 6vw, 44px);
+}
+.lt-module-glyph--long {
+  font-size: clamp(20px, 4.2vw, 30px);
+}
+
+/* ── Home letter shelf ── */
+
+.lt-shelf-tile {
+  background: white;
+  border: 2px solid var(--color-lavender-line);
+}
+.lt-shelf-tile--current {
+  background: var(--color-lavender);
+  border: 2.5px solid var(--color-plum-light);
+}
+.lt-shelf-tile--done {
+  background: var(--color-plum);
+  border: 2px solid var(--color-lavender-line);
+}
+.lt-shelf-glyph {
+  font-size: clamp(19px, 2.8vw, 26px);
+}
+/** Two-digit numbers ("10") need a slightly smaller glyph to stay inside. */
+.lt-shelf-glyph--wide {
+  font-size: clamp(15px, 2.2vw, 21px);
+}
+
+/* ── Celebration screen ── */
+
+.lt-celebration-badge {
+  background: white;
+  border: 5px solid var(--pl-border);
+  width: clamp(96px, 26vmin, 208px);
+  height: clamp(96px, 26vmin, 208px);
+}
+.lt-celebration-letter {
+  font-size: clamp(56px, 16vmin, 128px);
+}
+.lt-celebration-praise {
+  font-size: clamp(24px, 7vmin, 48px);
+}
+.lt-celebration-sub {
+  font-size: clamp(13px, 3.4vmin, 18px);
+}
+
+/* ── Anchor-word picture ("b … buh … ball") ──
+   hero = big and centered while the word is spoken;
+   docked = large, hugging the RIGHT edge, overlapping the board's frame
+   slightly (negative right inset) with a playful tilt. */
+
+.lt-anchor--hero {
+  top: max(64px, 11%);
+  left: 12px;
+  right: 12px;
+  justify-content: center;
+}
+.lt-anchor--docked {
+  top: max(72px, 13%);
+  left: auto;
+  right: clamp(-14px, -1.2vmin, -6px);
+  justify-content: flex-end;
+}
+.lt-anchor-card {
+  gap: 6px;
+  padding: 16px 20px 12px;
+}
+.lt-anchor-card--docked {
+  gap: 4px;
+  padding: 10px 12px 8px;
+}
+.lt-anchor-img {
+  width: clamp(140px, 32vmin, 260px);
+  height: clamp(140px, 32vmin, 260px);
+}
+.lt-anchor-img--docked {
+  /* stays LARGE when docked — a big sticker beside the board, not a thumbnail */
+  width: clamp(110px, 24vmin, 200px);
+  height: clamp(110px, 24vmin, 200px);
+}
+.lt-anchor-word {
+  font-size: clamp(15px, 2.4vmin, 19px);
+}
+.lt-anchor-word--docked {
+  font-size: clamp(13px, 2vmin, 16px);
+}
+
+/* ── Letter Order (sequencing) ── */
+
+/** An answer slot: geometry + colours arrive per-tile via cssVars. */
+.lt-slot {
+  width: var(--pl-size);
+  height: var(--pl-size);
+  background: var(--pl-bg, white);
+  border-color: var(--pl-border, var(--color-lavender));
+}
+/** A draggable letter tile (available tray + drag ghost). */
+.lt-tile {
+  width: var(--pl-size);
+  height: var(--pl-size);
+  background: var(--pl-bg);
+  border: 2.5px solid var(--pl-border);
+}

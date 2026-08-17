@@ -27,7 +27,7 @@ export function MagnetSplash({ groupIndex, onStart, onStartFromA, onExitPortal }
   const nextLetters = hasProgress ? GROUPS[groupIndex].join(" ") : "";
 
   return (
-    <div className="relative flex h-full w-full flex-col overflow-y-auto overflow-x-hidden px-4 py-4">
+    <div className="mm-stage relative flex h-full w-full flex-col overflow-y-auto overflow-x-hidden px-4 py-4">
       <KitchenBackdrop />
 
       {onExitPortal && (
@@ -77,7 +77,7 @@ export function MagnetSplash({ groupIndex, onStart, onStartFromA, onExitPortal }
             </div>
             <div className="flex gap-2" aria-hidden="true">
               {["a", "b", "c"].map((l, i) => (
-                <PuzzleMagnet key={l} letter={l} colorIndex={i} size="46px" />
+                <PuzzleMagnet key={l} letter={l} colorIndex={i} size="var(--mm-slot, 46px)" />
               ))}
             </div>
           </div>

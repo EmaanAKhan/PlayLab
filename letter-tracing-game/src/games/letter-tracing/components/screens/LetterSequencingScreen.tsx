@@ -15,6 +15,7 @@ import { playCorrectSound, playIncorrectSound } from "@shared/audio/sfx";
 import { SceneDecor } from "@shared/components/animations/SceneDecor";
 import { RotateDevicePrompt } from "@shared/components/ui/RotateDevicePrompt";
 import { cssVars, type PlayLabCssVar } from "@shared/styles/cssVars";
+import { TeachingHand } from "@shared/components/game/TeachingHand";
 
 interface LetterSequencingScreenProps {
   onHome: () => void;
@@ -71,45 +72,6 @@ function getTileColor(letter: string) {
 }
 
 // ─── Drag state ───────────────────────────────────────────────────────────────
-
-/** Ghost teaching hand — loops: press on the letter → glide to the slot →
- *  release → fade, until the child touches anything. Purely visual. */
-function HintHand({ fx, fy, tx, ty }: { fx: number; fy: number; tx: number; ty: number }) {
-  return (
-    <motion.div
-      className="pointer-events-none absolute left-0 top-0 z-30"
-      initial={{ x: fx, y: fy, opacity: 0, scale: 1 }}
-      animate={{
-        x: [fx, fx, tx, tx, tx],
-        y: [fy, fy, ty, ty, ty],
-        opacity: [0, 1, 1, 1, 0],
-        scale: [1, 0.85, 0.85, 1.05, 1],
-      }}
-      transition={{
-        duration: 2.8,
-        times: [0, 0.18, 0.72, 0.85, 1],
-        repeat: Infinity,
-        repeatDelay: 1.1,
-        ease: "easeInOut",
-      }}
-      aria-hidden="true"
-    >
-      {/* soft touch ripple under the fingertip */}
-      <div className="lt-hint-halo absolute" />
-      {/* the hand, fingertip anchored at (0,0) */}
-      <svg width="44" height="48" viewBox="0 0 44 48" className="lt-hint-hand">
-        <path
-          d="M13 4 Q13 0 16.5 0 Q20 0 20 4 L20 18 Q22 16 25 17 Q28 18 28 21 Q30 19.5 33 21 Q35.5 22.3 35 25 Q38 24.5 39 27 Q40.5 31 38 36 Q35 43 27 45 Q17 47 12 40 Q8 34 7 27 Q6.4 22 10 21.5 Q12 21.3 13 23 Z"
-          fill="#FFDFC4"
-          stroke="#E8B48E"
-          strokeWidth="1.6"
-          strokeLinejoin="round"
-        />
-        <path d="M13 23 L13 4" stroke="#E8B48E" strokeWidth="1.2" opacity="0.5" />
-      </svg>
-    </motion.div>
-  );
-}
 
 interface DragState {
   letter: string;
@@ -558,7 +520,7 @@ export function LetterSequencingScreen({ onHome }: LetterSequencingScreenProps) 
         })}
       </motion.div>
 
-      {hint && !drag && <HintHand fx={hint.fx} fy={hint.fy} tx={hint.tx} ty={hint.ty} />}
+      {hint && !drag && <TeachingHand fx={hint.fx} fy={hint.fy} tx={hint.tx} ty={hint.ty} />}
 
       {/* Available letters */}
       <div className="flex w-full max-w-md md:max-w-2xl flex-col items-center gap-3">

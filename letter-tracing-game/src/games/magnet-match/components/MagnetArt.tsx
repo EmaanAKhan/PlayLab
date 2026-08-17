@@ -135,7 +135,11 @@ export function PuzzleMagnet({
 }) {
   const c = MAGNET_COLORS[colorIndex % MAGNET_COLORS.length];
   return (
-    <span className="pl-box block" style={cssVars({ "--pl-size": `${size}px` })} aria-hidden="true">
+    // `size` is already a complete CSS length (a var()/calc() tied to
+    // --mm-pot), so it is passed through verbatim — appending "px" here
+    // produced "calc(...)px", which browsers drop outright, leaving every
+    // magnet with no width at all.
+    <span className="pl-box block" style={cssVars({ "--pl-size": size })} aria-hidden="true">
       <svg
         viewBox="0 -13 100 113"
         className={`h-full w-full ${gray ? "" : "mm-piece-shadow"}`}

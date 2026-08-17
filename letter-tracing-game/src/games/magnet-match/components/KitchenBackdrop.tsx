@@ -11,6 +11,12 @@ import { motion } from "framer-motion";
  * bottom. Camera is a child standing in front of the counter — nothing
  * top-down or isometric. Decoration only: pointer-events none, aria-hidden.
  * Ambient motion is limited to the flame flicker + one steam wisp.
+ *
+ * The furniture is deliberately split into two EDGE-ANCHORED clusters with
+ * an empty middle. The game (chef, pot, letters) always plays in the centre
+ * of the screen, so the centre of the wall has to stay quiet — a busy stove
+ * or window directly behind the letters is exactly the kind of competing
+ * detail this product avoids.
  */
 export function KitchenBackdrop() {
   return (
@@ -27,11 +33,15 @@ export function KitchenBackdrop() {
         <line x1="0" y1="46" x2="420" y2="46" stroke="#EBD9A0" strokeWidth="1.6" />
       </svg>
 
-      {/* wall fixtures — true proportions, height-capped, centered */}
+      {/* ── LEFT wall cluster: fridge, cabinet, stove ───────────────────────
+             Anchored to the left edge (xMinYMax) so it hugs the wall and
+             scales with the viewport instead of drifting toward the middle.
+             The flame and steam are children of this SVG, so they sit on the
+             burner at every size by construction. */}
       <svg
-        viewBox="0 0 420 170"
-        preserveAspectRatio="xMidYMax meet"
-        className="mm-fixtures absolute left-1/2 -translate-x-1/2"
+        viewBox="0 0 200 170"
+        preserveAspectRatio="xMinYMax meet"
+        className="mm-fixtures-left absolute"
       >
         {/* fridge (far left) */}
         <rect x="8" y="34" width="54" height="136" rx="8" fill="#CBE6F2" />
@@ -44,7 +54,7 @@ export function KitchenBackdrop() {
         <rect x="102" y="10" width="24" height="44" rx="4" fill="#F7DA9E" />
         <circle cx="97" cy="32" r="2.2" fill="#B4874A" />
         <circle cx="107" cy="32" r="2.2" fill="#B4874A" />
-        {/* stove: hood, burners, oven with warm glow + flame */}
+        {/* stove: hood, burners, oven with warm glow */}
         <path d="M146 0 L186 0 L196 40 L136 40 Z" fill="#B9D2E3" />
         <rect x="138" y="40" width="56" height="7" rx="3" fill="#9FBFD4" />
         <rect x="136" y="108" width="60" height="62" rx="6" fill="#F4F1EA" />
@@ -56,6 +66,39 @@ export function KitchenBackdrop() {
         {/* small pot ON the stove (front view) */}
         <rect x="152" y="82" width="30" height="16" rx="4" fill="#8C99A6" />
         <rect x="149" y="80" width="36" height="5" rx="2.5" fill="#77828E" />
+        {/* stove flame — soft flicker (ambient motion #1) */}
+        <motion.ellipse
+          className="mm-flame"
+          cx="167"
+          cy="80"
+          rx="3.4"
+          ry="5"
+          fill="#F2B84D"
+          animate={{ scaleY: [1, 1.25, 0.9, 1.1, 1], opacity: [0.8, 1, 0.75, 0.95, 0.8] }}
+          transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
+        />
+        {/* steam wisp rising off the pot (ambient motion #2) */}
+        <motion.circle
+          className="mm-steam"
+          cx="168"
+          cy="72"
+          r="4.5"
+          fill="rgba(255,255,255,0.55)"
+          initial={{ y: 0, opacity: 0 }}
+          animate={{ y: -22, opacity: [0, 0.7, 0] }}
+          transition={{ duration: 5.5, repeat: Infinity, ease: "easeOut" }}
+        />
+      </svg>
+
+      {/* ── RIGHT wall cluster: utensils, window, clock, shelves ─────────────
+             Same idea mirrored (xMaxYMax). The viewBox keeps the original
+             x-coordinates and simply windows onto them, so the artwork is
+             untouched. */}
+      <svg
+        viewBox="200 0 220 170"
+        preserveAspectRatio="xMaxYMax meet"
+        className="mm-fixtures-right absolute"
+      >
         {/* hanging utensils */}
         <line x1="210" y1="30" x2="210" y2="46" stroke="#8B6547" strokeWidth="2.5" />
         <ellipse cx="210" cy="51" rx="5" ry="7" fill="#A5B2BE" />
@@ -66,7 +109,6 @@ export function KitchenBackdrop() {
         {/* window with daylight + sill plant */}
         <rect x="256" y="8" width="78" height="92" rx="8" fill="white" />
         <rect x="262" y="14" width="66" height="80" rx="5" fill="#D6EDF7" />
-        <path d="M262 14 L328 94 M328 14 L262 94" stroke="white" strokeWidth="0" />
         <line x1="295" y1="14" x2="295" y2="94" stroke="white" strokeWidth="5" />
         <line x1="262" y1="54" x2="328" y2="54" stroke="white" strokeWidth="5" />
         <circle cx="272" cy="100" r="7" fill="#5DBE8A" />
@@ -75,7 +117,7 @@ export function KitchenBackdrop() {
         <circle cx="352" cy="22" r="13" fill="white" stroke="#C97B4A" strokeWidth="3" />
         <line x1="352" y1="22" x2="352" y2="14" stroke="#8A5A2E" strokeWidth="2.4" strokeLinecap="round" />
         <line x1="352" y1="22" x2="358" y2="24" stroke="#8A5A2E" strokeWidth="2.4" strokeLinecap="round" />
-        {/* shelf with stacked plates + jars + veg */}
+        {/* shelf with stacked plates + jars */}
         <rect x="336" y="52" width="78" height="7" rx="3" fill="#C97B4A" />
         <ellipse cx="352" cy="49" rx="13" ry="3.5" fill="#E8ECF2" />
         <ellipse cx="352" cy="45" rx="13" ry="3.5" fill="#F4F6FA" />
@@ -90,20 +132,6 @@ export function KitchenBackdrop() {
         <circle cx="404" cy="88" r="7" fill="#E85D5D" />
         <path d="M402 82 q2 -4 5 -3" stroke="#5DBE8A" strokeWidth="2" fill="none" />
       </svg>
-
-      {/* stove flame — soft flicker (ambient motion #1) */}
-      <motion.div
-        className="mm-flame absolute rounded-full"
-        animate={{ scaleY: [1, 1.25, 0.9, 1.1, 1], opacity: [0.8, 1, 0.75, 0.95, 0.8] }}
-        transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
-      />
-      {/* steam wisp above the stove pot (ambient motion #2) */}
-      <motion.div
-        className="mm-steam absolute rounded-full"
-        initial={{ y: 0, opacity: 0 }}
-        animate={{ y: -42, opacity: [0, 0.7, 0] }}
-        transition={{ duration: 5.5, repeat: Infinity, ease: "easeOut" }}
-      />
 
       {/* the COUNTER — front-facing: top edge, then doors/drawers/handles */}
       <svg viewBox="0 0 420 90" preserveAspectRatio="none" className="mm-counter absolute bottom-0 left-0 w-full">

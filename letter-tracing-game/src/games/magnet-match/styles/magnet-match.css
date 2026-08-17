@@ -6,6 +6,26 @@
  * every viewport width.
  */
 
+/* ── The one measurement the whole station is built from ──────────────────
+   Everything the child touches — pot, gray targets, tray magnets, the chef,
+   the gaps between them — is a fixed multiple of --mm-pot. Before this they
+   were independent clamp()s in mixed units (vmin for one, vw for another,
+   % of an auto-height box for a third), so they only agreed at the exact
+   viewport they were tuned on and drifted apart everywhere else: letters
+   spilling over the rim, gaps collapsing to zero, magnets bigger than the
+   holes they drop into. One variable makes the proportions exact at every
+   size, because they are literally the same number scaled.
+
+   The pot is bounded on BOTH axes: min() against 40vh means a short
+   landscape phone shrinks the pot instead of pushing the tray off-screen. */
+.mm-stage {
+  --mm-pot: clamp(150px, min(34vmin, 40vh), 300px);
+  /* a tray magnet — the drag target, never below a 48px finger */
+  --mm-magnet: calc(var(--mm-pot, 240px) * 0.32);
+  /* a gray target letter sitting in the soup */
+  --mm-slot: calc(var(--mm-pot, 240px) * 0.19);
+}
+
 /* ── Kitchen stage ── */
 
 .mm-wall {
@@ -15,26 +35,35 @@
   bottom: clamp(64px, 16vh, 140px);
   height: clamp(40px, 10vh, 84px);
 }
-.mm-fixtures {
+/* The kitchen furniture lives on the two SIDE walls, never the middle.
+   One centred fixtures strip meant that on any wide screen the whole
+   kitchen bunched into a narrow column directly behind the pot — cluttering
+   the one area that has to stay readable — while the side walls sat empty.
+   Two edge-anchored clusters read as a room the child is standing in AND
+   leave the centre clear for the game. */
+.mm-fixtures-left,
+.mm-fixtures-right {
   bottom: clamp(64px, 16vh, 140px);
-  width: min(100%, 1800px);
-  height: clamp(140px, 36vh, 340px);
+  width: clamp(132px, 27vw, 470px);
+  height: clamp(120px, 30vh, 300px);
 }
+.mm-fixtures-left {
+  left: 0;
+}
+.mm-fixtures-right {
+  right: 0;
+}
+
+/* The flame + steam now live INSIDE the stove's own SVG, so they track the
+   burner automatically at every viewport instead of being re-derived from
+   the layout with hand-written calc() (which is what made them drift off
+   the stove on wide screens). These only set the transform box. */
 .mm-flame {
-  left: calc(50% - min(50%, 900px) + min(100%, 1800px) * 0.395);
-  bottom: clamp(150px, 37vh, 320px);
-  width: 10px;
-  height: 14px;
-  background: radial-gradient(ellipse at bottom, #f2b84d, #e8863d);
-  filter: blur(1px);
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
 }
 .mm-steam {
-  left: calc(50% - min(50%, 900px) + min(100%, 1800px) * 0.4);
-  bottom: clamp(190px, 44vh, 380px);
-  width: 13px;
-  height: 13px;
-  background: rgba(255, 255, 255, 0.5);
-  filter: blur(3px);
+  transform-box: fill-box;
 }
 .mm-counter {
   height: clamp(64px, 16vh, 140px);
@@ -57,7 +86,7 @@
   width: clamp(96px, 22vmin, 180px);
 }
 .mm-chef-level {
-  width: clamp(120px, 20vmin, 190px);
+  width: calc(var(--mm-pot, 240px) * 0.62);
 }
 .mm-chef-finale {
   width: clamp(140px, 32vmin, 220px);
@@ -66,12 +95,39 @@
 .mm-station {
   border: 3px solid rgba(201, 123, 74, 0.25);
 }
+/** Station padding + inner gap scale with the pot, so the card hugs its
+    contents identically at every size (vw/vmin padding did not). */
+.mm-station--level {
+  gap: calc(var(--mm-pot, 240px) * 0.08);
+  padding: calc(var(--mm-pot, 240px) * 0.06) calc(var(--mm-pot, 240px) * 0.07);
+}
 .mm-pot-splash {
   width: clamp(120px, 26vmin, 200px);
   aspect-ratio: 260 / 240;
 }
 .mm-pot {
-  width: clamp(200px, 38vmin, 310px);
+  width: var(--mm-pot, 240px);
+}
+
+/** The play row: chef | station. */
+.mm-play-row {
+  gap: calc(var(--mm-pot, 240px) * 0.06);
+}
+
+/** The tray column beside the pot. */
+.mm-tray {
+  gap: calc(var(--mm-pot, 240px) * 0.08);
+}
+
+/** The three gray targets, stacked in the soup.
+    Top offset lands the first letter exactly ON the soup surface: the pot
+    art is 260x240 with its surface at y=52, and the box is width-driven, so
+    52/240 * (240/260) = 0.20 of the pot's WIDTH. The gap is a calc() rather
+    than a percentage because a percentage row-gap resolves against an auto
+    height — it silently computed to zero and the letters touched. */
+.mm-slot-column {
+  top: calc(var(--mm-pot, 240px) * 0.21);
+  gap: calc(var(--mm-pot, 240px) * 0.035);
 }
 .mm-pot-art {
   aspect-ratio: 260 / 240;

@@ -27,7 +27,10 @@ export function AnimalDisplay({ art }: { art: string }) {
       key={art}
       src={animalPhotoPath(art)}
       alt=""
-      className="h-full w-full rounded-lg object-cover"
+      // object-CONTAIN: the whole animal stays visible whatever the photo's
+      // proportions are. Any leftover space reads as the white mount of the
+      // frame around it, so a tall or wide photo still looks deliberate.
+      className="h-full w-full object-contain"
       onError={() => setPhotoFailed(true)}
       draggable={false}
     />

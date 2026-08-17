@@ -9,6 +9,7 @@ import { CelebrationOverlay } from "@shared/components/game/CelebrationOverlay";
 import { useElementSize } from "@shared/hooks/useElementSize";
 import { useScheduler } from "@shared/hooks/useScheduler";
 import { cssVars } from "@shared/styles/cssVars";
+import { TeachingHand } from "@shared/components/game/TeachingHand";
 import { playClickSound, playStarPop, playIncorrectSound, playChime } from "@shared/audio/sfx";
 import { playClip, playSequence, preloadClips, clipText, stopVoice } from "@shared/audio/voice";
 import { shuffle } from "@shared/utils/random";
@@ -46,6 +47,9 @@ export function MagnetLevel({ groupIndex, onGroupComplete }: MagnetLevelProps) {
   const [flying, setFlying] = useState<{ letter: string; fx: number; fy: number; tx: number; ty: number } | null>(null);
   /** slot currently under the dragged magnet — glows as a "drop here" cue */
   const [hoverSlot, setHoverSlot] = useState<string | null>(null);
+  /** Ghost hand shown until the child drags anything (see TeachingHand). */
+  const [hint, setHint] = useState<{ fx: number; fy: number; tx: number; ty: number } | null>(null);
+  const hintDismissedRef = useRef(false);
   /** slot that just received a wrong magnet — shakes gently */
   const [wrongSlot, setWrongSlot] = useState<string | null>(null);
   /** slot that just got filled — shows the landing ring/sparkle burst */
@@ -56,6 +60,7 @@ export function MagnetLevel({ groupIndex, onGroupComplete }: MagnetLevelProps) {
 
   const [rootRef, dims] = useElementSize();
   const targetRefs = useRef<Map<string, HTMLDivElement>>(new Map());
+  const trayRefs = useRef<Map<string, HTMLDivElement>>(new Map());
 
   // every timer tracked + cleared on unmount — no stale advances/audio
   const schedule = useScheduler();
@@ -82,9 +87,36 @@ export function MagnetLevel({ groupIndex, onGroupComplete }: MagnetLevelProps) {
     return { x: cx - (r?.left ?? 0), y: cy - (r?.top ?? 0) };
   }, [rootRef]);
 
+  // Teaching nudge: once the group has settled (and the intro narration has
+  // had its say), a ghost hand demonstrates the very first move — press this
+  // magnet, carry it to that hole. It measures the REAL elements through the
+  // same toRoot() the drag engine uses, so it always points at where things
+  // actually are. It loops until the child touches a magnet, then never
+  // returns for this group. MagnetLevel is remounted per group, so a new trio
+  // gets one fresh demonstration and nothing more.
+  useEffect(() => {
+    if (hintDismissedRef.current) return;
+    const t = setTimeout(() => {
+      if (hintDismissedRef.current) return;
+      const letter = tray.find((l) => !matched.includes(l));
+      if (!letter) return;
+      const from = trayRefs.current.get(letter);
+      const to = targetRefs.current.get(letter);
+      if (!from || !to) return;
+      const f = from.getBoundingClientRect();
+      const g = to.getBoundingClientRect();
+      const a = toRoot(f.left + f.width / 2, f.top + f.height / 2);
+      const b = toRoot(g.left + g.width / 2, g.top + g.height / 2);
+      setHint({ fx: a.x, fy: a.y, tx: b.x, ty: b.y });
+    }, 1900);
+    return () => clearTimeout(t);
+  }, [tray, matched, toRoot]);
+
   const startDrag = useCallback(
     (e: React.PointerEvent<HTMLElement>, letter: string) => {
       if (celebrating || drag || flying || matched.includes(letter)) return;
+      hintDismissedRef.current = true; // the child has got it — never nag again
+      setHint(null);
       e.currentTarget.setPointerCapture(e.pointerId);
       playClickSound(); // soft pickup
       const p = toRoot(e.clientX, e.clientY);
@@ -194,21 +226,20 @@ export function MagnetLevel({ groupIndex, onGroupComplete }: MagnetLevelProps) {
     [drag, toRoot, land, schedule, rootRef]
   );
 
-  const magnetSize = "clamp(58px, 12vmin, 96px)";
-  // Slots are a literal clamp equal to exactly 20% of the pot's own clamp
-  // above (200/38vmin/310 * 0.2 = 40/7.6vmin/62) — scaling a clamp() by a
-  // constant scales it identically at every viewport size, not just the
-  // endpoints, so this is mathematically tied to the pot at every size
-  // without a live CSS var reference (that reference is what broke last
-  // time: it silently pointed at a variable that was never defined). If the
-  // pot's clamp above ever changes, multiply all three numbers by 0.2 again.
-  const slotSize = "clamp(40px, 7.6vmin, 62px)";
+  // Both sizes are live multiples of --mm-pot, which .mm-stage defines on
+  // this screen's root (see magnet-match.css). Everything the child sees is
+  // therefore the same number scaled — a magnet cannot end up bigger than
+  // the hole it drops into, at any viewport, the way independently-tuned
+  // clamp()s in mixed units allowed. Both carry the same fallback the
+  // stylesheet uses, so a missing variable degrades instead of collapsing.
+  const magnetSize = "var(--mm-magnet, 77px)";
+  const slotSize = "var(--mm-slot, 46px)";
   const lettersDone = Math.min(groupIndex * 3, 26);
 
   return (
     <div
       ref={rootRef}
-      className="relative flex h-full w-full flex-col items-center overflow-hidden px-4 py-3"
+      className="mm-stage relative flex h-full w-full flex-col items-center overflow-hidden px-4 py-3"
       onPointerMove={moveDrag}
       onPointerUp={endDrag}
       onPointerCancel={endDrag}
@@ -252,7 +283,7 @@ export function MagnetLevel({ groupIndex, onGroupComplete }: MagnetLevelProps) {
       {/* ── main play area: chef standing beside the white cooking-station
              card; the card holds the pot + magnet tray (the reference's
              FULL KITCHEN → WHITE CARD → POT+LETTERS hierarchy) ── */}
-      <div className="relative z-10 flex w-full max-w-3xl flex-1 items-center justify-center gap-[1.5vw] py-[2vh]">
+      <div className="mm-play-row relative z-10 flex w-full max-w-3xl flex-1 items-center justify-center py-[2vh]">
         {/* the chef, on the counter beside the station — gentle idle
             breathing, bigger bounce on a correct match */}
         <motion.div
@@ -266,7 +297,7 @@ export function MagnetLevel({ groupIndex, onGroupComplete }: MagnetLevelProps) {
 
         {/* the white cooking-station card */}
         <div
-          className="mm-station relative flex items-center gap-[2.5vw] rounded-[2rem] bg-white/95 px-[2.2vw] py-[2.5vmin] shadow-card"
+          className="mm-station mm-station--level relative flex items-center rounded-[2rem] bg-white/95 shadow-card"
         >
         {/* the pot with its gray targets */}
         <div className="mm-pot relative">
@@ -277,7 +308,7 @@ export function MagnetLevel({ groupIndex, onGroupComplete }: MagnetLevelProps) {
             <SoupPot />
           </div>
           {/* target slots — staggered inside the pot like the reference */}
-          <div className="absolute inset-x-0 top-[14%] flex flex-col items-center gap-[2.5%]">
+          <div className="mm-slot-column absolute inset-x-0 flex flex-col items-center">
             {group.map((l, i) => {
               const isMatched = matched.includes(l);
               return (
@@ -342,7 +373,7 @@ export function MagnetLevel({ groupIndex, onGroupComplete }: MagnetLevelProps) {
         </div>
 
         {/* the magnet tray */}
-        <div className="flex flex-col items-center gap-[2.5vmin]">
+        <div className="mm-tray flex flex-col items-center">
           {tray.map((l) => {
             const gone = matched.includes(l);
             const beingDragged = drag?.letter === l;
@@ -350,6 +381,10 @@ export function MagnetLevel({ groupIndex, onGroupComplete }: MagnetLevelProps) {
               <AnimatePresence key={l} mode="popLayout">
                 {!gone && (
                   <motion.div
+                    ref={(el) => {
+                      if (el) trayRefs.current.set(l, el);
+                      else trayRefs.current.delete(l);
+                    }}
                     className={`touch-none ${beingDragged ? "cursor-grabbing opacity-25" : "cursor-grab"}`}
                     initial={{ scale: 0, x: 30 }}
                     animate={{ scale: 1, x: 0 }}
@@ -369,6 +404,12 @@ export function MagnetLevel({ groupIndex, onGroupComplete }: MagnetLevelProps) {
         </div>
         </div>
       </div>
+
+      {/* the ghost hand demonstrating the first move — visual instructions
+          first, so a child who cannot read can still start unaided */}
+      {hint && !drag && !flying && !celebrating && (
+        <TeachingHand fx={hint.fx} fy={hint.fy} tx={hint.tx} ty={hint.ty} />
+      )}
 
       {/* correct-drop flight: the magnet arcs from the drop point into its
           slot, shrinking from hand-size to slot-size, then land() fires */}

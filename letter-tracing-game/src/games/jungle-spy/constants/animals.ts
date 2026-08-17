@@ -9,7 +9,7 @@ export interface JungleAnimal {
 /**
  * REAL PHOTOS (optional, recommended): drop licensed images into
  *   public/games/jungle-spy/animals/<art-key>.jpg
- * e.g. alligator.jpg, bear.jpg, "umbrella bird.jpg", "x-ray fish.jpg".
+ * e.g. ant.jpg, bear.jpg, "umbrella bird.jpg", "x-ray fish.jpg".
  * Free-license sources: pexels.com, pixabay.com. Any animal without a photo
  * automatically falls back to its pastel illustration — mix freely.
  */
@@ -18,7 +18,7 @@ export function animalPhotoPath(art: string): string {
 }
 
 export const JUNGLE_ANIMALS: readonly JungleAnimal[] = [
-  { letter: "A", name: "Alligator", art: "alligator" },
+  { letter: "A", name: "Ant", art: "ant" },
   { letter: "B", name: "Bear", art: "bear" },
   { letter: "C", name: "Cat", art: "cat" },
   { letter: "D", name: "Dog", art: "dog" },

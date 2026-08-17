@@ -107,6 +107,35 @@ export const Zebra: Art = () => (
   </svg>
 );
 
+export const Ant: Art = () => (
+  <svg viewBox="0 0 100 100">
+    {/* legs first, so the body sits over where they join */}
+    <path
+      d="M40 52 L24 40 M40 58 L22 58 M42 64 L26 76 M60 52 L76 40 M60 58 L78 58 M58 64 L74 76"
+      stroke="#8A5A3B"
+      strokeWidth="3.2"
+      strokeLinecap="round"
+      fill="none"
+    />
+    {/* three body segments — head, thorax, abdomen */}
+    <ellipse cx="50" cy="72" rx="19" ry="15" fill="#B4693E" />
+    <ellipse cx="50" cy="55" rx="11" ry="9" fill="#C97B4A" />
+    <circle cx="50" cy="38" r="12" fill="#B4693E" />
+    {/* soft highlight on the abdomen keeps it friendly, not buggy */}
+    <ellipse cx="45" cy="68" rx="8" ry="5" fill="#D89468" opacity="0.7" />
+    {/* antennae */}
+    <path d="M44 29 Q38 20 32 18 M56 29 Q62 20 68 18" stroke="#8A5A3B" strokeWidth="2.6" fill="none" strokeLinecap="round" />
+    <circle cx="32" cy="18" r="2.4" fill="#8A5A3B" />
+    <circle cx="68" cy="18" r="2.4" fill="#8A5A3B" />
+    {/* big friendly face */}
+    <circle cx="45" cy="36" r="3.4" fill="white" />
+    <circle cx="55" cy="36" r="3.4" fill="white" />
+    <circle cx="45.5" cy="36.5" r="1.8" fill="#3D3D5C" />
+    <circle cx="55.5" cy="36.5" r="1.8" fill="#3D3D5C" />
+    <path d="M45 43 Q50 47 55 43" stroke="#3D3D5C" strokeWidth="2" fill="none" strokeLinecap="round" />
+  </svg>
+);
+
 export const Alligator: Art = () => (
   <svg viewBox="0 0 100 100">
     <ellipse cx="46" cy="58" rx="34" ry="16" fill="#8FD6A8" />
@@ -369,7 +398,7 @@ export const Yak: Art = () => (
 
 /** Registry keyed by lowercase animal name */
 export const ANIMAL_ART: Record<string, Art> = {
-  alligator: Alligator, bear: Bear, cat: Cat, dog: Dog, elephant: Elephant,
+  ant: Ant, alligator: Alligator, bear: Bear, cat: Cat, dog: Dog, elephant: Elephant,
   frog: Frog, giraffe: Giraffe, horse: Horse, iguana: Iguana,
   jellyfish: Jellyfish, koala: Koala, lion: Lion, monkey: Monkey, nest: Nest,
   octopus: Octopus, penguin: Penguin, quail: Quail, rabbit: Rabbit,

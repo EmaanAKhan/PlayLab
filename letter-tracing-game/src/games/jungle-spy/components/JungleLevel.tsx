@@ -1,6 +1,6 @@
 "use client";
 import { StarRow } from "@shared/components/ui/StarRow";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { useJungleStore } from "@games/jungle-spy/store/jungleStore";
@@ -20,30 +20,98 @@ import {
 } from "@shared/audio/sfx";
 import { playClip, preloadClips, clipText, stopVoice } from "@shared/audio/voice";
 
-/** Age-5 tuning: HUGE, well-spaced bubbles; no failure states.
- *  Exactly 5 copies of the target to find, among 16 visible letters. */
-const TOTAL_BUBBLES = 16;
+/** Age-5 tuning: big, well-spaced letters; no failure states. Always exactly
+ *  5 copies of the target to find (that is what the 5 stars count), among as
+ *  many decoys as the measured play area comfortably holds — see bubbleCount. */
 const TARGET_COUNT = 5;
 
-/** Bubble positions on two concentric ORBITS around the animal (percent of
- *  the play area) — a rounded ring composition instead of the old rigid
- *  edge rows, nudged downward so the top of the scene can breathe. Small
- *  random jitter per round keeps it organic without ever overlapping: ring
- *  spacing guarantees clearance and every point is clamped inside bounds. */
-function orbitSlots(): [number, number][] {
-  const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
+/** ── Board layout ─────────────────────────────────────────────────────────
+ *
+ *  The board is laid out in PIXELS against the measured play area, then
+ *  stored as percentages. Percentages alone are not enough: a 13%-of-width
+ *  gap is 250px on a desktop and 45px on a phone, so a single set of percent
+ *  numbers cannot keep letters both spread out AND non-overlapping on every
+ *  screen. Working in pixels makes spacing mean the same thing everywhere;
+ *  storing percentages means the board still reflows if the window changes.
+ *
+ *  Three things scale with the measured area:
+ *    - the letter size (the CSS clamp used to be viewport-based, which on a
+ *      short wide screen sized letters off the viewport HEIGHT while they
+ *      were being spaced by container WIDTH — the two disagreed),
+ *    - the spacing between letters, which is a multiple of the letter size,
+ *    - how many letters the board holds, so a big screen fills out to its
+ *      edges instead of leaving the sides empty.
+ */
+interface PlayArea {
+  /** play-area size in CSS px */
+  w: number;
+  h: number;
+  /** the animal's occupied box in px, relative to the play area */
+  keep: { left: number; top: number; right: number; bottom: number };
+}
+
+/** Letter size tiers as a fraction of the play area's SHORT side, so letters
+ *  stay in proportion whatever the aspect ratio. Bounded: never too small to
+ *  tap, never comically large on a big display. */
+const FONT_TIERS = [0.115, 0.096, 0.08, 0.065] as const;
+const FONT_MIN = 30;
+const FONT_MAX = 104;
+
+function letterFontPx(tier: number, play: PlayArea): number {
+  const base = Math.min(play.w, play.h);
+  return Math.round(Math.min(FONT_MAX, Math.max(FONT_MIN, FONT_TIERS[tier] * base)));
+}
+
+/** How many letters a board holds: one per ~11,000px² of usable area (the
+ *  play area minus the animal), bounded below so a small screen is still a
+ *  real puzzle, and above by the decoy pool — 25 other letters exist, so 28
+ *  is the most we can place without repeating one twice. */
+function bubbleCount(play: PlayArea): number {
+  const keepW = play.keep.right - play.keep.left;
+  const keepH = play.keep.bottom - play.keep.top;
+  const usable = play.w * play.h - Math.max(0, keepW) * Math.max(0, keepH);
+  return Math.max(14, Math.min(28, Math.round(usable / 11000)));
+}
+
+/** Scatter `count` points across the WHOLE play area (percent coordinates).
+ *
+ *  Rejection sampling with two constraints, both measured in px:
+ *    1. nothing lands on the animal — a target hidden behind the picture is
+ *       unfindable, so the animal's real measured box is a keep-out;
+ *    2. nothing lands within a letter's width of another letter.
+ *  Spacing eases off in steps if a board proves hard to fill, so this always
+ *  terminates and always places every letter.
+ *
+ *  Coordinates are rounded to 2dp — they end up in inline custom properties,
+ *  and full float precision is a needless hydration risk. */
+function scatterSlots(count: number, play: PlayArea): [number, number][] {
+  const letter = letterFontPx(0, play);
+  const baseGap = letter * 1.05;
+  const pad = letter * 0.55; // keep whole glyphs inside the edges
+  const margin = letter * 0.6; // clearance around the animal
+  const keep = {
+    left: play.keep.left - margin,
+    right: play.keep.right + margin,
+    top: play.keep.top - margin,
+    bottom: play.keep.bottom + margin,
+  };
+
   const pts: [number, number][] = [];
-  const CX = 50;
-  const CY = 55; // ring center sits below screen-center — breathing room up top
-  for (let i = 0; i < 10; i++) {
-    const a = (i / 10) * Math.PI * 2 - Math.PI / 2 + (Math.random() - 0.5) * 0.14;
-    pts.push([clamp(CX + 44 * Math.cos(a), 5, 95), clamp(CY + 40 * Math.sin(a), 8, 93)]);
-  }
-  for (let i = 0; i < 6; i++) {
-    const a = (i / 6) * Math.PI * 2 - Math.PI / 2 + Math.PI / 6 + (Math.random() - 0.5) * 0.16;
-    // inner ring pushed out (29,25 → 35,31) so even the largest medallion
-    // size keeps clear water between the animal and the nearest letters
-    pts.push([clamp(CX + 35 * Math.cos(a), 8, 92), clamp(CY + 31 * Math.sin(a), 12, 90)]);
+  const spanX = Math.max(1, play.w - pad * 2);
+  const spanY = Math.max(1, play.h - pad * 2);
+
+  for (let relax = 0; relax < 9 && pts.length < count; relax++) {
+    const gap = Math.max(baseGap * 0.55, baseGap * (1 - relax * 0.09));
+    for (let tries = 0; tries < 700 && pts.length < count; tries++) {
+      const x = pad + Math.random() * spanX;
+      const y = pad + Math.random() * spanY;
+      if (x > keep.left && x < keep.right && y > keep.top && y < keep.bottom) continue;
+      if (pts.some(([px, py]) => Math.hypot(px - x, py - y) < gap)) continue;
+      pts.push([
+        Number(((x / play.w) * 100).toFixed(2)),
+        Number(((y / play.h) * 100).toFixed(2)),
+      ]);
+    }
   }
   return pts;
 }
@@ -60,16 +128,6 @@ interface Bubble {
   color: string;
 }
 
-/** Free-floating colorful letters in FOUR clearly different sizes, like a
- *  printed I-Spy sheet. The tap area stays ≥48px via button padding even for
- *  the smallest tier. */
-const LETTER_FONT = [
-  "clamp(56px, 11.5vmin, 96px)",
-  "clamp(48px, 9.6vmin, 80px)",
-  "clamp(40px, 8vmin, 66px)",
-  "clamp(32px, 6.5vmin, 54px)",
-] as const;
-
 /** Bright, friendly letter colors (reference-sheet palette) */
 const LETTER_COLORS = [
   "#E85D9E", // pink
@@ -82,14 +140,15 @@ const LETTER_COLORS = [
   "#E86A6A", // coral
 ];
 
-function buildBubbles(target: string, letterCase: "upper" | "lower"): Bubble[] {
+function buildBubbles(target: string, letterCase: "upper" | "lower", play: PlayArea): Bubble[] {
+  const total = bubbleCount(play);
   const others = JUNGLE_ANIMALS.map((a) => a.letter).filter((l) => l !== target);
-  const decoys = shuffle(others).slice(0, TOTAL_BUBBLES - TARGET_COUNT);
+  const decoys = shuffle(others).slice(0, total - TARGET_COUNT);
   const letters = shuffle([
     ...Array.from({ length: TARGET_COUNT }, () => ({ letter: target, isTarget: true })),
     ...decoys.map((l) => ({ letter: l, isTarget: false })),
   ]);
-  const slots = orbitSlots();
+  const slots = scatterSlots(letters.length, play);
   // Sizes cycle big→medium→small so every board mixes clearly different
   // bubble sizes without any becoming a tiny target
   return letters.map((l, i) => ({
@@ -104,6 +163,16 @@ function buildBubbles(target: string, letterCase: "upper" | "lower"): Bubble[] {
   }));
 }
 
+/** Re-scatter the letters already on the board into a changed play area —
+ *  after an orientation flip or a window resize. Every letter, and every
+ *  letter already found, is preserved: only the positions change, so a child
+ *  mid-puzzle never loses progress to a layout change. */
+function respread(bubbles: Bubble[], play: PlayArea): Bubble[] {
+  const slots = scatterSlots(bubbles.length, play);
+  if (slots.length < bubbles.length) return bubbles; // keep what works
+  return bubbles.map((b, i) => ({ ...b, x: slots[i][0], y: slots[i][1] }));
+}
+
 export function JungleLevel() {
   const router = useRouter();
   const { currentLetter, letterCase, markFound, setLetter } = useJungleStore();
@@ -111,10 +180,44 @@ export function JungleLevel() {
   const Art = ANIMAL_ART[animal.art];
   const display = letterCase === "lower" ? currentLetter.toLowerCase() : currentLetter;
 
-  const [bubbles, setBubbles] = useState<Bubble[]>(() => buildBubbles(currentLetter, letterCase));
+  const [bubbles, setBubbles] = useState<Bubble[]>([]);
   const [shakeId, setShakeId] = useState<number | null>(null);
   const [won, setWon] = useState(false);
   const [round, setRound] = useState(0);
+
+  // The board is scattered against the MEASURED play area and the animal's
+  // MEASURED box, so it fills whatever screen it is on and never covers the
+  // picture. Measured in a layout effect (before paint) and re-measured on
+  // resize, so an orientation flip re-scatters into the new shape.
+  const playRef = useRef<HTMLDivElement>(null);
+  const animalRef = useRef<HTMLDivElement>(null);
+  const [play, setPlay] = useState<PlayArea | null>(null);
+  useLayoutEffect(() => {
+    const el = playRef.current;
+    if (!el) return;
+    const measure = () => {
+      const box = el.getBoundingClientRect();
+      const a = animalRef.current?.getBoundingClientRect();
+      const keep = a
+        ? {
+            left: a.left - box.left,
+            top: a.top - box.top,
+            right: a.right - box.left,
+            bottom: a.bottom - box.top,
+          }
+        : { left: box.width * 0.36, top: box.height * 0.3, right: box.width * 0.64, bottom: box.height * 0.8 };
+      setPlay({ w: el.offsetWidth, h: el.offsetHeight, keep });
+    };
+    measure();
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
+  }, []);
+
+  /** A coarse fingerprint of the play area: changes on a real resize or an
+   *  orientation flip, not on every sub-pixel reflow. */
+  const layoutKey = play ? `${Math.round(play.w / 40)}x${Math.round(play.h / 40)}` : null;
+  const boardKey = `${currentLetter}|${letterCase}|${round}`;
+  const builtRef = useRef<{ board: string; layout: string } | null>(null);
   // Measured from the actual rendered root — NOT window.innerWidth/height via
   // position:fixed, which breaks (confetti bunches to one side) inside any
   // transformed Framer Motion ancestor. This matches the tracing game's
@@ -122,10 +225,29 @@ export function JungleLevel() {
   const [rootRef, dims] = useElementSize();
 
   const targetsLeft = useMemo(
-    () => bubbles.filter((b) => b.isTarget && !b.popped).length,
+    () => (bubbles.length ? bubbles.filter((b) => b.isTarget && !b.popped).length : TARGET_COUNT),
     [bubbles]
   );
-  const targetsTotal = useMemo(() => bubbles.filter((b) => b.isTarget).length, [bubbles]);
+  const targetsTotal = useMemo(
+    () => (bubbles.length ? bubbles.filter((b) => b.isTarget).length : TARGET_COUNT),
+    [bubbles]
+  );
+
+  // A fresh board for a new letter / replay, and a re-scatter (progress kept)
+  // when the play area itself changes shape.
+  useEffect(() => {
+    if (!play || !layoutKey) return;
+    const prev = builtRef.current;
+    if (prev?.board === boardKey && prev.layout === layoutKey) return;
+    if (prev?.board === boardKey) {
+      builtRef.current = { board: boardKey, layout: layoutKey };
+      setBubbles((current) => (current.length ? respread(current, play) : current));
+      return;
+    }
+    builtRef.current = { board: boardKey, layout: layoutKey };
+    setBubbles(buildBubbles(currentLetter, letterCase, play));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [boardKey, layoutKey, play]);
 
   // Fresh board + the pre-generated intro sentence on letter change / replay;
   // preload everything this level needs (same clip system as letter tracing)
@@ -135,7 +257,6 @@ export function JungleLevel() {
       `jungle-find-${l}`, `letter-${l}`,
       "instr-try-again", "cheer-great-job", "instr-again", "instr-next",
     ]);
-    setBubbles(buildBubbles(currentLetter, letterCase));
     setWon(false);
     const t = setTimeout(() => void playClip(`jungle-find-${l}`), 350);
     return () => { clearTimeout(t); stopVoice(); };
@@ -225,12 +346,18 @@ export function JungleLevel() {
         <StarRow earned={targetsTotal - targetsLeft} total={targetsTotal} />
       </div>
 
-      {/* Play area */}
-      <div className="relative z-10 mt-1 w-full max-w-3xl flex-1">
+      {/* Play area — FULL WIDTH on purpose. It used to be capped at max-w-3xl
+          (768px), so on any wider screen the letters could only ever be
+          scattered inside a centred 768px column and the sides of the screen
+          stayed empty however many letters were added. */}
+      <div ref={playRef} className="relative z-10 mt-1 w-full flex-1">
         {/* Animal center */}
-        {/* anchored at (50%, 55%) — the SAME center orbitSlots() rings around,
-            so the letter ring and the animal can never drift apart */}
-        <div className="pointer-events-none absolute left-1/2 top-[55%] flex -translate-x-1/2 -translate-y-1/2 flex-col items-center">
+        {/* anchored at (50%, 55%) — the SAME point ANIMAL_KEEP_OUT excludes,
+            so a scattered letter can never land on top of the picture */}
+        <div
+          ref={animalRef}
+          className="pointer-events-none absolute left-1/2 top-[55%] flex -translate-x-1/2 -translate-y-1/2 flex-col items-center"
+        >
         <motion.div
           className="flex flex-col items-center"
           initial={{ scale: 0.6, opacity: 0 }}
@@ -239,13 +366,10 @@ export function JungleLevel() {
           aria-label={animal.name}
           role="img"
         >
-          {/* soft medallion keeps the animal the unmistakable centerpiece */}
-          <div
-            className="jsp-medallion flex items-center justify-center rounded-full shadow-lg"
-          >
-            <div className="jsp-medallion-photo flex items-center justify-center overflow-hidden rounded-full">
-              <AnimalDisplay art={animal.art} />
-            </div>
+          {/* the animal as a framed print — a square photo with a thin white
+              border, so nothing of the animal is cropped away by a circle */}
+          <div className="jsp-photo-frame flex items-center justify-center shadow-lg">
+            <AnimalDisplay art={animal.art} />
           </div>
           <p
             className="jsp-animal-name mt-1.5 rounded-full bg-white/85 px-3 py-0.5 text-center font-rounded font-black text-plum/80 shadow-soft"
@@ -277,7 +401,10 @@ export function JungleLevel() {
                 >
                   <span
                     className="pl-glyph pl-tint font-rounded font-black leading-none drop-shadow-sm"
-                    style={cssVars({ "--pl-color": b.color, "--pl-font-size": LETTER_FONT[b.size] })}
+                    style={cssVars({
+                      "--pl-color": b.color,
+                      "--pl-font-size": `${play ? letterFontPx(b.size, play) : 40}px`,
+                    })}
                   >
                     {b.letter}
                   </span>
@@ -292,7 +419,7 @@ export function JungleLevel() {
         {won && (
           <CelebrationOverlay tintClassName="jsp-win-tint" gapClassName="gap-4" blur="3px" size={dims}>
             <motion.div
-              className="jsp-win-photo overflow-hidden rounded-full"
+              className="jsp-photo-frame jsp-win-photo shadow-lg"
               initial={{ scale: 0.5, y: 20 }}
               animate={{ scale: 1, y: [0, -14, 0] }}
               transition={{
