@@ -372,12 +372,12 @@ export function LetterSequencingScreen({ onHome }: LetterSequencingScreenProps) 
   if (phase === "success") {
     return (
       <div
-        className="bg-wash-lavender-mint relative flex h-full w-full flex-col items-center justify-center gap-6 overflow-y-auto overflow-x-hidden px-6 py-6">
+        className="bg-wash-lavender-mint relative flex h-full w-full flex-col items-center gap-6 overflow-y-auto overflow-x-hidden px-6 py-6">
         <div className="pointer-events-none fixed inset-0 z-40" aria-hidden="true">
           <CelebrationSparkles active width={dimensions.w} height={dimensions.h} />
         </div>
         <motion.div
-          className="relative z-10 flex flex-col items-center gap-4 text-center"
+          className="relative z-10 mt-auto flex flex-col items-center gap-4 text-center"
           initial={{ scale: 0.5, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ type: "spring", stiffness: 220, damping: 16 }}
@@ -389,7 +389,7 @@ export function LetterSequencingScreen({ onHome }: LetterSequencingScreenProps) 
           </p>
         </motion.div>
         <motion.div
-          className="relative z-10 flex w-full max-w-md md:max-w-2xl flex-col gap-3"
+          className="relative z-10 mb-auto flex w-full max-w-md md:max-w-2xl flex-col gap-3"
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.4 }}

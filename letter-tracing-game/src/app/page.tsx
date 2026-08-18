@@ -13,10 +13,10 @@ import { cssVars } from "@shared/styles/cssVars";
 export default function PortalHome() {
   return (
     <div
-      className="portal-desk flex h-full w-full items-center justify-center overflow-y-auto overflow-x-hidden px-4 py-6">
+      className="portal-desk flex h-full w-full overflow-y-auto overflow-x-hidden px-4 py-6">
       {/* The page */}
       <motion.div
-        className="portal-page relative flex w-full max-w-2xl flex-col items-center gap-8 rounded-2xl px-6 py-10 md:px-12"
+        className="portal-page relative m-auto flex w-full max-w-2xl flex-col items-center gap-8 rounded-2xl px-6 py-10 md:px-12"
         initial={{ y: 14, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.5 }}

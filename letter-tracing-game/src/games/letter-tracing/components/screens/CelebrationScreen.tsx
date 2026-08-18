@@ -75,11 +75,11 @@ export function CelebrationScreen({ letter, onAgain, onNext }: CelebrationScreen
   return (
     <div
       ref={containerRef}
-      className="bg-wash-lavender-mint relative flex h-full w-full flex-col items-center justify-center overflow-y-auto overflow-x-hidden px-4 py-3">
+      className="bg-wash-lavender-mint relative flex h-full w-full flex-col items-center overflow-y-auto overflow-x-hidden px-4 py-3">
       {/* Full-screen sparkles */}
       <CelebrationSparkles active width={dimensions.w} height={dimensions.h} />
 
-      <div className="relative z-10 flex flex-col items-center gap-[clamp(12px,3vmin,32px)]">
+      <div className="relative z-10 my-auto flex flex-col items-center gap-[clamp(12px,3vmin,32px)]">
         {/* Big letter badge — sized by the SHORT edge so landscape always fits */}
         <motion.div
           className="lt-celebration-badge flex items-center justify-center rounded-4xl shadow-card"

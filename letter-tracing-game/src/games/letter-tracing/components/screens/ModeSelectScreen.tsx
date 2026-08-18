@@ -24,11 +24,11 @@ function StarIcon({ filled, size = 22 }: { filled: boolean; size?: number }) {
 export function ModeSelectScreen({ onSelect }: ModeSelectScreenProps) {
   return (
     <div
-      className="bg-wash-lavender-sky relative flex h-full w-full flex-col items-center justify-center gap-6 overflow-y-auto overflow-x-hidden px-6 py-6">
+      className="bg-wash-lavender-sky relative flex h-full w-full flex-col items-center gap-6 overflow-y-auto overflow-x-hidden px-6 py-6">
       <SceneDecor variant="minimal" />
 
       <motion.h2
-        className="relative z-10 text-center font-rounded text-2xl font-black text-plum md:text-3xl"
+        className="relative z-10 mt-auto text-center font-rounded text-2xl font-black text-plum md:text-3xl"
         initial={{ y: -16, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.4 }}
@@ -36,7 +36,7 @@ export function ModeSelectScreen({ onSelect }: ModeSelectScreenProps) {
         How do you want to play?
       </motion.h2>
 
-      <div className="relative z-10 flex w-full max-w-lg flex-col gap-5 sm:flex-row sm:justify-center">
+      <div className="relative z-10 mb-auto flex w-full max-w-lg flex-col gap-5 sm:flex-row sm:justify-center">
         {/* FREE MODE */}
         <motion.button
           onClick={() => onSelect("free")}
