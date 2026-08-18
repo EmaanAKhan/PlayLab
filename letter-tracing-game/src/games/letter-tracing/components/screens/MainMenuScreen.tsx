@@ -50,7 +50,7 @@ const MODULES = [
 export function MainMenuScreen({ onSelectModule, onExitPortal }: MainMenuScreenProps) {
   return (
     <div
-      className="bg-wash-meadow relative flex h-full w-full flex-col items-center justify-between gap-4 overflow-y-auto overflow-x-hidden px-5 py-6">
+      className="bg-wash-meadow relative flex h-full w-full flex-col items-center gap-4 overflow-y-auto overflow-x-hidden px-5 py-6">
       {/* Garden environment: birds & butterflies in the outer bands */}
       <HomeEnvironment />
 
@@ -104,7 +104,7 @@ export function MainMenuScreen({ onSelectModule, onExitPortal }: MainMenuScreenP
 
       {/* Logo */}
       <motion.div
-        className="relative z-10 flex flex-col items-center gap-2"
+        className="relative z-10 mt-auto flex flex-col items-center gap-2"
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
@@ -175,7 +175,7 @@ export function MainMenuScreen({ onSelectModule, onExitPortal }: MainMenuScreenP
 
       {/* Bottom hint */}
       <motion.p
-        className="relative z-10 font-rounded text-xs font-semibold text-plum/35"
+        className="relative z-10 mb-auto font-rounded text-xs font-semibold text-plum/35"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.7 }}

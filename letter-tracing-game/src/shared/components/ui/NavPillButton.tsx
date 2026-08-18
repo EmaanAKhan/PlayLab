@@ -3,7 +3,7 @@
 import { motion } from "framer-motion";
 
 /** Which game's identity the pill borrows. Chevron + label share the tone. */
-export type NavTone = "plum" | "jungle" | "ocean" | "kitchen";
+export type NavTone = "plum" | "jungle" | "ocean" | "kitchen" | "dino";
 
 /**
  * How opaque the white pill sits over the scene behind it. The three levels
@@ -35,6 +35,9 @@ const TONE_CHEVRON: Record<NavTone, string> = {
   jungle: "stroke-jungle",
   ocean: "stroke-ocean",
   kitchen: "stroke-kitchen",
+  // Dino Dig's teal is a fill colour; its navy ink is what stays legible as a
+  // small chevron/label on the white pill.
+  dino: "stroke-dino-ink",
 };
 
 const TONE_LABEL: Record<NavTone, string> = {
@@ -44,6 +47,7 @@ const TONE_LABEL: Record<NavTone, string> = {
   jungle: "text-jungle",
   ocean: "text-ocean",
   kitchen: "text-kitchen",
+  dino: "text-dino-ink",
 };
 
 const SURFACE: Record<NavSurface, string> = {

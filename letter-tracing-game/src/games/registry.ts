@@ -42,6 +42,14 @@ export const GAMES: readonly GameMeta[] = [
     colors: { bg: "#FBE7A2", border: "#E8B33D", text: "#8A5A2E" },
   },
   {
+    id: "dino-dig",
+    title: "Dino Dig",
+    description: "Feed dinos & bridge the river",
+    glyph: "🦕",
+    route: "/games/dino-dig",
+    colors: { bg: "#CFF1F4", border: "#00C4CC", text: "#0A1A3A" },
+  },
+  {
     id: "feed-the-shark",
     title: "Feed the Shark",
     description: "Match big & small letters",

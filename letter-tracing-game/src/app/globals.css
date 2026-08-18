@@ -25,6 +25,7 @@
 @import '../games/letter-hunt/styles/letter-hunt.css';
 @import '../games/magnet-match/styles/magnet-match.css';
 @import '../games/feed-the-shark/styles/feed-the-shark.css';
+@import '../games/dino-dig/styles/dino-dig.css';
 @import '../app/portal.css';
 
 @tailwind base;

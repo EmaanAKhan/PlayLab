@@ -63,7 +63,7 @@ export function JungleSplash({ onExitPortal }: { onExitPortal?: () => void }) {
   };
   return (
     <div
-      className="jsp-bg-canopy relative flex h-full w-full flex-col items-center justify-center gap-8 overflow-y-auto overflow-x-hidden px-6 py-8">
+      className="jsp-bg-canopy relative flex h-full w-full flex-col items-center gap-8 overflow-y-auto overflow-x-hidden px-6 py-8">
       <JungleBackdrop />
 
       {onExitPortal && (
@@ -118,7 +118,7 @@ export function JungleSplash({ onExitPortal }: { onExitPortal?: () => void }) {
       ))}
 
       <motion.div
-        className="relative z-10 flex flex-col items-center gap-2"
+        className="relative z-10 mt-auto flex flex-col items-center gap-2"
         initial={{ y: -16, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
       >
@@ -166,7 +166,7 @@ export function JungleSplash({ onExitPortal }: { onExitPortal?: () => void }) {
       </div>
 
       {/* The whole gang waits at the bottom, gently bobbing */}
-      <div className="pointer-events-none relative z-10 flex w-full max-w-3xl items-end justify-center gap-1 px-2 sm:gap-3" aria-hidden="true">
+      <div className="pointer-events-none relative z-10 mb-auto flex w-full max-w-3xl items-end justify-center gap-1 px-2 sm:gap-3" aria-hidden="true">
         {[
           { A: Lion, w: "clamp(44px, 8vmin, 76px)", d: 0 },
           { A: Giraffe, w: "clamp(52px, 9.5vmin, 88px)", d: 0.3 },
@@ -239,7 +239,7 @@ export function JungleGrid() {
 
       {/* Top bar — case toggle now centered on its own, no longer sharing
           the row with the back button */}
-      <div className="relative z-10 flex w-full max-w-md items-center justify-center md:max-w-2xl">
+      <div className="relative z-10 mt-auto flex w-full max-w-md items-center justify-center md:max-w-2xl">
         <div className="flex rounded-full bg-white/70 p-1" role="group" aria-label="Letter size">
           {(["upper", "lower"] as const).map((c) => (
             <button
@@ -308,6 +308,7 @@ export function JungleGrid() {
       </div>
 
       {/* Unified start flow — beneath the grid, matching the other games */}
+      <div className="relative z-10 mb-auto">
       <StartOptions
         hasProgress={hasProgress || runComplete}
         onContinue={
@@ -318,6 +319,7 @@ export function JungleGrid() {
         continueLabel={runComplete ? "See my alphabet!" : `Continue · ${nextUnfound}`}
         onStartFromA={() => openLetter("A")}
       />
+      </div>
     </div>
   );
 }

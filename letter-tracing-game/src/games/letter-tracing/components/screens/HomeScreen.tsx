@@ -175,7 +175,7 @@ export function HomeScreen({ onContinue, onStartFromA, onSelectLetter, onBack }:
 
   return (
     <div
-      className="lt-bg-theme relative flex h-full w-full flex-col items-center justify-between gap-4 overflow-y-auto overflow-x-hidden"
+      className="lt-bg-theme relative flex h-full w-full flex-col items-center gap-4 overflow-y-auto overflow-x-hidden"
       style={cssVars({ "--pl-theme-1": bg1, "--pl-theme-2": bg2 })}
     >
       {/* ── Animated nature background ─────────────────────────────────── */}
@@ -346,7 +346,7 @@ export function HomeScreen({ onContinue, onStartFromA, onSelectLetter, onBack }:
       )}
 
       {/* ── Content ──────────────────────────────────────────────────────── */}
-      <div className="relative z-10 flex w-full flex-col items-center px-6 pt-10">
+      <div className="relative z-10 mt-auto flex w-full flex-col items-center px-6 pt-6">
         {/* Logo */}
         <motion.div
           className="mb-5 flex flex-col items-center gap-2"
@@ -484,7 +484,7 @@ export function HomeScreen({ onContinue, onStartFromA, onSelectLetter, onBack }:
           Jungle Spy: Continue (when progress exists) + Start from A/1. The
           shelf above covers "choose a letter". */}
       <motion.div
-        className="relative z-10 px-6 pb-10"
+        className="relative z-10 mb-auto px-6 pb-6"
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.35 }}

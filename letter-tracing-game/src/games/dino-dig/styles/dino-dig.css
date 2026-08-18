@@ -1,0 +1,285 @@
+/**
+ * Alphabet Dino Dig — game-specific visual identity (the prehistoric night).
+ *
+ * Colours come from the design tokens (src/shared/styles/tokens.ts → the
+ * `dino` group), reached here as var(--color-dino-*), so this sheet and the
+ * Tailwind utilities used in the components can never disagree.
+ */
+
+/* ── The one measurement the whole screen is built from ────────────────────
+   Stone, dig site, fossil ring and dinosaur are all fixed multiples of
+   --dd-unit. Magnet Match learned this the hard way: independently-tuned
+   clamp()s in mixed units (vmin here, vw there, % of an auto-height box
+   somewhere else) only agree at the exact viewport they were tuned on and
+   drift apart everywhere else — letters bigger than the holes they drop into,
+   gaps collapsing to zero. One variable makes the proportions exact at every
+   size, because they are literally the same number scaled.
+
+   Bounded on BOTH axes: 13vw keeps a wide desktop from turning the tray into
+   billboards, 10.5vh keeps a short viewport from pushing the stones off the
+   bottom, and the 58px floor keeps every drag target above the 44px touch
+   minimum on the narrowest phone. */
+.dd-stage {
+  --dd-unit: clamp(58px, min(10.5vh, 13vw), 96px);
+  --dd-stone: var(--dd-unit);
+  --dd-ring: calc(var(--dd-unit) * 1.55);
+}
+
+/* Short landscape (phones on their side): shrink the chain rather than let the
+   column overflow a ~360px-tall viewport. 46px still clears the touch floor. */
+@media (orientation: landscape) and (max-height: 560px) {
+  .dd-stage {
+    --dd-unit: clamp(46px, 11vh, 72px);
+  }
+}
+
+/* ── The world ── */
+
+.dd-bg {
+  background: linear-gradient(
+    180deg,
+    var(--color-dino-deep) 0%,
+    var(--color-dino-night) 45%,
+    var(--color-dino-dusk) 100%
+  );
+}
+.dd-sky {
+  background: radial-gradient(
+    ellipse at 62% 34%,
+    rgba(255, 127, 0, 0.16) 0%,
+    rgba(10, 26, 58, 0) 55%
+  );
+}
+/** A single ember drifting up from the crater. */
+.dd-ember {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--color-dino-ember);
+  box-shadow: 0 0 8px 2px rgba(255, 90, 43, 0.55);
+}
+
+/* ── Splash ── */
+
+.dd-subtitle {
+  color: var(--color-dino-lime);
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.45);
+}
+.dd-ring-splash {
+  /* The FossilRing inside sizes itself from --dd-ring (see .dd-ring). The
+     splash has no .dd-stage ancestor to define it, so it is set here — a
+     plain `width` on this wrapper would never reach the ring. */
+  --dd-ring: clamp(96px, 26vmin, 190px);
+}
+
+/* ── The stone alphabet strip ──────────────────────────────────────────────
+   Tiles WRAP by design (see AlphabetStrip.tsx): 26 of them on one line would
+   be ~11px wide on a 360px phone. Wrapping keeps each tile legible and makes
+   horizontal overflow impossible at any width. */
+.dd-strip {
+  padding: 0 2px;
+}
+.dd-tile {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: clamp(13px, 3.1vw, 24px);
+  height: clamp(13px, 3.1vw, 24px);
+  border-radius: 5px;
+  font-family: "Nunito", "Varela Round", sans-serif;
+  font-size: clamp(8px, 1.9vw, 14px);
+  font-weight: 900;
+  line-height: 1;
+  transition: background-color var(--duration-base, 300ms) var(--ease-settle),
+    color var(--duration-base, 300ms) var(--ease-settle);
+}
+/** Not yet reached — cold, buried stone. */
+.dd-tile--pending {
+  background: rgba(201, 212, 227, 0.14);
+  color: rgba(201, 212, 227, 0.45);
+}
+/** Already dug up. */
+.dd-tile--dug {
+  background: var(--color-dino);
+  color: var(--color-dino-night);
+}
+/** One of the two letters being dug right now. */
+.dd-tile--target {
+  background: rgba(168, 255, 0, 0.18);
+  color: var(--color-dino-lime);
+  box-shadow: inset 0 0 0 1.5px var(--color-dino-lime);
+}
+/** The anchor letter on the fossil ring — the warm glow. */
+.dd-tile--current {
+  background: var(--color-dino-orange);
+  color: #ffffff;
+  box-shadow: 0 0 10px 2px rgba(255, 127, 0, 0.55);
+}
+
+/* ── Question copy ── */
+
+.dd-question {
+  font-size: clamp(13px, 3.4vw, 22px);
+}
+.dd-hint {
+  font-size: clamp(11px, 2.7vw, 17px);
+}
+
+/* ── Fossil ring ── */
+
+.dd-ring {
+  width: var(--dd-ring, 120px);
+  height: var(--dd-ring, 120px);
+}
+.dd-ring-letter {
+  font-size: calc(var(--dd-ring, 120px) * 0.52);
+  color: var(--color-dino-night);
+  line-height: 1;
+}
+
+/* ── Feed the Dinos ── */
+
+.dd-feeder {
+  /* the hungry dino asking for a letter */
+  width: calc(var(--dd-unit) * 2.3);
+}
+
+.dd-bubble {
+  min-width: calc(var(--dd-unit) * 1.05);
+  border-radius: 20px;
+}
+
+.dd-bubble-letter {
+  font-size: calc(var(--dd-unit) * 0.72);
+  line-height: 1;
+  color: var(--color-dino-night);
+}
+
+/** One tummy dot per serving — fills orange as the dinos get fed. */
+.dd-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: rgba(201, 212, 227, 0.25);
+}
+
+.dd-dot--full {
+  background: var(--color-dino-orange);
+}
+
+/* ── River Crossing ── */
+
+.dd-river {
+  background: linear-gradient(180deg, rgba(0, 196, 204, 0.32), rgba(0, 150, 160, 0.5));
+  border-radius: 18px;
+}
+
+.dd-bank {
+  background: var(--color-dino-dirt-light);
+  border-radius: 14px;
+}
+
+/** A dino waiting in the queue or resting on the far bank. */
+.dd-mini {
+  width: calc(var(--dd-unit) * 0.6);
+}
+
+/** The dino whose crossing this is. */
+.dd-crosser {
+  width: calc(var(--dd-unit) * 1.05);
+}
+
+/**
+ * One bridge stone. Sized so the widest case — four stones plus both banks —
+ * still fits a 360px phone (see StonesLevel).
+ */
+.dd-bstone {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: calc(var(--dd-unit) * 0.72);
+  height: calc(var(--dd-unit) * 0.62);
+  border-radius: 38% 42% 40% 44% / 55% 50% 58% 52%;
+  font-weight: 900;
+  font-size: calc(var(--dd-unit) * 0.32);
+}
+
+/** Placed — a solid stone the dino can step on. */
+.dd-bstone--set {
+  background: var(--color-dino-stone);
+  color: var(--color-dino-night);
+  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.28);
+}
+
+/** The gap waiting for the next letter — the drop target. */
+.dd-bstone--gap {
+  background: rgba(10, 26, 58, 0.45);
+  border: 3px dashed var(--color-dino-orange);
+  color: var(--color-dino-orange);
+}
+
+/** The gap while the dragged stone hovers within drop range. */
+.dd-bstone--hot {
+  border-color: var(--color-dino-lime);
+  background: rgba(168, 255, 0, 0.16);
+}
+
+/** Stones still to come this crossing. */
+.dd-bstone--faint {
+  background: rgba(201, 212, 227, 0.12);
+}
+
+/* ── Letter stones ── */
+
+.dd-stone {
+  width: var(--dd-stone, 76px);
+  height: var(--dd-stone, 76px);
+}
+.dd-stone-letter {
+  font-size: calc(var(--dd-stone, 76px) * 0.46);
+  color: var(--color-dino-night);
+  line-height: 1;
+}
+/** The stone floating above the finger mid-drag. */
+.dd-ghost {
+  width: var(--dd-stone, 76px);
+  height: var(--dd-stone, 76px);
+  transform: translate(-50%, -58%) rotate(-5deg);
+  filter: drop-shadow(0 10px 14px rgba(0, 0, 0, 0.45));
+}
+
+/* ── The stone tray ── */
+
+.dd-tray {
+  /* clear the home-indicator on notched phones, never less than 0.5rem */
+  padding-bottom: max(env(safe-area-inset-bottom), 0.5rem);
+}
+
+/* ── Characters ── */
+
+.dd-dino-cast {
+  /* one of seven on the splash row — sized so all seven fit ONE row on a
+     360px phone (7 × 36 + gaps < 360) and stay inside max-w-lg on desktop */
+  width: clamp(36px, 9vmin, 60px);
+}
+.dd-dino-parade {
+  /* the finale parade — same one-row constraint, slightly bigger */
+  width: clamp(38px, 9.5vmin, 66px);
+}
+
+/* ── Round-complete overlay ── */
+
+.dd-celebrate-tint {
+  background: rgba(10, 26, 58, 0.62);
+}
+.dd-cheer {
+  font-size: clamp(24px, 6vmin, 40px);
+}
+
+/* ── Finale ── */
+
+.dd-finale-heading {
+  font-size: clamp(30px, 8vmin, 56px);
+  color: var(--color-dino-orange);
+  text-shadow: 0 3px 10px rgba(0, 0, 0, 0.5);
+}

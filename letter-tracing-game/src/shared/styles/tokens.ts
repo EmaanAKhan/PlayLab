@@ -72,6 +72,24 @@ export const colors = {
     gold: "#E8B33D",
   },
   blush: { DEFAULT: "#FF8FA3", deep: "#D14D82", pale: "#FFD6E8", soft: "#FF9EBC" },
+  /**
+   * Alphabet Dino Dig — the one dark-surfaced game in the portal. `ink` is the
+   * navy used for TEXT ON WHITE (the back pill, card labels): the teal DEFAULT
+   * is a fill colour and does not carry enough contrast for small type.
+   */
+  dino: {
+    DEFAULT: "#00C4CC",
+    night: "#0A1A3A",
+    deep: "#061027",
+    dusk: "#14295A",
+    ink: "#0A1A3A",
+    orange: "#FF7F00",
+    ember: "#FF5A2B",
+    lime: "#A8FF00",
+    dirt: "#4A2C17",
+    dirtLight: "#6B4423",
+    stone: "#DCE5F0",
+  },
 
   /** Portal "picture-book page" surface. */
   paper: {
